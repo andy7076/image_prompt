@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
@@ -14,6 +14,7 @@ import {
   Heart,
   History,
   KeyRound,
+  Languages,
   LoaderCircle,
   Upload,
   Search,
@@ -25,6 +26,7 @@ import {
 import { categories, prompts, PROJECT_REPO } from './data.js'
 
 const CATEGORY_LABELS = new Map(categories.map((item) => [item.id, item.label]))
+const LANGUAGE_KEY = 'prompt-signal:language:v1'
 const FAVORITES_KEY = 'prompt-signal:favorites:v1'
 const IMAGE_API_CONFIG_KEY = 'prompt-signal:image-api:v1'
 const GENERATION_HISTORY_KEY = 'prompt-signal:generation-history:v1'
@@ -42,6 +44,257 @@ const PROMPT_STATUS_LABELS = {
   structured: 'STRUCTURED · FORMATTED',
   bilingual: 'BILINGUAL · CN / EN',
   reconstructed: 'RECONSTRUCTED · SOURCE DESCRIPTION',
+}
+
+const PROMPT_STATUS_LABELS_ZH = {
+  template: '模板 · 可编辑参数',
+  structured: '结构化 · 已格式化',
+  bilingual: '双语 · CN / EN',
+  reconstructed: '重构 · 来源描述',
+}
+
+const CATEGORY_TRANSLATIONS = {
+  all: { en: 'All', zh: '全部' },
+  photography: { en: 'Photography', zh: '摄影写实' },
+  product: { en: 'Product', zh: '商业产品' },
+  poster: { en: 'Poster & Type', zh: '海报字体' },
+  illustration: { en: 'Illustration', zh: '插画艺术' },
+  technical: { en: 'Infographic', zh: '图表信息图' },
+  ui: { en: 'UI', zh: 'UI 界面' },
+  characters: { en: 'Characters', zh: '角色人物' },
+  anime: { en: 'Anime', zh: '动漫' },
+  isometric: { en: 'Isometric', zh: '等距模型' },
+  brand: { en: 'Branding', zh: '品牌 Logo' },
+  scenes: { en: 'Scenes', zh: '场景叙事' },
+  architecture: { en: 'Architecture', zh: '建筑空间' },
+  documents: { en: 'Documents', zh: '文档出版' },
+  history: { en: 'Classic', zh: '历史古典' },
+  other: { en: 'Other', zh: '其他玩法' },
+}
+
+const TRANSLATIONS = {
+  en: {
+    'brand.home': 'Prompt Signal home',
+    'search.placeholder': 'Search styles, authors, prompts...',
+    'search.label': 'Search prompts',
+    'search.clear': 'Clear search',
+    'actions.label': 'Quick actions',
+    'actions.search': 'Search',
+    'actions.favorites': 'Favorites',
+    'actions.history': 'Generation history',
+    'actions.settings': 'Image model settings',
+    'actions.language': 'Switch to Chinese',
+    'actions.closeSettings': 'Close settings',
+    'actions.closeHistory': 'Close generation history',
+    'actions.showKey': 'Show API key',
+    'actions.hideKey': 'Hide API key',
+    'actions.previous': 'Previous case',
+    'actions.next': 'Next case',
+    'actions.favorite': 'Add to favorites',
+    'actions.unfavorite': 'Remove from favorites',
+    'settings.eyebrow': 'IMAGE ENGINE',
+    'settings.title': 'Image model settings',
+    'settings.note': 'Settings stay in this browser and are sent only when you generate. Use an image endpoint that follows a common Images API format.',
+    'settings.apiUrl': 'API URL',
+    'settings.apiKey': 'API KEY',
+    'settings.model': 'MODEL',
+    'settings.modelPlaceholder': 'e.g. gpt-image-2',
+    'settings.endpointPlaceholder': 'https://your-endpoint.example/v1/images/generations',
+    'settings.save': 'Save settings',
+    'settings.clear': 'Clear local settings',
+    'settings.security': 'Stored locally in this browser · never uploaded to Prompt Signal',
+    'history.eyebrow': 'LOCAL ARCHIVE',
+    'history.title': 'Generation history',
+    'history.records': '{{count}} / {{max}} RECORDS',
+    'history.clear': 'Clear history',
+    'history.open': 'Open generation record',
+    'history.resultAlt': '{{title}} generated result',
+    'history.reference': 'REFERENCE · {{name}}',
+    'history.emptyTitle': 'No generation history yet',
+    'history.emptyCopy': 'Generated images will appear here after you create them from a case.',
+    'intro.note': 'A working index of GPT-Image-2 prompts\nfrom the X and GitHub community',
+    'intro.curated': 'CURATED',
+    'filters.tabs': 'Prompt categories',
+    'filters.results': '{{count}} RESULTS',
+    'filters.sort': 'Sort results',
+    'filters.newest': 'Newest first',
+    'filters.curated': 'Curated order',
+    'filters.title': 'Title A–Z',
+    'gallery.view': 'VIEW PROMPT',
+    'gallery.unavailable': 'IMAGE UNAVAILABLE',
+    'gallery.viewDetails': 'View {{title}} details',
+    'empty.noFavorites': 'No favorites yet',
+    'empty.noMatch': 'No matching prompts',
+    'empty.viewAll': 'View all cases',
+    'loadMore.button': 'Load more cases',
+    'loadMore.status': '{{shown}} / {{total}} shown · Keep exploring the full archive',
+    'detail.close': 'CLOSE',
+    'detail.expand': 'CLICK TO EXPAND',
+    'detail.source': 'SOURCE',
+    'detail.generated': 'GENERATED',
+    'detail.curatedBy': 'CURATED BY {{author}}',
+    'detail.prompt': 'PROMPT',
+    'detail.chars': 'CHAR',
+    'detail.reference': 'REFERENCE IMAGE',
+    'detail.optional': 'OPTIONAL',
+    'detail.referenceUpload': 'Upload a local image as reference',
+    'detail.referenceHint': 'PNG / JPG / WEBP · Sent to the model when generating',
+    'detail.referenceRemove': 'Remove reference image',
+    'detail.referenceAlt': 'Reference image preview',
+    'detail.copy': 'Copy prompt',
+    'detail.generate': 'Generate',
+    'detail.checkSettings': 'Check settings',
+    'detail.download': 'Download generated result',
+    'detail.historyLabel': 'GENERATED HISTORY',
+    'detail.historyMeta': '{{model}} · {{size}} · {{quality}}',
+    'detail.loading': 'Rendering image…',
+    'detail.confirmEyebrow': 'READY TO RENDER',
+    'detail.confirmTitle': 'Generate this image?',
+    'detail.confirmCopy': 'Your edited prompt will be sent to the configured image model. The request starts only after confirmation.',
+    'detail.confirmPrompt': 'PROMPT · EDIT AGAIN BEFORE GENERATING',
+    'detail.confirmPreview': 'Click thumbnail to enlarge',
+    'detail.confirmAttached': 'ATTACHED',
+    'detail.confirmNone': 'NONE',
+    'detail.confirmCancel': 'Cancel',
+    'detail.confirmSubmit': 'Confirm generation',
+    'detail.cancelGeneration': 'Cancel generation',
+    'detail.preview': 'Image preview',
+    'errors.fetch': 'Could not reach the endpoint. Check the URL, CORS, or network settings.',
+    'errors.request': 'Request failed (HTTP {{status}}).',
+    'errors.imageResponse': 'The endpoint returned no image URL or b64_json.',
+    'errors.invalidFile': 'Choose a PNG, JPEG, or WEBP image file.',
+    'toast.copied': 'Prompt copied to clipboard',
+    'footer': 'OPEN PROMPTS · REAL OUTPUTS · 2026',
+  },
+  zh: {
+    'brand.home': 'Prompt Signal 首页',
+    'search.placeholder': '搜索风格、作者、Prompt...',
+    'search.label': '搜索 Prompt',
+    'search.clear': '清空搜索',
+    'actions.label': '快捷操作',
+    'actions.search': '搜索',
+    'actions.favorites': '收藏',
+    'actions.history': '生成记录',
+    'actions.settings': '图片模型配置',
+    'actions.language': '切换为英文',
+    'actions.closeSettings': '关闭配置',
+    'actions.closeHistory': '关闭生成记录',
+    'actions.showKey': '显示 API Key',
+    'actions.hideKey': '隐藏 API Key',
+    'actions.previous': '上一个案例',
+    'actions.next': '下一个案例',
+    'actions.favorite': '收藏',
+    'actions.unfavorite': '取消收藏',
+    'settings.eyebrow': 'IMAGE ENGINE',
+    'settings.title': '图片模型配置',
+    'settings.note': '配置会保存在当前浏览器，仅在点击生成时发送。请填写兼容常见 Images API 格式的图片接口。',
+    'settings.apiUrl': 'API URL',
+    'settings.apiKey': 'API KEY',
+    'settings.model': 'MODEL',
+    'settings.modelPlaceholder': '例如 gpt-image-2',
+    'settings.endpointPlaceholder': 'https://your-endpoint.example/v1/images/generations',
+    'settings.save': '保存配置',
+    'settings.clear': '清除本地配置',
+    'settings.security': '浏览器本地保存 · 不会上传到 Prompt Signal',
+    'history.eyebrow': 'LOCAL ARCHIVE',
+    'history.title': '生成记录',
+    'history.records': '{{count}} / {{max}} RECORDS',
+    'history.clear': '清空记录',
+    'history.open': '查看生成记录',
+    'history.resultAlt': '{{title}} 生成结果',
+    'history.reference': 'REFERENCE · {{name}}',
+    'history.emptyTitle': '还没有生成记录',
+    'history.emptyCopy': '在案例详情中生成图片后，结果会自动保存在这里。',
+    'intro.note': '从 X 与 GitHub 热门案例中筛选的\nGPT-Image-2 实战灵感库',
+    'intro.curated': '精选',
+    'filters.tabs': '案例类型',
+    'filters.results': '{{count}} 结果',
+    'filters.sort': '排序方式',
+    'filters.newest': '最新添加',
+    'filters.curated': '精选排序',
+    'filters.title': '标题排序',
+    'gallery.view': '查看 Prompt',
+    'gallery.unavailable': '图片不可用',
+    'gallery.viewDetails': '查看 {{title}} 详情',
+    'empty.noFavorites': '还没有收藏案例',
+    'empty.noMatch': '没有匹配的 Prompt',
+    'empty.viewAll': '查看全部案例',
+    'loadMore.button': '加载更多案例',
+    'loadMore.status': '已显示 {{shown}} / {{total}} · 向下探索完整案例库',
+    'detail.close': '关闭',
+    'detail.expand': '点击放大',
+    'detail.source': '原图',
+    'detail.generated': '生成图',
+    'detail.curatedBy': 'CURATED BY {{author}}',
+    'detail.prompt': 'PROMPT',
+    'detail.chars': '字符',
+    'detail.reference': 'REFERENCE IMAGE',
+    'detail.optional': '可选',
+    'detail.referenceUpload': '上传本地图片作为参考',
+    'detail.referenceHint': 'PNG / JPG / WEBP · 生成时发送给模型',
+    'detail.referenceRemove': '移除参考图',
+    'detail.referenceAlt': '待上传的参考图',
+    'detail.copy': '复制 Prompt',
+    'detail.generate': '生成',
+    'detail.checkSettings': '检查配置',
+    'detail.download': '下载生成结果',
+    'detail.historyLabel': 'GENERATED HISTORY',
+    'detail.historyMeta': '{{model}} · {{size}} · {{quality}}',
+    'detail.loading': '正在生成图像…',
+    'detail.confirmEyebrow': 'READY TO RENDER',
+    'detail.confirmTitle': '确认生成这张图片？',
+    'detail.confirmCopy': '将使用当前编辑后的 Prompt 调用已配置的图片模型。确认后才会发起请求。',
+    'detail.confirmPrompt': 'PROMPT · 可在这里二次编辑',
+    'detail.confirmPreview': '点击缩略图放大预览',
+    'detail.confirmAttached': '已附加',
+    'detail.confirmNone': '无',
+    'detail.confirmCancel': '取消',
+    'detail.confirmSubmit': '确认生成',
+    'detail.cancelGeneration': '取消生成',
+    'detail.preview': '图片预览',
+    'errors.fetch': '无法连接接口。请检查 URL、CORS 或网络设置。',
+    'errors.request': '请求失败（HTTP {{status}}）。',
+    'errors.imageResponse': '接口没有返回图片 URL 或 b64_json。',
+    'errors.invalidFile': '请选择 PNG、JPEG 或 WEBP 图片文件。',
+    'toast.copied': 'Prompt 已复制到剪贴板',
+    'footer': 'OPEN PROMPTS · REAL OUTPUTS · 2026',
+  },
+}
+
+const LanguageContext = createContext(null)
+
+function LanguageProvider({ children }) {
+  const [language, setLanguage] = useState(() => {
+    try {
+      return localStorage.getItem(LANGUAGE_KEY) === 'zh' ? 'zh' : 'en'
+    } catch {
+      return 'en'
+    }
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LANGUAGE_KEY, language)
+    } catch {
+      // Private browsing may disable localStorage; language still works for this session.
+    }
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en'
+  }, [language])
+
+  const t = (key, values = {}) => {
+    const template = TRANSLATIONS[language]?.[key] || TRANSLATIONS.en[key] || key
+    return Object.entries(values).reduce((result, [name, value]) => result.replaceAll(`{{${name}}}`, String(value)), template)
+  }
+
+  return <LanguageContext.Provider value={{ language, t, toggleLanguage: () => setLanguage((value) => value === 'en' ? 'zh' : 'en') }}>{children}</LanguageContext.Provider>
+}
+
+function useLanguage() {
+  return useContext(LanguageContext)
+}
+
+function categoryLabel(id, language) {
+  return CATEGORY_TRANSLATIONS[id]?.[language] || CATEGORY_LABELS.get(id) || id
 }
 
 function getItemSources(item) {
@@ -121,11 +374,11 @@ function writeGenerationHistory(records) {
   }
 }
 
-function formatHistoryDate(value) {
+function formatHistoryDate(value, language = 'en') {
   try {
-    return new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(value))
+    return new Intl.DateTimeFormat(language === 'zh' ? 'zh-CN' : 'en-US', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(value))
   } catch {
-    return '刚刚'
+    return language === 'zh' ? '刚刚' : 'Just now'
   }
 }
 
@@ -139,10 +392,11 @@ function IconButton({ label, children, className = '', ...props }) {
 
 function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavorites, historyCount, onHistory, onSettings }) {
   const [mobileSearch, setMobileSearch] = useState(false)
+  const { language, t, toggleLanguage } = useLanguage()
 
   return (
     <header className="site-header">
-      <a className="brand" href="#top" aria-label="Prompt Signal 首页">
+      <a className="brand" href="#top" aria-label={t('brand.home')}>
         <span className="brand-mark"><BrandMark /></span>
         <span>PROMPT<span>/SIGNAL</span></span>
       </a>
@@ -152,37 +406,42 @@ function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavori
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder="搜索风格、作者、Prompt..."
-          aria-label="搜索 Prompt"
+          placeholder={t('search.placeholder')}
+          aria-label={t('search.label')}
         />
         {search ? (
-          <button className="search-clear" onClick={() => setSearch('')} aria-label="清空搜索">
+          <button className="search-clear" onClick={() => setSearch('')} aria-label={t('search.clear')}>
             <X size={15} />
           </button>
         ) : null}
       </div>
 
-      <nav className="header-actions" aria-label="快捷操作">
-        <IconButton label="搜索" className="mobile-only" onClick={() => setMobileSearch((value) => !value)}>
+      <nav className="header-actions" aria-label={t('actions.label')}>
+        <IconButton label={t('actions.search')} className="mobile-only" onClick={() => setMobileSearch((value) => !value)}>
           <Search size={19} />
         </IconButton>
         <button
           className={`favorites-button ${showFavorites ? 'is-active' : ''}`}
           onClick={() => setShowFavorites((value) => !value)}
           aria-pressed={showFavorites}
+          aria-label={t('actions.favorites')}
         >
           <Heart size={18} fill={showFavorites ? 'currentColor' : 'none'} />
-          <span>收藏</span>
+          <span>{t('actions.favorites')}</span>
           <b>{favoriteCount}</b>
         </button>
-        <button className="history-button" onClick={onHistory} aria-label="生成记录" title="生成记录">
+        <button className="history-button" onClick={onHistory} aria-label={t('actions.history')} title={t('actions.history')}>
           <History size={18} />
-          <span>生成记录</span>
+          <span>{t('actions.history')}</span>
           <b>{historyCount}</b>
         </button>
-        <IconButton label="图片模型配置" onClick={onSettings}>
+        <IconButton label={t('actions.settings')} onClick={onSettings}>
           <Settings2 size={18} />
         </IconButton>
+        <button className="language-button" onClick={toggleLanguage} aria-label={t('actions.language')} title={t('actions.language')}>
+          <Languages size={17} />
+          <span>{language === 'en' ? '中文' : 'EN'}</span>
+        </button>
         <a className="repo-button" href={PROJECT_REPO.url} target="_blank" rel="noreferrer" title={PROJECT_REPO.name}>
           <GithubMark size={18} />
           <span className="repo-label">GitHub</span>
@@ -196,55 +455,57 @@ function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavori
 
 function SettingsPanel({ config, onChange, onSave, onClear, onClose }) {
   const [showKey, setShowKey] = useState(false)
+  const { t } = useLanguage()
   return (
-    <div className="settings-backdrop" role="dialog" aria-modal="true" aria-label="图片模型配置">
+    <div className="settings-backdrop" role="dialog" aria-modal="true" aria-label={t('settings.title')}>
       <div className="settings-panel">
         <div className="settings-heading">
-          <div><span>IMAGE ENGINE</span><h2>图片模型配置</h2></div>
-          <IconButton label="关闭配置" onClick={onClose}><X size={19} /></IconButton>
+          <div><span>{t('settings.eyebrow')}</span><h2>{t('settings.title')}</h2></div>
+          <IconButton label={t('actions.closeSettings')} onClick={onClose}><X size={19} /></IconButton>
         </div>
-        <p className="settings-note">配置会保存在当前浏览器，仅在点击生成时发送到你填写的地址。请填写兼容 OpenAI Images API 的生成接口。</p>
-        <label className="settings-field"><span>API URL</span><input value={config.endpoint} onChange={(e) => onChange({ endpoint: e.target.value })} placeholder="https://your-provider.example/v1/images/generations" /></label>
-        <label className="settings-field"><span>API KEY</span><div className="key-input"><input type={showKey ? 'text' : 'password'} value={config.apiKey} onChange={(e) => onChange({ apiKey: e.target.value })} placeholder="sk-..." autoComplete="off" /><IconButton label={showKey ? '隐藏 API Key' : '显示 API Key'} onClick={() => setShowKey((v) => !v)}>{showKey ? <EyeOff size={17} /> : <Eye size={17} />}</IconButton></div></label>
+        <p className="settings-note">{t('settings.note')}</p>
+        <label className="settings-field"><span>{t('settings.apiUrl')}</span><input value={config.endpoint} onChange={(e) => onChange({ endpoint: e.target.value })} placeholder={t('settings.endpointPlaceholder')} /></label>
+        <label className="settings-field"><span>{t('settings.apiKey')}</span><div className="key-input"><input type={showKey ? 'text' : 'password'} value={config.apiKey} onChange={(e) => onChange({ apiKey: e.target.value })} placeholder="sk-..." autoComplete="off" /><IconButton label={showKey ? t('actions.hideKey') : t('actions.showKey')} onClick={() => setShowKey((v) => !v)}>{showKey ? <EyeOff size={17} /> : <Eye size={17} />}</IconButton></div></label>
         <div className="settings-grid">
-          <label className="settings-field"><span>MODEL</span><input value={config.model} onChange={(e) => onChange({ model: e.target.value })} placeholder="例如 gpt-image-2" /></label>
+          <label className="settings-field"><span>{t('settings.model')}</span><input value={config.model} onChange={(e) => onChange({ model: e.target.value })} placeholder={t('settings.modelPlaceholder')} /></label>
           <label className="settings-field"><span>SIZE</span><select value={config.size} onChange={(e) => onChange({ size: e.target.value })}><option>auto</option><option>1024x1024</option><option>1536x1024</option><option>1024x1536</option></select></label>
           <label className="settings-field"><span>QUALITY</span><select value={config.quality} onChange={(e) => onChange({ quality: e.target.value })}><option>auto</option><option>low</option><option>medium</option><option>high</option></select></label>
         </div>
-        <div className="settings-actions"><button className="settings-save" onClick={onSave}><Check size={17} />保存配置</button><button className="settings-clear" onClick={onClear}>清除本地配置</button></div>
-        <div className="settings-security"><KeyRound size={14} />浏览器本地保存 · 不会上传到 Prompt Signal</div>
+        <div className="settings-actions"><button className="settings-save" onClick={onSave}><Check size={17} />{t('settings.save')}</button><button className="settings-clear" onClick={onClear}>{t('settings.clear')}</button></div>
+        <div className="settings-security"><KeyRound size={14} />{t('settings.security')}</div>
       </div>
     </div>
   )
 }
 
 function HistoryPanel({ records, onOpen, onClear, onClose }) {
+  const { language, t } = useLanguage()
   return (
-    <div className="history-backdrop" role="dialog" aria-modal="true" aria-label="生成记录">
+    <div className="history-backdrop" role="dialog" aria-modal="true" aria-label={t('history.title')}>
       <div className="history-panel">
         <div className="history-heading">
-          <div><span>LOCAL ARCHIVE</span><h2>生成记录</h2></div>
-          <IconButton label="关闭生成记录" onClick={onClose}><X size={19} /></IconButton>
+          <div><span>{t('history.eyebrow')}</span><h2>{t('history.title')}</h2></div>
+          <IconButton label={t('actions.closeHistory')} onClick={onClose}><X size={19} /></IconButton>
         </div>
         <div className="history-toolbar">
-          <span>{records.length} / {MAX_GENERATION_HISTORY} RECORDS</span>
-          {records.length ? <button onClick={onClear}><Trash2 size={14} />清空记录</button> : null}
+          <span>{t('history.records', { count: records.length, max: MAX_GENERATION_HISTORY })}</span>
+          {records.length ? <button onClick={onClear}><Trash2 size={14} />{t('history.clear')}</button> : null}
         </div>
         {records.length ? (
           <div className="history-grid">
             {records.map((record) => (
               <article className="history-card" key={record.id}>
-                <button className="history-card-image" onClick={() => onOpen(record)} aria-label={`查看 ${record.title} 生成记录`}>
-                  <img src={record.image} alt={`${record.title} 生成结果`} />
+                <button className="history-card-image" onClick={() => onOpen(record)} aria-label={t('history.open')}>
+                  <img src={record.image} alt={t('history.resultAlt', { title: record.title })} />
                   <span>OPEN <ArrowUpRight size={14} /></span>
                 </button>
                 <div className="history-card-info">
                   <div>
-                    <span>{formatHistoryDate(record.createdAt)} · {record.model || 'IMAGE MODEL'}</span>
+                    <span>{formatHistoryDate(record.createdAt, language)} · {record.model || 'IMAGE MODEL'}</span>
                     <h3>{record.title}</h3>
                   </div>
                   <p>{record.prompt}</p>
-                  {record.referenceName ? <small>REFERENCE · {record.referenceName}</small> : null}
+                  {record.referenceName ? <small>{t('history.reference', { name: record.referenceName })}</small> : null}
                 </div>
               </article>
             ))}
@@ -252,8 +513,8 @@ function HistoryPanel({ records, onOpen, onClear, onClose }) {
         ) : (
           <div className="history-empty">
             <History size={28} />
-            <h3>还没有生成记录</h3>
-            <p>在案例详情中生成图片后，结果会自动保存在这里。</p>
+            <h3>{t('history.emptyTitle')}</h3>
+            <p>{t('history.emptyCopy')}</p>
           </div>
         )}
       </div>
@@ -263,6 +524,7 @@ function HistoryPanel({ records, onOpen, onClear, onClose }) {
 
 
 function Intro({ count }) {
+  const { t } = useLanguage()
   return (
     <section className="intro" id="top">
       <div className="intro-title">
@@ -270,18 +532,19 @@ function Intro({ count }) {
       </div>
       <div className="intro-note">
         <span className="live-dot" />
-        <p>从 X 与 GitHub 热门案例中筛选的<br />GPT-Image-2 实战灵感库</p>
-        <strong>{String(count).padStart(2, '0')} / CURATED</strong>
+        <p>{t('intro.note').split('\n').map((line, index) => <span key={line}>{index ? <br /> : null}{line}</span>)}</p>
+        <strong>{String(count).padStart(2, '0')} / {t('intro.curated')}</strong>
       </div>
     </section>
   )
 }
 
 function FilterBar({ activeCategory, setActiveCategory, resultCount, sort, setSort }) {
+  const { language, t } = useLanguage()
   return (
     <div className="filter-sticky">
       <div className="filter-bar">
-        <div className="category-scroll" role="tablist" aria-label="案例类型">
+        <div className="category-scroll" role="tablist" aria-label={t('filters.tabs')}>
           {categories.map((category) => (
             <button
               key={category.id}
@@ -290,18 +553,18 @@ function FilterBar({ activeCategory, setActiveCategory, resultCount, sort, setSo
               role="tab"
               aria-selected={activeCategory === category.id}
             >
-              {category.label}
+              {categoryLabel(category.id, language)}
             </button>
           ))}
         </div>
         <div className="filter-meta">
-          <span>{String(resultCount).padStart(2, '0')} RESULTS</span>
+          <span>{t('filters.results', { count: String(resultCount).padStart(2, '0') })}</span>
           <label>
-            <span className="sr-only">排序方式</span>
+            <span className="sr-only">{t('filters.sort')}</span>
             <select value={sort} onChange={(event) => setSort(event.target.value)}>
-              <option value="newest">最新添加</option>
-              <option value="curated">精选排序</option>
-              <option value="title">标题排序</option>
+              <option value="newest">{t('filters.newest')}</option>
+              <option value="curated">{t('filters.curated')}</option>
+              <option value="title">{t('filters.title')}</option>
             </select>
             <ChevronDown size={14} aria-hidden="true" />
           </label>
@@ -313,23 +576,24 @@ function FilterBar({ activeCategory, setActiveCategory, resultCount, sort, setSo
 
 function GalleryCard({ item, index, favorite, onOpen, onFavorite }) {
   const [imageState, setImageState] = useState('loading')
+  const { language, t } = useLanguage()
   return (
     <article className={`gallery-card ratio-${item.ratio}`} style={{ '--delay': `${Math.min(index, 9) * 45}ms` }}>
-      <button className={`card-image is-${imageState}`} onClick={() => onOpen(item)} aria-label={`查看 ${item.title} 详情`} aria-busy={imageState === 'loading'}>
+      <button className={`card-image is-${imageState}`} onClick={() => onOpen(item)} aria-label={t('gallery.viewDetails', { title: item.title })} aria-busy={imageState === 'loading'}>
         <span className="image-skeleton" aria-hidden="true" />
-        {imageState === 'error' ? <span className="image-fallback">IMAGE UNAVAILABLE</span> : null}
+        {imageState === 'error' ? <span className="image-fallback">{t('gallery.unavailable')}</span> : null}
         <img src={item.image} alt={item.title} loading={index > 5 ? 'lazy' : 'eager'} onLoad={() => setImageState('loaded')} onError={() => setImageState('error')} />
         <span className="card-number">{String(index + 1).padStart(2, '0')}</span>
-        <span className="view-cue">VIEW PROMPT <ArrowUpRight size={16} /></span>
+        <span className="view-cue">{t('gallery.view')} <ArrowUpRight size={16} /></span>
       </button>
       <div className="card-info">
         <div>
-          <span className="card-category">{CATEGORY_LABELS.get(item.category)}</span>
+          <span className="card-category">{categoryLabel(item.category, language)}</span>
           <h2>{item.title}</h2>
           <p>{item.author} · {item.sourceLabel}</p>
         </div>
         <IconButton
-          label={favorite ? '取消收藏' : '收藏'}
+          label={favorite ? t('actions.unfavorite') : t('actions.favorite')}
           className={favorite ? 'favorite is-active' : 'favorite'}
           onClick={() => onFavorite(item.id)}
         >
@@ -341,17 +605,19 @@ function GalleryCard({ item, index, favorite, onOpen, onFavorite }) {
 }
 
 function EmptyState({ showFavorites, clearFilters }) {
+  const { t } = useLanguage()
   return (
     <div className="empty-state">
       <span>NO SIGNAL</span>
-      <h2>{showFavorites ? '还没有收藏案例' : '没有匹配的 Prompt'}</h2>
-      <button onClick={clearFilters}>查看全部案例</button>
+      <h2>{showFavorites ? t('empty.noFavorites') : t('empty.noMatch')}</h2>
+      <button onClick={clearFilters}>{t('empty.viewAll')}</button>
     </div>
   )
 }
 
 function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCopy, config, onOpenSettings, onGenerationComplete }) {
   const isHistoryItem = item.kind === 'generation-history'
+  const { language, t } = useLanguage()
   const [promptText, setPromptText] = useState(item.prompt)
   const [generatedUrl, setGeneratedUrl] = useState(item.generatedUrl || '')
   const [viewMode, setViewMode] = useState(item.generatedUrl ? 'generated' : 'source')
@@ -414,10 +680,10 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
       }
       const response = await fetch(endpoint, { method: 'POST', headers, body })
       const payload = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(payload?.error?.message || payload?.message || `请求失败（HTTP ${response.status}）`)
+      if (!response.ok) throw new Error(payload?.error?.message || payload?.message || t('errors.request', { status: response.status }))
       const output = payload?.data?.[0]
       const url = output?.url || (output?.b64_json ? `data:image/png;base64,${output.b64_json}` : '')
-      if (!url) throw new Error('接口没有返回图片 URL 或 b64_json')
+      if (!url) throw new Error(t('errors.imageResponse'))
       setGeneratedUrl(url)
       setViewMode('generated')
       setGenerationState('success')
@@ -436,8 +702,8 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
         referencePreview: referencePreview.length <= 500000 ? referencePreview : '',
       })
     } catch (error) {
-      const message = error?.message || '生成失败'
-      setGenerationError(message.includes('Failed to fetch') ? '无法连接接口。请检查 API URL、CORS 或网络设置。' : message)
+      const message = error?.message || (language === 'zh' ? '生成失败' : 'Generation failed')
+      setGenerationError(message.includes('Failed to fetch') ? t('errors.fetch') : message)
       setGenerationState('error')
     }
   }
@@ -455,7 +721,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     const file = event.target.files?.[0]
     if (!file) return
     if (!file.type.startsWith('image/')) {
-      setGenerationError('请选择 PNG、JPEG、WEBP 等图片文件。')
+      setGenerationError(t('errors.invalidFile'))
       setGenerationState('error')
       return
     }
@@ -473,72 +739,72 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
   const displayImage = viewMode === 'generated' && generatedUrl ? generatedUrl : item.image
 
   return (
-    <div className="detail-backdrop" role="dialog" aria-modal="true" aria-label={`${item.title} 详情`}>
+    <div className="detail-backdrop" role="dialog" aria-modal="true" aria-label={t('gallery.viewDetails', { title: item.title })}>
       <div className="detail-topbar">
-        <button onClick={onClose}><X size={19} /> CLOSE</button>
+        <button onClick={onClose}><X size={19} /> {t('detail.close')}</button>
         {!isHistoryItem ? <div>
-          <IconButton label="上一个案例" onClick={onPrev}><ArrowLeft size={19} /></IconButton>
-          <IconButton label="下一个案例" onClick={onNext}><ArrowRight size={19} /></IconButton>
+          <IconButton label={t('actions.previous')} onClick={onPrev}><ArrowLeft size={19} /></IconButton>
+          <IconButton label={t('actions.next')} onClick={onNext}><ArrowRight size={19} /></IconButton>
         </div> : <span className="detail-history-label"><History size={14} /> GENERATED HISTORY</span>}
       </div>
       <div className="detail-layout">
         <div className="detail-media">
-          <button className="detail-image-trigger" onClick={() => setZoomedImage({ src: displayImage, alt: viewMode === 'generated' ? `${item.title} 生成结果` : item.title })} aria-label="放大查看图片">
-            <img src={displayImage} alt={viewMode === 'generated' ? `${item.title} 生成结果` : item.title} />
-            <span>CLICK TO EXPAND</span>
+          <button className="detail-image-trigger" onClick={() => setZoomedImage({ src: displayImage, alt: viewMode === 'generated' ? t('history.resultAlt', { title: item.title }) : item.title })} aria-label={t('detail.expand')}>
+            <img src={displayImage} alt={viewMode === 'generated' ? t('history.resultAlt', { title: item.title }) : item.title} />
+            <span>{t('detail.expand')}</span>
           </button>
           <div className="detail-media-index">GPT—IMAGE—2</div>
-          {generatedUrl && !isHistoryItem ? <div className="image-switcher"><button className={viewMode === 'source' ? 'is-active' : ''} onClick={() => setViewMode('source')}>SOURCE</button><button className={viewMode === 'generated' ? 'is-active' : ''} onClick={() => setViewMode('generated')}>GENERATED</button></div> : null}
-          {generationState === 'loading' ? <div className="generation-overlay"><LoaderCircle size={23} className="spin" /><span>正在生成图像…</span></div> : null}
+          {generatedUrl && !isHistoryItem ? <div className="image-switcher"><button className={viewMode === 'source' ? 'is-active' : ''} onClick={() => setViewMode('source')}>{t('detail.source')}</button><button className={viewMode === 'generated' ? 'is-active' : ''} onClick={() => setViewMode('generated')}>{t('detail.generated')}</button></div> : null}
+          {generationState === 'loading' ? <div className="generation-overlay"><LoaderCircle size={23} className="spin" /><span>{t('detail.loading')}</span></div> : null}
         </div>
         <div className="detail-panel">
           <div className="detail-heading">
-            <span>{CATEGORY_LABELS.get(item.category)}</span>
+            <span>{categoryLabel(item.category, language)}</span>
             <h2>{item.title}</h2>
-            <p>CURATED BY {item.author}</p>
-            {item.promptStatus && item.promptStatus !== 'clean' ? <div className={`prompt-status prompt-status-${item.promptStatus}`}><span />{PROMPT_STATUS_LABELS[item.promptStatus] || item.promptStatus.toUpperCase()}</div> : null}
+            <p>{t('detail.curatedBy', { author: item.author })}</p>
+            {item.promptStatus && item.promptStatus !== 'clean' ? <div className={`prompt-status prompt-status-${item.promptStatus}`}><span />{language === 'zh' ? (PROMPT_STATUS_LABELS_ZH[item.promptStatus] || item.promptStatus.toUpperCase()) : (PROMPT_STATUS_LABELS[item.promptStatus] || item.promptStatus.toUpperCase())}</div> : null}
           </div>
 
           <div className="prompt-block">
             <div className="prompt-label">
-              <span>PROMPT</span>
-              <span>{item.prompt.length} CHAR</span>
+              <span>{t('detail.prompt')}</span>
+              <span>{item.prompt.length} {t('detail.chars')}</span>
             </div>
-            <textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} aria-label="可编辑 Prompt" />
+            <textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} aria-label={t('detail.confirmPrompt')} />
           </div>
 
           <div className="reference-upload">
-            <div className="reference-upload-heading"><span>REFERENCE IMAGE</span><span>OPTIONAL</span></div>
+            <div className="reference-upload-heading"><span>{t('detail.reference')}</span><span>{t('detail.optional')}</span></div>
             {referencePreview ? (
               <div className="reference-preview">
-                <button className="reference-preview-image" onClick={() => setZoomedImage({ src: referencePreview, alt: '待上传的参考图' })} aria-label="放大查看参考图"><img src={referencePreview} alt="待上传的参考图" /></button>
-                <div><span>{referenceFile?.name}</span><button onClick={clearReference}><X size={14} />移除</button></div>
+                <button className="reference-preview-image" onClick={() => setZoomedImage({ src: referencePreview, alt: t('detail.referenceAlt') })} aria-label={t('detail.expand')}><img src={referencePreview} alt={t('detail.referenceAlt')} /></button>
+                <div><span>{referenceFile?.name}</span><button onClick={clearReference}><X size={14} />{t('detail.referenceRemove')}</button></div>
               </div>
             ) : (
-              <label className="upload-reference"><Upload size={17} /><span>上传本地图片作为参考</span><small>PNG / JPG / WEBP · 生成时发送给模型</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleReferenceChange} /></label>
+              <label className="upload-reference"><Upload size={17} /><span>{t('detail.referenceUpload')}</span><small>{t('detail.referenceHint')}</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleReferenceChange} /></label>
             )}
           </div>
 
           <div className="detail-actions">
             <button className="copy-button" onClick={() => onCopy(promptText)}>
-              <Copy size={18} /> 复制 Prompt
+              <Copy size={18} /> {t('detail.copy')}
             </button>
             <button className="generate-button" onClick={requestGeneration} disabled={generationState === 'loading'}>
-              {generationState === 'loading' ? <LoaderCircle size={18} className="spin" /> : <Sparkles size={18} />} 生成
+              {generationState === 'loading' ? <LoaderCircle size={18} className="spin" /> : <Sparkles size={18} />} {t('detail.generate')}
             </button>
             {!isHistoryItem ? <IconButton
-              label={favorite ? '取消收藏' : '收藏'}
+              label={favorite ? t('actions.unfavorite') : t('actions.favorite')}
               className={favorite ? 'detail-favorite is-active' : 'detail-favorite'}
               onClick={() => onFavorite(item.id)}
             >
               <Heart size={20} fill={favorite ? 'currentColor' : 'none'} />
             </IconButton> : null}
           </div>
-          {generationState === 'error' ? <div className="generation-error" role="alert">{generationError}<button onClick={onOpenSettings}><Settings2 size={14} />检查配置</button></div> : null}
-          {generatedUrl ? <a className="download-link" href={generatedUrl} download="prompt-signal-generated.png" target="_blank" rel="noreferrer"><Download size={16} />下载生成结果</a> : null}
+          {generationState === 'error' ? <div className="generation-error" role="alert">{generationError}<button onClick={onOpenSettings}><Settings2 size={14} />{t('detail.checkSettings')}</button></div> : null}
+          {generatedUrl ? <a className="download-link" href={generatedUrl} download="prompt-signal-generated.png" target="_blank" rel="noreferrer"><Download size={16} />{t('detail.download')}</a> : null}
 
-          {isHistoryItem ? <div className="history-detail-meta"><span><Clock3 size={13} /> {formatHistoryDate(item.createdAt)}</span><span>{item.model || 'IMAGE MODEL'} · {item.size || 'auto'} · {item.quality || 'auto'}</span>{item.referenceName ? <span>REFERENCE · {item.referenceName}</span> : null}</div> : <div className="source-link">
-            <span><i /> SOURCE</span>
+          {isHistoryItem ? <div className="history-detail-meta"><span><Clock3 size={13} /> {formatHistoryDate(item.createdAt, language)}</span><span>{t('detail.historyMeta', { model: item.model || 'IMAGE MODEL', size: item.size || 'auto', quality: item.quality || 'auto' })}</span>{item.referenceName ? <span>{t('history.reference', { name: item.referenceName })}</span> : null}</div> : <div className="source-link">
+            <span><i /> {t('detail.source')}</span>
             <div className="source-links">
               {getItemSources(item).map((source) => <a key={`${source.label}-${source.url}`} href={source.url} target="_blank" rel="noreferrer">{source.label}<ArrowUpRight size={14} /></a>)}
             </div>
@@ -546,24 +812,25 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
         </div>
       </div>
       {confirmOpen ? (
-        <div className="generation-confirm-backdrop" role="dialog" aria-modal="true" aria-label="确认生成图片">
+        <div className="generation-confirm-backdrop" role="dialog" aria-modal="true" aria-label={t('detail.confirmTitle')}>
           <div className="generation-confirm">
-            <div className="generation-confirm-heading"><span>READY TO RENDER</span><IconButton label="取消生成" onClick={() => setConfirmOpen(false)}><X size={17} /></IconButton></div>
-            <h3>确认生成这张图片？</h3>
-            <p>将使用当前 Prompt 调用已配置的图片模型。确认后才会向第三方接口发送请求。</p>
-            <label className="confirm-prompt-field"><span>PROMPT · 可在这里二次编辑</span><textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} /></label>
-            {referencePreview ? <div className="confirm-reference"><span>REFERENCE IMAGE</span><button onClick={() => setZoomedImage({ src: referencePreview, alt: referenceFile?.name || '待上传的参考图' })}><img src={referencePreview} alt={referenceFile?.name || '待上传的参考图'} /><div><b>{referenceFile?.name || 'REFERENCE IMAGE'}</b><small>点击缩略图放大预览</small></div></button></div> : null}
-            <div className="generation-confirm-meta"><span>MODEL <b>{config.model}</b></span><span>REFERENCE <b>{referenceFile ? 'ATTACHED' : 'NONE'}</b></span></div>
-            <div className="generation-confirm-actions"><button className="confirm-cancel" onClick={() => setConfirmOpen(false)}>取消</button><button className="confirm-submit" onClick={() => { setConfirmOpen(false); runGeneration() }}><Sparkles size={17} />确认生成</button></div>
+            <div className="generation-confirm-heading"><span>{t('detail.confirmEyebrow')}</span><IconButton label={t('detail.cancelGeneration')} onClick={() => setConfirmOpen(false)}><X size={17} /></IconButton></div>
+            <h3>{t('detail.confirmTitle')}</h3>
+            <p>{t('detail.confirmCopy')}</p>
+            <label className="confirm-prompt-field"><span>{t('detail.confirmPrompt')}</span><textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} /></label>
+            {referencePreview ? <div className="confirm-reference"><span>{t('detail.reference')}</span><button onClick={() => setZoomedImage({ src: referencePreview, alt: referenceFile?.name || t('detail.referenceAlt') })}><img src={referencePreview} alt={referenceFile?.name || t('detail.referenceAlt')} /><div><b>{referenceFile?.name || t('detail.reference')}</b><small>{t('detail.confirmPreview')}</small></div></button></div> : null}
+            <div className="generation-confirm-meta"><span>MODEL <b>{config.model}</b></span><span>{t('detail.reference')} <b>{referenceFile ? t('detail.confirmAttached') : t('detail.confirmNone')}</b></span></div>
+            <div className="generation-confirm-actions"><button className="confirm-cancel" onClick={() => setConfirmOpen(false)}>{t('detail.confirmCancel')}</button><button className="confirm-submit" onClick={() => { setConfirmOpen(false); runGeneration() }}><Sparkles size={17} />{t('detail.confirmSubmit')}</button></div>
           </div>
         </div>
       ) : null}
-      {zoomedImage ? <div className="image-lightbox" role="dialog" aria-modal="true" aria-label="图片预览" onClick={() => setZoomedImage(null)}><button onClick={() => setZoomedImage(null)} aria-label="关闭图片预览"><X size={22} /></button><img src={zoomedImage.src} alt={zoomedImage.alt} onClick={(event) => event.stopPropagation()} /></div> : null}
+      {zoomedImage ? <div className="image-lightbox" role="dialog" aria-modal="true" aria-label={t('detail.preview')} onClick={() => setZoomedImage(null)}><button onClick={() => setZoomedImage(null)} aria-label={t('actions.closeSettings')}><X size={22} /></button><img src={zoomedImage.src} alt={zoomedImage.alt} onClick={(event) => event.stopPropagation()} /></div> : null}
     </div>
   )
 }
 
-export default function App() {
+function AppContent() {
+  const { t } = useLanguage()
   const [activeCategory, setActiveCategory] = useState('all')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('newest')
@@ -707,7 +974,7 @@ export default function App() {
                 />
               ))}
             </section>
-            {visibleLimit < filteredPrompts.length ? <div className="load-more-wrap"><button className="load-more" onClick={() => setVisibleLimit((limit) => limit + 48)}>加载更多案例 <ArrowDown size={17} /></button><span>已显示 {Math.min(visibleLimit, filteredPrompts.length)} / {filteredPrompts.length} · 向下探索完整案例库</span></div> : null}
+            {visibleLimit < filteredPrompts.length ? <div className="load-more-wrap"><button className="load-more" onClick={() => setVisibleLimit((limit) => limit + 48)}>{t('loadMore.button')} <ArrowDown size={17} /></button><span>{t('loadMore.status', { shown: Math.min(visibleLimit, filteredPrompts.length), total: filteredPrompts.length })}</span></div> : null}
           </>
         ) : (
           <EmptyState showFavorites={showFavorites} clearFilters={clearFilters} />
@@ -718,7 +985,7 @@ export default function App() {
           <Sparkles size={18} />
           <strong>PROMPT/SIGNAL</strong>
         </div>
-        <p>OPEN PROMPTS · REAL OUTPUTS · 2026</p>
+        <p>{t('footer')}</p>
       </footer>
 
       {selected ? (
@@ -740,8 +1007,12 @@ export default function App() {
       {settingsOpen ? <SettingsPanel config={apiConfig} onChange={(patch) => setApiConfig((current) => ({ ...current, ...patch }))} onSave={saveApiConfig} onClear={clearApiConfig} onClose={() => setSettingsOpen(false)} /> : null}
 
       <div className={`toast ${toast ? 'is-visible' : ''}`} role="status">
-        <Check size={17} /> Prompt 已复制到剪贴板
+        <Check size={17} /> {t('toast.copied')}
       </div>
     </>
   )
+}
+
+export default function App() {
+  return <LanguageProvider><AppContent /></LanguageProvider>
 }

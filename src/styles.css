@@ -81,7 +81,7 @@ img { display: block; max-width: 100%; }
 .search-clear { border: 0; background: transparent; padding: 4px; display: grid; place-items: center; cursor: pointer; }
 
 .header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-.icon-button, .favorites-button, .repo-button {
+.icon-button, .favorites-button, .history-button, .language-button, .repo-button {
   height: 40px;
   border: 1px solid #333330;
   background: transparent;
@@ -92,9 +92,10 @@ img { display: block; max-width: 100%; }
   transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 .icon-button { width: 40px; padding: 0; }
-.icon-button:hover, .favorites-button:hover, .repo-button:hover { border-color: #62625c; background: #1b1b1a; }
+.icon-button:hover, .favorites-button:hover, .history-button:hover, .language-button:hover, .repo-button:hover { border-color: #62625c; background: #1b1b1a; }
 .favorites-button, .repo-button { padding: 0 12px; gap: 8px; font-size: 12px; font-weight: 700; }
 .history-button { padding: 0 10px; gap: 7px; font-size: 11px; font-weight: 700; }
+.language-button { padding: 0 10px; gap: 6px; color: #c3c3bb; font-size: 10px; font-family: "SFMono-Regular", Consolas, monospace; font-weight: 700; }
 .repo-label { letter-spacing: .01em; }
 .repo-button > svg:last-child { margin-left: 2px; opacity: .62; }
 .favorites-button b, .history-button b { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; background: #242422; font-size: 10px; }
@@ -365,6 +366,8 @@ footer a:hover { color: var(--signal); }
   .history-button { width: 40px; padding: 0; }
   .history-button span { display: none; }
   .history-button b { position: absolute; top: 8px; right: 8px; min-width: 14px; width: 14px; height: 14px; border-radius: 50%; padding: 0; font-size: 8px; }
+  .language-button { width: 40px; padding: 0; }
+  .language-button span { display: none; }
   .repo-button { display: none; }
   .intro { min-height: 420px; padding: 66px 18px 34px; grid-template-columns: 1fr; gap: 54px; }
   .intro-title h1 { font-size: clamp(50px, 15vw, 88px); }
@@ -399,6 +402,7 @@ footer a:hover { color: var(--signal); }
 }
 
 @media (max-width: 480px) {
+  .brand > span:last-child { display: none; }
   .masonry { column-count: 1; padding-left: 12px; padding-right: 12px; }
   .intro { min-height: 390px; }
   .intro-title h1 { font-size: clamp(48px, 15vw, 72px); }

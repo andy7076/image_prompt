@@ -1,11 +1,11 @@
 # PROMPT/SIGNAL
 
-> A curated visual index for GPT image prompts.
+> A focused gallery for discovering, editing, and rendering high-signal image prompts.
 
 <p align="center">
-  <a href="https://andy7076.github.io/image_prompt/">Live Demo</a>
+  <a href="https://andy7076.github.io/image_prompt/">Live demo</a>
   ·
-  <a href="https://github.com/andy7076/image_prompt">Repository</a>
+  <a href="https://github.com/andy7076/image_prompt/blob/main/README.zh-CN.md">简体中文</a>
   ·
   <a href="https://github.com/andy7076/image_prompt/issues">Issues</a>
 </p>
@@ -16,97 +16,120 @@
   <img src="https://img.shields.io/badge/React-Vite-111111?style=flat-square&logo=react&logoColor=61dafb" alt="React and Vite" />
 </p>
 
-![PROMPT/SIGNAL gallery preview](./public/images/prompt-signal-home.jpg)
+![PROMPT/SIGNAL gallery](./public/images/prompt-signal-home.jpg)
 
-PROMPT/SIGNAL 是一个面向创作者、设计师和 AI Builder 的图片 Prompt 灵感库。它把来自 GitHub、X 和公开社区的高信号案例整理成可搜索、可筛选、可收藏的瀑布流画廊，让你从一张图快速回到 Prompt，再继续完成自己的创作。
+PROMPT/SIGNAL turns public image-prompt references into a searchable masonry workspace. Browse a case, inspect its full prompt, edit it, attach a local reference image, and send the request to an image endpoint you control. The interface starts in English and can be switched to Chinese from the header.
 
-## ✦ Why It Exists
+## What ships
 
-好 Prompt 不应该只停留在一条动态里。PROMPT/SIGNAL 关注的是完整的探索路径：
+- **Masonry discovery** — natural image ratios, progressive loading, category filters, search, and newest/title/curated sorting.
+- **Prompt workspace** — full prompt editing, copy-to-clipboard, source links, previous/next navigation, and image zoom.
+- **Generation flow** — editable confirmation dialog, optional PNG/JPEG/WEBP reference image, generated/source switching, and download in a new tab.
+- **Local archive** — favorites, model settings, language preference, and up to 30 generated results persist in the current browser only.
+- **Multi-source attribution** — a case can retain multiple source URLs across GitHub, X, and other public references.
+- **Static-first deployment** — no backend is required for browsing; GitHub Actions builds and deploys the site to Pages.
 
-`发现案例 → 阅读 Prompt → 复制或改写 → 添加参考图 → 生成新结果`
+## Quick start
 
-## ✦ Highlights
-
-- 🧱 Masonry gallery：保留图片原始宽高，支持自然加载和渐进式展示
-- 🔎 Search & filters：全文搜索、类型筛选、最新添加和精选排序
-- 💾 Personal library：收藏状态保存在当前浏览器，适合持续建立个人灵感库
-- 📝 Prompt workspace：详情页支持编辑、复制、来源追溯和上下案例切换
-- 🖼️ Reference images：上传本地图片，与修改后的 Prompt 一起提交生成
-- ⚡ Image engine：配置兼容 OpenAI Images API 格式的 URL、Key 和模型
-- 🔗 Source-aware：一个案例可以保留多个平台、多个出处链接
-- 📱 Responsive：桌面端和移动端均可浏览、筛选和查看大图
-
-## 🚀 Quick Start
+Requirements: Node.js 20+ and npm.
 
 ```bash
 npm install
 npm run dev
 ```
 
-打开 Vite 输出的本地地址即可开始浏览。
+Open the local URL printed by Vite. For a production build:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## ⚙️ Image Engine
+## Connect an image provider
 
-打开页面右上角的配置入口，填写兼容 OpenAI Images API 格式的图片生成接口：
+Open **Image model settings** in the top-right corner. The form is intentionally provider-neutral: enter the exact URL, key, and model identifier supplied by your gateway or image service.
 
-```text
-API URL: https://your-endpoint.example/v1/images/generations
-API KEY: your-api-key
-MODEL: your-model-name
-SIZE: auto
-QUALITY: auto
+| Field | What to enter | Example |
+| --- | --- | --- |
+| `API URL` | The complete image-generation endpoint | `https://gateway.example/v1/images/generations` |
+| `API KEY` | The bearer token issued by your service | `sk-...` |
+| `MODEL` | The exact model name accepted by the endpoint | `gpt-image-2` |
+| `SIZE` | Output size; `auto` is the default | `auto` |
+| `QUALITY` | Output quality; `auto` is the default | `auto` |
+
+### Gateway and proxy rules
+
+PROMPT/SIGNAL sends requests directly from the browser. Your endpoint therefore needs browser CORS permission for the site origin and must accept an `Authorization: Bearer <key>` header.
+
+- If your service gives you a base URL, append its image route, usually `/v1/images/generations`.
+- When a reference image is attached, the app derives the edit route by replacing the trailing `/generations` with `/edits`.
+- If your gateway uses a different edit path, configure that final edit URL as the API URL or add a small compatibility route in your gateway.
+- Never commit a production key. Settings are stored in `localStorage` and are never bundled into the repository, but a browser can still access the key while you use the page.
+
+The text-only request is equivalent to:
+
+```http
+POST /v1/images/generations
+Authorization: Bearer <API_KEY>
+Content-Type: application/json
 ```
 
-配置只保存在当前浏览器的 localStorage 中。点击生成前，用户仍可以修改 Prompt、确认参考图，并明确确认后才会发起请求。接口需要支持浏览器 CORS；带参考图时，应用会使用接口对应的编辑路径提交 multipart 请求。
-
-## 📚 Data & Sources
-
-当前画廊包含 551 条精选案例，数据来自：
-
-- [freestylefly/awesome-gpt-image-2](https://github.com/freestylefly/awesome-gpt-image-2)
-- [wuyoscar/GPT-Image2-Skill](https://github.com/wuyoscar/GPT-Image2-Skill)
-- X 社区公开案例与指定创作者的公开内容
-
-每个案例都尽量保留原始作者和多个来源地址。图片、Prompt、品牌和作者权利归其相应权利人所有；商业使用前请自行核验授权和署名要求。
-
-## 🧭 Project Layout
-
-```text
-src/App.jsx                 UI、交互流程与图片生成
-src/styles.css              视觉系统、响应式布局与状态样式
-src/data.js                 分类、精选案例与数据组合
-src/cases.generated.json    GitHub 案例数据
-src/zhidawang.generated.json X 案例数据
-public/images/              本地案例图与项目截图
-.github/workflows/          GitHub Pages 自动部署
+```json
+{
+  "model": "gpt-image-2",
+  "prompt": "Your edited prompt",
+  "size": "auto",
+  "quality": "auto",
+  "n": 1
+}
 ```
 
-## 🌐 GitHub Pages
+For a reference image, the app submits `multipart/form-data` with `image`, `model`, `prompt`, `size`, `quality`, and `n` fields. The response should expose either `data[0].url` or `data[0].b64_json`.
 
-每次推送到 `main` 分支都会通过 GitHub Actions 自动构建并部署：
+## Use the workspace
+
+1. Search or filter the gallery to find a reference.
+2. Open a case and edit the prompt directly in the detail panel.
+3. Optionally upload a local reference image, then review both prompt and reference in the confirmation dialog.
+4. Confirm generation. The result is recorded in **Generation history**.
+5. Reopen a previous result from the history panel to copy its prompt, download the image, or render another variation.
+
+The language switch is in the header. English is the default for new visitors; the preference is remembered locally.
+
+## Data and attribution
+
+The gallery combines curated material from:
+
+- [`freestylefly/awesome-gpt-image-2`](https://github.com/freestylefly/awesome-gpt-image-2)
+- [`wuyoscar/GPT-Image2-Skill`](https://github.com/wuyoscar/GPT-Image2-Skill)
+- Public X posts and creator references
+
+Prompt text, images, names, and trademarks remain subject to their original authors and licenses. Check the source and obtain permission before commercial use. Corrections and additional source URLs are welcome through an issue or pull request.
+
+## Project structure
+
+```text
+src/App.jsx                 React UI, i18n, interactions, and generation flow
+src/styles.css              Design system, responsive layout, and motion
+src/data.js                 Curated cases, categories, and source metadata
+src/cases.generated.json    GitHub-derived prompt records
+src/zhidawang.generated.json X-derived prompt records
+public/images/              Gallery assets and README screenshots
+.github/workflows/          GitHub Pages deployment
+```
+
+## GitHub Pages
+
+Pushes to `main` trigger [`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml). The public build is available at:
 
 **[andy7076.github.io/image_prompt](https://andy7076.github.io/image_prompt/)**
 
-部署工作流：[`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml)
+## Contributing
 
-## 🤝 Contributing
+Please include the original public URL, attribution details, and a short explanation of any prompt or metadata change. Keep generated data deterministic and run `npm run build` before opening a pull request.
 
-欢迎提交新的 Prompt 案例、来源修正和体验改进。请在 Issue 或 Pull Request 中附上：
+## License
 
-- 可公开访问的原始来源
-- 图片与 Prompt 的基本归属信息
-- 清晰的修改说明或复现步骤
+The application code has no separate license file yet. Images, prompts, brands, and third-party materials follow the rights and terms of their respective sources.
 
-## 📄 License
-
-代码部分暂未附加独立开源许可证；案例图片、Prompt 和第三方内容遵循其原始来源的权利声明。
-
----
-
-Built for people who collect references, not just likes.
+<p align="center"><sub>Built for people who collect references, not just likes.</sub></p>
