@@ -421,7 +421,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             </IconButton>
           </div>
           {generationState === 'error' ? <div className="generation-error" role="alert">{generationError}<button onClick={onOpenSettings}><Settings2 size={14} />检查配置</button></div> : null}
-          {generatedUrl ? <a className="download-link" href={generatedUrl} download="prompt-signal-generated.png"><Download size={16} />下载生成结果</a> : null}
+          {generatedUrl ? <a className="download-link" href={generatedUrl} download="prompt-signal-generated.png" target="_blank" rel="noreferrer"><Download size={16} />下载生成结果</a> : null}
 
           <div className="source-link">
             <span><i /> SOURCE</span>
