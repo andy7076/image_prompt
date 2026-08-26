@@ -47,6 +47,18 @@ function GithubMark({ size = 18 }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.25c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.74.08-.74 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.38 1.23-3.22-.12-.3-.53-1.52.12-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.29-1.23 3.29-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.57A12 12 0 0 0 12 .5Z" /></svg>
 }
 
+function BrandMark({ size = 31 }) {
+  return (
+    <svg className="brand-mark-art" width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
+      <path className="brand-mark-arc brand-mark-arc-back" d="M7.5 21.5a12 12 0 0 1 0-11" />
+      <path className="brand-mark-arc brand-mark-arc-front" d="M24.5 10.5a12 12 0 0 1 0 11" />
+      <path className="brand-mark-cursor" d="m11 8.5 3.2 14.8 3.1-4.2 4.9 3.1 1.5-2.4-5-3 4.1-3.2L11 8.5Z" />
+      <circle className="brand-mark-dot" cx="8" cy="16" r="1.35" />
+      <circle className="brand-mark-dot" cx="24" cy="16" r="1.35" />
+    </svg>
+  )
+}
+
 function readFavorites() {
   try {
     return new Set(JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]'))
@@ -82,7 +94,7 @@ function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavori
   return (
     <header className="site-header">
       <a className="brand" href="#top" aria-label="Prompt Signal 首页">
-        <span className="brand-mark"><Sparkles size={17} strokeWidth={2.4} /></span>
+        <span className="brand-mark"><BrandMark /></span>
         <span>PROMPT<span>/SIGNAL</span></span>
       </a>
 
