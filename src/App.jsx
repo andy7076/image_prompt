@@ -128,6 +128,7 @@ function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavori
         </IconButton>
         <a className="repo-button" href={PROJECT_REPO.url} target="_blank" rel="noreferrer" title={PROJECT_REPO.name}>
           <GithubMark size={18} />
+          <span className="repo-label">GitHub</span>
           {Number(PROJECT_REPO.stars) > 100 ? <span>{PROJECT_REPO.stars}</span> : null}
           <ArrowUpRight size={15} />
         </a>

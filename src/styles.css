@@ -94,6 +94,8 @@ img { display: block; max-width: 100%; }
 .icon-button { width: 40px; padding: 0; }
 .icon-button:hover, .favorites-button:hover, .repo-button:hover { border-color: #62625c; background: #1b1b1a; }
 .favorites-button, .repo-button { padding: 0 12px; gap: 8px; font-size: 12px; font-weight: 700; }
+.repo-label { letter-spacing: .01em; }
+.repo-button > svg:last-child { margin-left: 2px; opacity: .62; }
 .favorites-button b { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; background: #242422; font-size: 10px; }
 .favorites-button.is-active { background: var(--signal); color: #0a0a0a; border-color: var(--signal); }
 .favorites-button.is-active b { background: #0a0a0a; color: var(--signal); }
