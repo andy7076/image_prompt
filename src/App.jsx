@@ -50,11 +50,8 @@ function GithubMark({ size = 18 }) {
 function BrandMark({ size = 31 }) {
   return (
     <svg className="brand-mark-art" width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <path className="brand-mark-arc brand-mark-arc-back" d="M7.5 21.5a12 12 0 0 1 0-11" />
-      <path className="brand-mark-arc brand-mark-arc-front" d="M24.5 10.5a12 12 0 0 1 0 11" />
-      <path className="brand-mark-cursor" d="m11 8.5 3.2 14.8 3.1-4.2 4.9 3.1 1.5-2.4-5-3 4.1-3.2L11 8.5Z" />
-      <circle className="brand-mark-dot" cx="8" cy="16" r="1.35" />
-      <circle className="brand-mark-dot" cx="24" cy="16" r="1.35" />
+      <path className="brand-mark-letter" d="M8.5 7h7.1c4.7 0 7.5 2.4 7.5 6.2s-2.8 6.2-7.5 6.2h-3.2V25H8.5V7Zm3.9 3.5v5.4h3c2.3 0 3.7-.8 3.7-2.7s-1.4-2.7-3.7-2.7h-3Z" />
+      <path className="brand-mark-cut" d="M21.2 21.9 24.6 18.5" />
     </svg>
   )
 }

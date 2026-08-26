@@ -61,11 +61,8 @@ img { display: block; max-width: 100%; }
 .brand > span:last-child span { color: var(--signal); }
 .brand-mark { display: grid; place-items: center; width: 31px; height: 31px; background: var(--signal); color: #090909; overflow: hidden; }
 .brand-mark-art { display: block; }
-.brand-mark-arc { fill: none; stroke: currentColor; stroke-width: 1.45; stroke-linecap: round; }
-.brand-mark-arc-back { opacity: .48; }
-.brand-mark-arc-front { opacity: .78; }
-.brand-mark-cursor { fill: currentColor; }
-.brand-mark-dot { fill: currentColor; }
+.brand-mark-letter { fill: currentColor; }
+.brand-mark-cut { fill: none; stroke: var(--signal); stroke-width: 2.2; stroke-linecap: square; }
 
 .search-shell {
   height: 42px;
