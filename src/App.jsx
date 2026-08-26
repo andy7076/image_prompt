@@ -612,6 +612,47 @@ function GalleryCard({ item, index, favorite, onOpen, onFavorite }) {
   )
 }
 
+function getGalleryColumnCount() {
+  if (typeof window === 'undefined') return 4
+  if (window.innerWidth <= 480) return 1
+  if (window.innerWidth <= 820) return 2
+  if (window.innerWidth <= 1180) return 3
+  return 4
+}
+
+function MasonryGallery({ items, favoriteIds, onOpen, onFavorite }) {
+  const [columnCount, setColumnCount] = useState(getGalleryColumnCount)
+
+  useEffect(() => {
+    const handleResize = () => setColumnCount(getGalleryColumnCount())
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const columns = Array.from({ length: columnCount }, (_, columnIndex) => items
+    .map((item, index) => ({ item, index }))
+    .filter(({ index }) => index % columnCount === columnIndex))
+
+  return (
+    <section className="masonry" aria-live="polite">
+      {columns.map((column, columnIndex) => (
+        <div className="masonry-column" key={`masonry-column-${columnIndex}`}>
+          {column.map(({ item, index }) => (
+            <GalleryCard
+              key={item.id}
+              item={item}
+              index={index}
+              favorite={favoriteIds.has(item.id)}
+              onOpen={onOpen}
+              onFavorite={onFavorite}
+            />
+          ))}
+        </div>
+      ))}
+    </section>
+  )
+}
+
 function EmptyState({ showFavorites, clearFilters }) {
   const { t } = useLanguage()
   return (
@@ -970,18 +1011,12 @@ function AppContent() {
         />
         {filteredPrompts.length ? (
           <>
-            <section className="masonry" aria-live="polite">
-              {filteredPrompts.slice(0, visibleLimit).map((item, index) => (
-                <GalleryCard
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  favorite={favorites.has(item.id)}
-                  onOpen={(prompt) => setSelectedId(prompt.id)}
-                  onFavorite={toggleFavorite}
-                />
-              ))}
-            </section>
+            <MasonryGallery
+              items={filteredPrompts.slice(0, visibleLimit)}
+              favoriteIds={favorites}
+              onOpen={(prompt) => setSelectedId(prompt.id)}
+              onFavorite={toggleFavorite}
+            />
             {visibleLimit < filteredPrompts.length ? <div className="load-more-wrap"><button className="load-more" onClick={() => setVisibleLimit((limit) => limit + 48)}>{t('loadMore.button')} <ArrowDown size={17} /></button><span>{t('loadMore.status', { shown: Math.min(visibleLimit, filteredPrompts.length), total: filteredPrompts.length })}</span></div> : null}
           </>
         ) : (
