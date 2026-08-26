@@ -1,4 +1,4 @@
-import { createContext, useContext, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
@@ -576,13 +576,21 @@ function FilterBar({ activeCategory, setActiveCategory, resultCount, sort, setSo
 
 function GalleryCard({ item, index, favorite, onOpen, onFavorite }) {
   const [imageState, setImageState] = useState('loading')
+  const imageRef = useRef(null)
   const { language, t } = useLanguage()
+
+  useEffect(() => {
+    const image = imageRef.current
+    if (!image?.complete) return
+    setImageState(image.naturalWidth > 0 ? 'loaded' : 'error')
+  }, [item.image])
+
   return (
     <article className={`gallery-card ratio-${item.ratio}`} style={{ '--delay': `${Math.min(index, 9) * 45}ms` }}>
       <button className={`card-image is-${imageState}`} onClick={() => onOpen(item)} aria-label={t('gallery.viewDetails', { title: item.title })} aria-busy={imageState === 'loading'}>
         <span className="image-skeleton" aria-hidden="true" />
         {imageState === 'error' ? <span className="image-fallback">{t('gallery.unavailable')}</span> : null}
-        <img src={item.image} alt={item.title} loading={index > 5 ? 'lazy' : 'eager'} onLoad={() => setImageState('loaded')} onError={() => setImageState('error')} />
+        <img ref={imageRef} src={item.image} alt={item.title} loading={index > 5 ? 'lazy' : 'eager'} onLoad={() => setImageState('loaded')} onError={() => setImageState('error')} />
         <span className="card-number">{String(index + 1).padStart(2, '0')}</span>
         <span className="view-cue">{t('gallery.view')} <ArrowUpRight size={16} /></span>
       </button>

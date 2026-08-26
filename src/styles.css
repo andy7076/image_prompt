@@ -152,15 +152,20 @@ main { min-height: calc(100vh - 74px); }
   animation-delay: var(--delay);
 }
 @keyframes card-in { to { opacity: 1; transform: translateY(0); } }
-.card-image { position: relative; width: 100%; min-height: 180px; padding: 0; border: 0; background: #171717; overflow: hidden; cursor: zoom-in; }
+.card-image { position: relative; width: 100%; padding: 0; border: 0; background: #171717; overflow: hidden; cursor: zoom-in; }
 .card-image::after { content: ''; position: absolute; inset: 0; border: 1px solid transparent; pointer-events: none; transition: border-color 220ms ease; }
-.card-image img { position: relative; z-index: 1; display: block; width: 100%; height: auto; opacity: 0; transition: opacity 420ms cubic-bezier(.2,.75,.25,1), transform 550ms cubic-bezier(.2,.75,.25,1), filter 350ms ease; }
+.gallery-card.ratio-portrait .card-image img { --image-ratio: 3 / 4; }
+.gallery-card.ratio-landscape .card-image img { --image-ratio: 4 / 3; }
+.gallery-card.ratio-square .card-image img { --image-ratio: 1 / 1; }
+.gallery-card.ratio-wide .card-image img { --image-ratio: 2 / 1; }
+.card-image img { position: relative; z-index: 1; display: block; width: 100%; height: auto; aspect-ratio: auto var(--image-ratio, 1 / 1); opacity: 0; transition: opacity 360ms cubic-bezier(.2,.75,.25,1), transform 550ms cubic-bezier(.2,.75,.25,1), filter 350ms ease; }
 .card-image.is-loaded img { opacity: 1; }
 .card-image.is-error img { display: none; }
-.image-skeleton { position: absolute; z-index: 0; inset: 0; background: radial-gradient(circle at 32% 25%, #252521 0, transparent 42%), #171717; opacity: 1; transition: opacity 420ms ease; animation: image-breathe 2.2s ease-in-out infinite; }
+.image-skeleton { position: absolute; z-index: 0; inset: 0; background: linear-gradient(110deg, #151515 25%, #24241f 37%, #151515 63%); background-size: 240% 100%; opacity: 1; transition: opacity 360ms ease; animation: image-shimmer 1.7s ease-in-out infinite; }
 .card-image.is-loaded .image-skeleton, .card-image.is-error .image-skeleton { opacity: 0; animation: none; }
-.image-fallback { min-height: 180px; display: grid; place-items: center; color: #686861; font-family: "SFMono-Regular", Consolas, monospace; font-size: 9px; letter-spacing: .08em; }
-@keyframes image-breathe { 0%, 100% { opacity: .72; } 50% { opacity: 1; } }
+.card-image.is-error { min-height: 180px; }
+.image-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: #686861; font-family: "SFMono-Regular", Consolas, monospace; font-size: 9px; letter-spacing: .08em; }
+@keyframes image-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 .gallery-card:hover .card-image img { transform: scale(1.025); filter: saturate(1.08); }
 .gallery-card:hover .card-image::after { border-color: var(--signal); }
 .card-number { position: absolute; left: 10px; top: 10px; min-width: 30px; height: 23px; padding: 0 6px; display: grid; place-items: center; background: rgba(10,10,10,.78); color: #d8d8d1; font-family: "SFMono-Regular", Consolas, monospace; font-size: 9px; backdrop-filter: blur(5px); }
