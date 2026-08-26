@@ -6,17 +6,20 @@ import {
   ArrowUpRight,
   Check,
   ChevronDown,
+  Clock3,
   Copy,
   Download,
   Eye,
   EyeOff,
   Heart,
+  History,
   KeyRound,
   LoaderCircle,
   Upload,
   Search,
   Settings2,
   Sparkles,
+  Trash2,
   X,
 } from 'lucide-react'
 import { categories, prompts, PROJECT_REPO } from './data.js'
@@ -24,6 +27,8 @@ import { categories, prompts, PROJECT_REPO } from './data.js'
 const CATEGORY_LABELS = new Map(categories.map((item) => [item.id, item.label]))
 const FAVORITES_KEY = 'prompt-signal:favorites:v1'
 const IMAGE_API_CONFIG_KEY = 'prompt-signal:image-api:v1'
+const GENERATION_HISTORY_KEY = 'prompt-signal:generation-history:v1'
+const MAX_GENERATION_HISTORY = 30
 const DEFAULT_API_CONFIG = {
   endpoint: '',
   apiKey: '',
@@ -84,6 +89,46 @@ function readApiConfig() {
   }
 }
 
+function readGenerationHistory() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(GENERATION_HISTORY_KEY) || '[]')
+    return Array.isArray(stored) ? stored.filter((record) => record?.id && record?.image && record?.prompt) : []
+  } catch {
+    return []
+  }
+}
+
+function writeGenerationHistory(records) {
+  const next = records.slice(0, MAX_GENERATION_HISTORY)
+  try {
+    localStorage.setItem(GENERATION_HISTORY_KEY, JSON.stringify(next))
+    return next
+  } catch {
+    // Reference previews are optional; remove them first if a base64 result fills localStorage.
+    const withoutReferences = next.map(({ referencePreview, ...record }) => record)
+    try {
+      localStorage.setItem(GENERATION_HISTORY_KEY, JSON.stringify(withoutReferences))
+      return withoutReferences
+    } catch {
+      const compact = withoutReferences.slice(0, 8)
+      try {
+        localStorage.setItem(GENERATION_HISTORY_KEY, JSON.stringify(compact))
+        return compact
+      } catch {
+        return records
+      }
+    }
+  }
+}
+
+function formatHistoryDate(value) {
+  try {
+    return new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(value))
+  } catch {
+    return '刚刚'
+  }
+}
+
 function IconButton({ label, children, className = '', ...props }) {
   return (
     <button className={`icon-button ${className}`} aria-label={label} title={label} {...props}>
@@ -92,7 +137,7 @@ function IconButton({ label, children, className = '', ...props }) {
   )
 }
 
-function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavorites, onSettings }) {
+function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavorites, historyCount, onHistory, onSettings }) {
   const [mobileSearch, setMobileSearch] = useState(false)
 
   return (
@@ -130,6 +175,11 @@ function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavori
           <span>收藏</span>
           <b>{favoriteCount}</b>
         </button>
+        <button className="history-button" onClick={onHistory} aria-label="生成记录" title="生成记录">
+          <History size={18} />
+          <span>生成记录</span>
+          <b>{historyCount}</b>
+        </button>
         <IconButton label="图片模型配置" onClick={onSettings}>
           <Settings2 size={18} />
         </IconButton>
@@ -157,12 +207,55 @@ function SettingsPanel({ config, onChange, onSave, onClear, onClose }) {
         <label className="settings-field"><span>API URL</span><input value={config.endpoint} onChange={(e) => onChange({ endpoint: e.target.value })} placeholder="https://your-provider.example/v1/images/generations" /></label>
         <label className="settings-field"><span>API KEY</span><div className="key-input"><input type={showKey ? 'text' : 'password'} value={config.apiKey} onChange={(e) => onChange({ apiKey: e.target.value })} placeholder="sk-..." autoComplete="off" /><IconButton label={showKey ? '隐藏 API Key' : '显示 API Key'} onClick={() => setShowKey((v) => !v)}>{showKey ? <EyeOff size={17} /> : <Eye size={17} />}</IconButton></div></label>
         <div className="settings-grid">
-          <label className="settings-field"><span>MODEL</span><input value={config.model} onChange={(e) => onChange({ model: e.target.value })} placeholder="填写平台中的模型名，例如 gpt-image-2" /></label>
+          <label className="settings-field"><span>MODEL</span><input value={config.model} onChange={(e) => onChange({ model: e.target.value })} placeholder="例如 gpt-image-2" /></label>
           <label className="settings-field"><span>SIZE</span><select value={config.size} onChange={(e) => onChange({ size: e.target.value })}><option>auto</option><option>1024x1024</option><option>1536x1024</option><option>1024x1536</option></select></label>
           <label className="settings-field"><span>QUALITY</span><select value={config.quality} onChange={(e) => onChange({ quality: e.target.value })}><option>auto</option><option>low</option><option>medium</option><option>high</option></select></label>
         </div>
         <div className="settings-actions"><button className="settings-save" onClick={onSave}><Check size={17} />保存配置</button><button className="settings-clear" onClick={onClear}>清除本地配置</button></div>
         <div className="settings-security"><KeyRound size={14} />浏览器本地保存 · 不会上传到 Prompt Signal</div>
+      </div>
+    </div>
+  )
+}
+
+function HistoryPanel({ records, onOpen, onClear, onClose }) {
+  return (
+    <div className="history-backdrop" role="dialog" aria-modal="true" aria-label="生成记录">
+      <div className="history-panel">
+        <div className="history-heading">
+          <div><span>LOCAL ARCHIVE</span><h2>生成记录</h2></div>
+          <IconButton label="关闭生成记录" onClick={onClose}><X size={19} /></IconButton>
+        </div>
+        <div className="history-toolbar">
+          <span>{records.length} / {MAX_GENERATION_HISTORY} RECORDS</span>
+          {records.length ? <button onClick={onClear}><Trash2 size={14} />清空记录</button> : null}
+        </div>
+        {records.length ? (
+          <div className="history-grid">
+            {records.map((record) => (
+              <article className="history-card" key={record.id}>
+                <button className="history-card-image" onClick={() => onOpen(record)} aria-label={`查看 ${record.title} 生成记录`}>
+                  <img src={record.image} alt={`${record.title} 生成结果`} />
+                  <span>OPEN <ArrowUpRight size={14} /></span>
+                </button>
+                <div className="history-card-info">
+                  <div>
+                    <span>{formatHistoryDate(record.createdAt)} · {record.model || 'IMAGE MODEL'}</span>
+                    <h3>{record.title}</h3>
+                  </div>
+                  <p>{record.prompt}</p>
+                  {record.referenceName ? <small>REFERENCE · {record.referenceName}</small> : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="history-empty">
+            <History size={28} />
+            <h3>还没有生成记录</h3>
+            <p>在案例详情中生成图片后，结果会自动保存在这里。</p>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -257,10 +350,11 @@ function EmptyState({ showFavorites, clearFilters }) {
   )
 }
 
-function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCopy, config, onOpenSettings }) {
+function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCopy, config, onOpenSettings, onGenerationComplete }) {
+  const isHistoryItem = item.kind === 'generation-history'
   const [promptText, setPromptText] = useState(item.prompt)
-  const [generatedUrl, setGeneratedUrl] = useState('')
-  const [viewMode, setViewMode] = useState('source')
+  const [generatedUrl, setGeneratedUrl] = useState(item.generatedUrl || '')
+  const [viewMode, setViewMode] = useState(item.generatedUrl ? 'generated' : 'source')
   const [generationState, setGenerationState] = useState('idle')
   const [generationError, setGenerationError] = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -270,8 +364,8 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
 
   useEffect(() => {
     setPromptText(item.prompt)
-    setGeneratedUrl('')
-    setViewMode('source')
+    setGeneratedUrl(item.generatedUrl || '')
+    setViewMode(item.generatedUrl ? 'generated' : 'source')
     setGenerationState('idle')
     setGenerationError('')
     setReferenceFile(null)
@@ -327,6 +421,20 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
       setGeneratedUrl(url)
       setViewMode('generated')
       setGenerationState('success')
+      onGenerationComplete?.({
+        id: `generation-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        itemId: item.id,
+        title: item.title,
+        category: item.category,
+        prompt: promptText,
+        image: url,
+        model: config.model.trim(),
+        size: config.size,
+        quality: config.quality,
+        createdAt: new Date().toISOString(),
+        referenceName: referenceFile?.name || '',
+        referencePreview: referencePreview.length <= 500000 ? referencePreview : '',
+      })
     } catch (error) {
       const message = error?.message || '生成失败'
       setGenerationError(message.includes('Failed to fetch') ? '无法连接接口。请检查 API URL、CORS 或网络设置。' : message)
@@ -368,10 +476,10 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     <div className="detail-backdrop" role="dialog" aria-modal="true" aria-label={`${item.title} 详情`}>
       <div className="detail-topbar">
         <button onClick={onClose}><X size={19} /> CLOSE</button>
-        <div>
+        {!isHistoryItem ? <div>
           <IconButton label="上一个案例" onClick={onPrev}><ArrowLeft size={19} /></IconButton>
           <IconButton label="下一个案例" onClick={onNext}><ArrowRight size={19} /></IconButton>
-        </div>
+        </div> : <span className="detail-history-label"><History size={14} /> GENERATED HISTORY</span>}
       </div>
       <div className="detail-layout">
         <div className="detail-media">
@@ -380,7 +488,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             <span>CLICK TO EXPAND</span>
           </button>
           <div className="detail-media-index">GPT—IMAGE—2</div>
-          {generatedUrl ? <div className="image-switcher"><button className={viewMode === 'source' ? 'is-active' : ''} onClick={() => setViewMode('source')}>SOURCE</button><button className={viewMode === 'generated' ? 'is-active' : ''} onClick={() => setViewMode('generated')}>GENERATED</button></div> : null}
+          {generatedUrl && !isHistoryItem ? <div className="image-switcher"><button className={viewMode === 'source' ? 'is-active' : ''} onClick={() => setViewMode('source')}>SOURCE</button><button className={viewMode === 'generated' ? 'is-active' : ''} onClick={() => setViewMode('generated')}>GENERATED</button></div> : null}
           {generationState === 'loading' ? <div className="generation-overlay"><LoaderCircle size={23} className="spin" /><span>正在生成图像…</span></div> : null}
         </div>
         <div className="detail-panel">
@@ -418,23 +526,23 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             <button className="generate-button" onClick={requestGeneration} disabled={generationState === 'loading'}>
               {generationState === 'loading' ? <LoaderCircle size={18} className="spin" /> : <Sparkles size={18} />} 生成
             </button>
-            <IconButton
+            {!isHistoryItem ? <IconButton
               label={favorite ? '取消收藏' : '收藏'}
               className={favorite ? 'detail-favorite is-active' : 'detail-favorite'}
               onClick={() => onFavorite(item.id)}
             >
               <Heart size={20} fill={favorite ? 'currentColor' : 'none'} />
-            </IconButton>
+            </IconButton> : null}
           </div>
           {generationState === 'error' ? <div className="generation-error" role="alert">{generationError}<button onClick={onOpenSettings}><Settings2 size={14} />检查配置</button></div> : null}
           {generatedUrl ? <a className="download-link" href={generatedUrl} download="prompt-signal-generated.png" target="_blank" rel="noreferrer"><Download size={16} />下载生成结果</a> : null}
 
-          <div className="source-link">
+          {isHistoryItem ? <div className="history-detail-meta"><span><Clock3 size={13} /> {formatHistoryDate(item.createdAt)}</span><span>{item.model || 'IMAGE MODEL'} · {item.size || 'auto'} · {item.quality || 'auto'}</span>{item.referenceName ? <span>REFERENCE · {item.referenceName}</span> : null}</div> : <div className="source-link">
             <span><i /> SOURCE</span>
             <div className="source-links">
               {getItemSources(item).map((source) => <a key={`${source.label}-${source.url}`} href={source.url} target="_blank" rel="noreferrer">{source.label}<ArrowUpRight size={14} /></a>)}
             </div>
-          </div>
+          </div>}
         </div>
       </div>
       {confirmOpen ? (
@@ -462,8 +570,11 @@ export default function App() {
   const [showFavorites, setShowFavorites] = useState(false)
   const [favorites, setFavorites] = useState(readFavorites)
   const [selectedId, setSelectedId] = useState(null)
+  const [selectedHistory, setSelectedHistory] = useState(null)
   const [toast, setToast] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [generationHistory, setGenerationHistory] = useState(readGenerationHistory)
   const [apiConfig, setApiConfig] = useState(readApiConfig)
   const [visibleLimit, setVisibleLimit] = useState(48)
   const deferredSearch = useDeferredValue(search.trim().toLowerCase())
@@ -484,7 +595,7 @@ export default function App() {
     setVisibleLimit(48)
   }, [activeCategory, deferredSearch, showFavorites, sort])
 
-  const selected = selectedId ? prompts.find((item) => item.id === selectedId) : null
+  const selected = selectedHistory || (selectedId ? prompts.find((item) => item.id === selectedId) : null)
 
   const persistFavorites = (next) => {
     setFavorites(next)
@@ -499,7 +610,7 @@ export default function App() {
   }
 
   const navigateDetail = (direction) => {
-    if (!selectedId) return
+    if (!selectedId || selectedHistory) return
     const index = prompts.findIndex((item) => item.id === selectedId)
     const nextIndex = (index + direction + prompts.length) % prompts.length
     setSelectedId(prompts[nextIndex].id)
@@ -538,6 +649,29 @@ export default function App() {
     setApiConfig(DEFAULT_API_CONFIG)
   }
 
+  const saveGeneration = (record) => {
+    setGenerationHistory((current) => writeGenerationHistory([record, ...current]))
+  }
+
+  const clearGenerationHistory = () => {
+    localStorage.removeItem(GENERATION_HISTORY_KEY)
+    setGenerationHistory([])
+  }
+
+  const openHistoryRecord = (record) => {
+    setHistoryOpen(false)
+    setSelectedId(null)
+    setSelectedHistory({
+      ...record,
+      id: `history-${record.id}`,
+      kind: 'generation-history',
+      generatedUrl: record.image,
+      author: record.model || 'IMAGE MODEL',
+      sourceLabel: 'GENERATED',
+      sources: [],
+    })
+  }
+
   return (
     <>
       <Header
@@ -546,6 +680,8 @@ export default function App() {
         favoriteCount={favorites.size}
         showFavorites={showFavorites}
         setShowFavorites={setShowFavorites}
+        historyCount={generationHistory.length}
+        onHistory={() => setHistoryOpen(true)}
         onSettings={() => setSettingsOpen(true)}
       />
       <main>
@@ -588,17 +724,19 @@ export default function App() {
       {selected ? (
         <DetailView
           item={selected}
-          favorite={favorites.has(selected.id)}
+          favorite={!selectedHistory && favorites.has(selected.id)}
           onFavorite={toggleFavorite}
-          onClose={() => setSelectedId(null)}
+          onClose={() => { setSelectedId(null); setSelectedHistory(null) }}
           onPrev={() => navigateDetail(-1)}
           onNext={() => navigateDetail(1)}
           onCopy={copyPrompt}
           config={apiConfig}
           onOpenSettings={() => setSettingsOpen(true)}
+          onGenerationComplete={saveGeneration}
         />
       ) : null}
 
+      {historyOpen ? <HistoryPanel records={generationHistory} onOpen={openHistoryRecord} onClear={clearGenerationHistory} onClose={() => setHistoryOpen(false)} /> : null}
       {settingsOpen ? <SettingsPanel config={apiConfig} onChange={(patch) => setApiConfig((current) => ({ ...current, ...patch }))} onSave={saveApiConfig} onClear={clearApiConfig} onClose={() => setSettingsOpen(false)} /> : null}
 
       <div className={`toast ${toast ? 'is-visible' : ''}`} role="status">
