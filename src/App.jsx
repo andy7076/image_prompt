@@ -10,7 +10,6 @@ import {
   Download,
   Eye,
   EyeOff,
-  GitFork,
   Heart,
   KeyRound,
   LoaderCircle,
@@ -20,7 +19,7 @@ import {
   Sparkles,
   X,
 } from 'lucide-react'
-import { categories, prompts, SECOND_SOURCE_REPO } from './data.js'
+import { categories, prompts, PROJECT_REPO } from './data.js'
 
 const CATEGORY_LABELS = new Map(categories.map((item) => [item.id, item.label]))
 const FAVORITES_KEY = 'prompt-signal:favorites:v1'
@@ -31,6 +30,21 @@ const DEFAULT_API_CONFIG = {
   model: '',
   size: 'auto',
   quality: 'auto',
+}
+
+function getItemSources(item) {
+  const candidates = item.sources ?? item.sourceLinks ?? item.source
+  if (Array.isArray(candidates)) {
+    return candidates
+      .map((source, index) => typeof source === 'string' ? { label: `${item.sourceLabel || 'SOURCE'} ${index + 1}`, url: source } : source)
+      .filter((source) => source?.url)
+      .map((source) => ({ ...source, label: source.label || source.platform || 'SOURCE' }))
+  }
+  return candidates ? [{ label: item.sourceLabel || 'SOURCE', url: candidates }] : []
+}
+
+function GithubMark({ size = 18 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.25c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.74.08-.74 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.38 1.23-3.22-.12-.3-.53-1.52.12-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.29-1.23 3.29-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.57A12 12 0 0 0 12 .5Z" /></svg>
 }
 
 function readFavorites() {
@@ -103,9 +117,9 @@ function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavori
         <IconButton label="图片模型配置" onClick={onSettings}>
           <Settings2 size={18} />
         </IconButton>
-        <a className="repo-button" href={SECOND_SOURCE_REPO.url} target="_blank" rel="noreferrer" title={SECOND_SOURCE_REPO.name}>
-          <GitFork size={18} />
-          <span>{SECOND_SOURCE_REPO.stars}</span>
+        <a className="repo-button" href={PROJECT_REPO.url} target="_blank" rel="noreferrer" title={PROJECT_REPO.name}>
+          <GithubMark size={18} />
+          {Number(PROJECT_REPO.stars) > 100 ? <span>{PROJECT_REPO.stars}</span> : null}
           <ArrowUpRight size={15} />
         </a>
       </nav>
@@ -122,8 +136,8 @@ function SettingsPanel({ config, onChange, onSave, onClear, onClose }) {
           <div><span>IMAGE ENGINE</span><h2>图片模型配置</h2></div>
           <IconButton label="关闭配置" onClick={onClose}><X size={19} /></IconButton>
         </div>
-        <p className="settings-note">配置会保存在当前浏览器，仅在点击生成时发送到你填写的地址。Comfly 可填写 <code>https://ai.comfly.org/v1/images/generations</code>。</p>
-        <label className="settings-field"><span>API URL</span><input value={config.endpoint} onChange={(e) => onChange({ endpoint: e.target.value })} placeholder="https://ai.comfly.org/v1/images/generations" /></label>
+        <p className="settings-note">配置会保存在当前浏览器，仅在点击生成时发送到你填写的地址。请填写兼容 OpenAI Images API 的生成接口。</p>
+        <label className="settings-field"><span>API URL</span><input value={config.endpoint} onChange={(e) => onChange({ endpoint: e.target.value })} placeholder="https://your-provider.example/v1/images/generations" /></label>
         <label className="settings-field"><span>API KEY</span><div className="key-input"><input type={showKey ? 'text' : 'password'} value={config.apiKey} onChange={(e) => onChange({ apiKey: e.target.value })} placeholder="sk-..." autoComplete="off" /><IconButton label={showKey ? '隐藏 API Key' : '显示 API Key'} onClick={() => setShowKey((v) => !v)}>{showKey ? <EyeOff size={17} /> : <Eye size={17} />}</IconButton></div></label>
         <div className="settings-grid">
           <label className="settings-field"><span>MODEL</span><input value={config.model} onChange={(e) => onChange({ model: e.target.value })} placeholder="填写平台中的模型名，例如 gpt-image-2" /></label>
@@ -175,6 +189,7 @@ function FilterBar({ activeCategory, setActiveCategory, resultCount, sort, setSo
           <label>
             <span className="sr-only">排序方式</span>
             <select value={sort} onChange={(event) => setSort(event.target.value)}>
+              <option value="newest">最新添加</option>
               <option value="curated">精选排序</option>
               <option value="title">标题排序</option>
             </select>
@@ -191,7 +206,7 @@ function GalleryCard({ item, index, favorite, onOpen, onFavorite }) {
   return (
     <article className={`gallery-card ratio-${item.ratio}`} style={{ '--delay': `${Math.min(index, 9) * 45}ms` }}>
       <button className={`card-image is-${imageState}`} onClick={() => onOpen(item)} aria-label={`查看 ${item.title} 详情`} aria-busy={imageState === 'loading'}>
-        {imageState === 'loading' ? <span className="image-skeleton" aria-hidden="true" /> : null}
+        <span className="image-skeleton" aria-hidden="true" />
         {imageState === 'error' ? <span className="image-fallback">IMAGE UNAVAILABLE</span> : null}
         <img src={item.image} alt={item.title} loading={index > 5 ? 'lazy' : 'eager'} onLoad={() => setImageState('loaded')} onError={() => setImageState('error')} />
         <span className="card-number">{String(index + 1).padStart(2, '0')}</span>
@@ -231,8 +246,10 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
   const [viewMode, setViewMode] = useState('source')
   const [generationState, setGenerationState] = useState('idle')
   const [generationError, setGenerationError] = useState('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [referenceFile, setReferenceFile] = useState(null)
   const [referencePreview, setReferencePreview] = useState('')
+  const [zoomedImage, setZoomedImage] = useState(null)
 
   useEffect(() => {
     setPromptText(item.prompt)
@@ -242,6 +259,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     setGenerationError('')
     setReferenceFile(null)
     setReferencePreview('')
+    setZoomedImage(null)
   }, [item.id, item.prompt])
 
   useEffect(() => {
@@ -258,7 +276,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     }
   }, [onClose, onNext, onPrev])
 
-  const generateImage = async () => {
+  const runGeneration = async () => {
     if (!config.apiKey.trim() || !config.endpoint.trim() || !config.model.trim()) {
       onOpenSettings()
       return
@@ -299,6 +317,15 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     }
   }
 
+  const requestGeneration = () => {
+    if (!config.apiKey.trim() || !config.endpoint.trim() || !config.model.trim()) {
+      onOpenSettings()
+      return
+    }
+    setGenerationError('')
+    setConfirmOpen(true)
+  }
+
   const handleReferenceChange = (event) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -331,7 +358,10 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
       </div>
       <div className="detail-layout">
         <div className="detail-media">
-          <img src={displayImage} alt={viewMode === 'generated' ? `${item.title} 生成结果` : item.title} />
+          <button className="detail-image-trigger" onClick={() => setZoomedImage({ src: displayImage, alt: viewMode === 'generated' ? `${item.title} 生成结果` : item.title })} aria-label="放大查看图片">
+            <img src={displayImage} alt={viewMode === 'generated' ? `${item.title} 生成结果` : item.title} />
+            <span>CLICK TO EXPAND</span>
+          </button>
           <div className="detail-media-index">GPT—IMAGE—2</div>
           {generatedUrl ? <div className="image-switcher"><button className={viewMode === 'source' ? 'is-active' : ''} onClick={() => setViewMode('source')}>SOURCE</button><button className={viewMode === 'generated' ? 'is-active' : ''} onClick={() => setViewMode('generated')}>GENERATED</button></div> : null}
           {generationState === 'loading' ? <div className="generation-overlay"><LoaderCircle size={23} className="spin" /><span>正在生成图像…</span></div> : null}
@@ -355,7 +385,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             <div className="reference-upload-heading"><span>REFERENCE IMAGE</span><span>OPTIONAL</span></div>
             {referencePreview ? (
               <div className="reference-preview">
-                <img src={referencePreview} alt="待上传的参考图" />
+                <button className="reference-preview-image" onClick={() => setZoomedImage({ src: referencePreview, alt: '待上传的参考图' })} aria-label="放大查看参考图"><img src={referencePreview} alt="待上传的参考图" /></button>
                 <div><span>{referenceFile?.name}</span><button onClick={clearReference}><X size={14} />移除</button></div>
               </div>
             ) : (
@@ -367,7 +397,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             <button className="copy-button" onClick={() => onCopy(promptText)}>
               <Copy size={18} /> 复制 Prompt
             </button>
-            <button className="generate-button" onClick={generateImage} disabled={generationState === 'loading'}>
+            <button className="generate-button" onClick={requestGeneration} disabled={generationState === 'loading'}>
               {generationState === 'loading' ? <LoaderCircle size={18} className="spin" /> : <Sparkles size={18} />} 生成
             </button>
             <IconButton
@@ -381,12 +411,28 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
           {generationState === 'error' ? <div className="generation-error" role="alert">{generationError}<button onClick={onOpenSettings}><Settings2 size={14} />检查配置</button></div> : null}
           {generatedUrl ? <a className="download-link" href={generatedUrl} download="prompt-signal-generated.png"><Download size={16} />下载生成结果</a> : null}
 
-          <a className="source-link" href={item.source} target="_blank" rel="noreferrer">
-            <span><i /> SOURCE / {item.sourceLabel}</span>
-            <ArrowUpRight size={18} />
-          </a>
+          <div className="source-link">
+            <span><i /> SOURCE</span>
+            <div className="source-links">
+              {getItemSources(item).map((source) => <a key={`${source.label}-${source.url}`} href={source.url} target="_blank" rel="noreferrer">{source.label}<ArrowUpRight size={14} /></a>)}
+            </div>
+          </div>
         </div>
       </div>
+      {confirmOpen ? (
+        <div className="generation-confirm-backdrop" role="dialog" aria-modal="true" aria-label="确认生成图片">
+          <div className="generation-confirm">
+            <div className="generation-confirm-heading"><span>READY TO RENDER</span><IconButton label="取消生成" onClick={() => setConfirmOpen(false)}><X size={17} /></IconButton></div>
+            <h3>确认生成这张图片？</h3>
+            <p>将使用当前 Prompt 调用已配置的图片模型。确认后才会向第三方接口发送请求。</p>
+            <label className="confirm-prompt-field"><span>PROMPT · 可在这里二次编辑</span><textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} /></label>
+            {referencePreview ? <div className="confirm-reference"><span>REFERENCE IMAGE</span><button onClick={() => setZoomedImage({ src: referencePreview, alt: referenceFile?.name || '待上传的参考图' })}><img src={referencePreview} alt={referenceFile?.name || '待上传的参考图'} /><div><b>{referenceFile?.name || 'REFERENCE IMAGE'}</b><small>点击缩略图放大预览</small></div></button></div> : null}
+            <div className="generation-confirm-meta"><span>MODEL <b>{config.model}</b></span><span>REFERENCE <b>{referenceFile ? 'ATTACHED' : 'NONE'}</b></span></div>
+            <div className="generation-confirm-actions"><button className="confirm-cancel" onClick={() => setConfirmOpen(false)}>取消</button><button className="confirm-submit" onClick={() => { setConfirmOpen(false); runGeneration() }}><Sparkles size={17} />确认生成</button></div>
+          </div>
+        </div>
+      ) : null}
+      {zoomedImage ? <div className="image-lightbox" role="dialog" aria-modal="true" aria-label="图片预览" onClick={() => setZoomedImage(null)}><button onClick={() => setZoomedImage(null)} aria-label="关闭图片预览"><X size={22} /></button><img src={zoomedImage.src} alt={zoomedImage.alt} onClick={(event) => event.stopPropagation()} /></div> : null}
     </div>
   )
 }
@@ -394,7 +440,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
 export default function App() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [search, setSearch] = useState('')
-  const [sort, setSort] = useState('curated')
+  const [sort, setSort] = useState('newest')
   const [showFavorites, setShowFavorites] = useState(false)
   const [favorites, setFavorites] = useState(readFavorites)
   const [selectedId, setSelectedId] = useState(null)
@@ -411,7 +457,9 @@ export default function App() {
       if (!deferredSearch) return true
       return `${item.title} ${item.author} ${item.prompt}`.toLowerCase().includes(deferredSearch)
     })
-    return sort === 'title' ? [...result].sort((a, b) => a.title.localeCompare(b.title)) : result
+    if (sort === 'title') return [...result].sort((a, b) => a.title.localeCompare(b.title))
+    if (sort === 'newest') return [...result].sort((a, b) => b.addedOrder - a.addedOrder)
+    return result
   }, [activeCategory, deferredSearch, favorites, showFavorites, sort])
 
   useEffect(() => {

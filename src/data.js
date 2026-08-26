@@ -10,6 +10,12 @@ export const SECOND_SOURCE_REPO = {
   stars: '19.1k',
 }
 
+export const PROJECT_REPO = {
+  name: 'andy7076/image_prompt',
+  url: 'https://github.com/andy7076/image_prompt',
+  stars: null,
+}
+
 export const categories = [
   { id: 'all', label: '全部' },
   { id: 'photography', label: '摄影写实' },
@@ -241,7 +247,7 @@ export const featuredPrompts = [
     image: '/images/case1.jpg',
     ratio: 'portrait',
     author: 'insight_express',
-    sourceLabel: 'GitHub / 小红书',
+    sourceLabel: 'GitHub',
     source: 'https://github.com/freestylefly/awesome-gpt-image-2/blob/main/docs/gallery-part-1.md#case-1',
     accent: '#7cc4e8',
     prompt: 'Vertical 9:16 isometric cutaway infographic "城市生命系统图谱 / Urban Metabolism Atlas". Smart city from sky to bedrock: skyscrapers, streets, subway, utility tunnels, water/sewage/gas/heating pipes, fiber, data center, flood tanks, aquifers, geothermal wells, bedrock. Color-coded flows for power/water/data/traffic/waste. 12 numbered panels bilingual CN/EN: 能源/水循环/交通/数据/垃圾/建筑/公共服务/物流/气候韧性/生态/地质/治理看板. 24h timeline at bottom. Style: engineering white paper + scientific atlas, light paper bg, crisp lines, 8K. No cyberpunk, no gibberish text, must show both above AND below ground.',
@@ -253,7 +259,7 @@ export const featuredPrompts = [
     image: '/images/case6.jpg',
     ratio: 'portrait',
     author: 'yi_xiao_jiu',
-    sourceLabel: 'GitHub / 小红书',
+    sourceLabel: 'GitHub',
     source: 'https://github.com/freestylefly/awesome-gpt-image-2/blob/main/docs/gallery-part-1.md#case-6',
     accent: '#ad7dff',
     prompt: '参考图是角色人设图，为参考图的少女绘制一副日系唯美奇幻风格插画。【构图】这是一个宏大的中景日系奇幻插画构图，画面中心是完全保留了完整细节的可爱少女，她站立在无边的、如镜面般平滑的水面中心。天空呈现出高饱和度的粉紫与深蓝交织，一条耀眼的蓝色巨型流星划破天际，配合着边缘发光的瑰丽层云。女孩处于背光状态，形成一个暗调但依然清晰可辨其服装和紫色明亮眼眸的剪影，被流星和星空的边缘光细腻勾勒，她微微仰头，一只手轻轻张开。下方的水面完美、对称地反射出整个壮丽的星空、流星、云彩，以及女孩清晰的倒影，点缀着微小的发光点，营造出天人合一、空灵静谧的唯美梦境意境。生成图片比例 9:16，分辨率 4K。',
@@ -265,7 +271,7 @@ export const featuredPrompts = [
     image: '/images/case17.jpg',
     ratio: 'portrait',
     author: '@wory37303852',
-    sourceLabel: 'X via GitHub',
+    sourceLabel: 'GitHub',
     source: 'https://github.com/freestylefly/awesome-gpt-image-2/blob/main/docs/gallery-part-1.md#case-17',
     accent: '#8f9cff',
     prompt: 'Create an exploded-view product diagram poster of a next-generation VR headset. Use a clean high-tech 3D render with studio lighting, glowing accents and a soft purple-blue background. In the center, arrange nine distinct internal layers vertically: outer shell, camera sensors, motherboard and chip, pancake lenses, internal frame, battery packs, side straps, top strap and facial-interface cushion. Add eight precise callout labels on both sides, a bold product header and a compact technical footer. The layout should feel like premium industrial-design communication: exact spacing, highly legible typography, credible materials and clearly separated components.',
@@ -277,7 +283,7 @@ export const featuredPrompts = [
     image: '/images/case310.jpg',
     ratio: 'square',
     author: '@TechieBySA',
-    sourceLabel: 'X via GitHub',
+    sourceLabel: 'GitHub',
     source: 'https://github.com/freestylefly/awesome-gpt-image-2/blob/main/docs/gallery-part-2.md#case-310',
     accent: '#ef4b35',
     prompt: 'Create a branded technical infographic of a snack, combining a photoreal product render with technical annotation overlays. On a pure white studio background, use black architectural-sketch linework with strategic brand-color accents. Include component labels, an internal cross-section showing layers, measurements and specifications, material callouts with composition and quantities, function arrows, sustainability notes and a small schematic. Keep the real product clearly visible, the annotations precise but slightly hand-drawn, and the negative space balanced. Premium food-engineering aesthetic, 1080×1080, ultra-crisp, social-feed optimized, no watermark.',
@@ -301,7 +307,7 @@ export const featuredPrompts = [
     image: '/images/case339.jpg',
     ratio: 'portrait',
     author: '@berryxia',
-    sourceLabel: 'X via GitHub',
+    sourceLabel: 'GitHub',
     source: 'https://github.com/freestylefly/awesome-gpt-image-2/blob/main/docs/gallery-part-2.md#case-339',
     accent: '#67a966',
     prompt: '生成一张 9:16 竖版高级自然科普海报，采用极简、纯白、现代的 Apple keynote 式产品发布视觉语言。主体动物被极度放大，占画面 50% 到 70%，具有可信的毛发、鳞片、甲壳或羽毛细节与柔和棚拍阴影。顶部左侧放置巨大中文物种名、克制副标题、英文名与分布信息。底部仅用四列极简 icon + 标题 + 短说明，通过极细浅灰竖线分隔。不要卡片、厚边框、复杂网格、旧纸背景或多余装饰。整体高级、干净、克制，信息少而准，2K 高清，主体锐利，科学展示感强。',
@@ -313,7 +319,7 @@ export const featuredPrompts = [
     image: '/images/case527.jpg',
     ratio: 'portrait',
     author: '@john_my07',
-    sourceLabel: 'X via GitHub',
+    sourceLabel: 'GitHub',
     source: 'https://github.com/freestylefly/awesome-gpt-image-2/blob/main/docs/gallery-part-2.md#case-527',
     accent: '#57b7cd',
     prompt: 'Create a highly detailed, photorealistic miniature travel-poster diorama inspired by Rio de Janeiro, arranged as a handcrafted 3D paper scene on a warm ivory textured background. A realistic hand holds a vintage Brazilian travel ticket on the left; from behind it, a miniature Rio landscape rises like an intricate pop-up diorama. Make Christ the Redeemer the dominant landmark above lush mountains, colorful streets, a yellow taxi, palm trees, pedestrians and Copacabana beach. Surround the scene with charcoal and muted-sepia travel sketches, handwritten notes, map markings and postage details. Blend realistic miniature photography with vintage travel-journal design, tactile fibers, warm studio light, gentle shadows and a sophisticated cream, green, ocean-blue and Brazilian-yellow palette. Vertical 4:5, editorial 8K detail.',
@@ -321,5 +327,10 @@ export const featuredPrompts = [
 ]
 
 import generatedCases from './cases.generated.json'
+import zhidawangCases from './zhidawang.generated.json'
 
-export const prompts = [...featuredPrompts, ...generatedCases]
+export const prompts = [...featuredPrompts, ...generatedCases, ...zhidawangCases].map((item, index) => ({
+  ...item,
+  // The array is assembled in ingestion order; later imports are newer.
+  addedOrder: index,
+}))

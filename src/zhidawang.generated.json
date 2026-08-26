@@ -1,0 +1,67 @@
+[
+  {
+    "id": "x-zhidawang-paper-world",
+    "title": "纸上微缩世界 / 分层纸雕到等距模型",
+    "category": "isometric",
+    "image": "https://mosaic.fxtwitter.com/jpeg/2092416695659106508/HQnBgvJboAAhIFO/HQnBmnIawAAFia6",
+    "ratio": "portrait",
+    "author": "@zhidawang219555",
+    "sourceLabel": "X",
+    "source": "https://x.com/zhidawang219555/status/2092416695659106508",
+    "sources": [{ "label": "X", "url": "https://x.com/zhidawang219555/status/2092416695659106508" }],
+    "prompt": "Based on the uploaded reference photo, create a four-stage visual transformation sheet showing the same subject evolving from the original photo into a minimal acrylic flat illustration, then a layered paper-cut sculpture, and finally a refined isometric miniature model. Keep the subject recognizable across all stages. Use clean separation between layers, tactile paper edges, subtle cast shadows, handcrafted construction details, a quiet editorial background, and a premium collectible-diorama finish. Arrange the four stages as a coherent vertical progression with consistent lighting and scale. This prompt is reconstructed from the creator's public post description; use the uploaded photo as the source image.",
+    "featured": false
+  },
+  {
+    "id": "x-zhidawang-structure-study",
+    "title": "结构研究图 / 厚涂空间生长",
+    "category": "technical",
+    "image": "https://mosaic.fxtwitter.com/jpeg/2092479927996367141/HQn6zYCaoAA6q4c/HQn7XdgbkAAH2Tp",
+    "ratio": "portrait",
+    "author": "@zhidawang219555",
+    "sourceLabel": "X",
+    "source": "https://x.com/zhidawang219555/status/2092479927996367141",
+    "sources": [{ "label": "X", "url": "https://x.com/zhidawang219555/status/2092479927996367141" }],
+    "prompt": "Use the uploaded photo as a design reference and create a structured visual study in four stages: extract the important contours into a realistic scene line drawing, convert the drawing into an isometric layered watercolor construction diagram, then grow the same subject into a dimensional impasto-painted miniature space. Preserve the original architecture, vehicle, or object proportions. Add numbered layers, clean structural guides, material thickness, visible brush texture, controlled perspective, soft studio shadows, and a calm museum-catalog layout. Keep the final thick-paint isometric space readable and physically plausible. This prompt is reconstructed from the creator's public post description; use the uploaded photo as the source image.",
+    "featured": false
+  },
+  {
+    "id": "x-zhidawang-travel-memory",
+    "title": "旅行记忆 / 贴纸到珐琅冰箱贴",
+    "category": "illustration",
+    "image": "https://mosaic.fxtwitter.com/jpeg/2092165086165246217/HQjc9OQbcAAWg_e/HQjc9OMb0AAo_3O",
+    "ratio": "portrait",
+    "author": "@zhidawang219555",
+    "sourceLabel": "X",
+    "source": "https://x.com/zhidawang219555/status/2092165086165246217",
+    "sources": [{ "label": "X", "url": "https://x.com/zhidawang219555/status/2092165086165246217" }],
+    "prompt": "Transform the uploaded travel photo into a cohesive memory-object collection. Show the same location and emotional details reinterpreted as: a selective-memory die-cut sticker, a soft watercolor travel ticket, and a premium liquid-gold enamel refrigerator magnet. Arrange the three artifacts in one elegant editorial composition with tactile paper fibers, hand-painted edges, raised enamel, metallic highlights, believable thickness, subtle shadows, and restrained travel-journal typography. Keep landmarks and people recognizable while simplifying only the visual treatment. Bright keepsake mood, refined craft-market product photography, vertical poster composition. This prompt is reconstructed from the creator's public post description; use the uploaded photo as the source image.",
+    "featured": false
+  },
+  {
+    "id": "x-zhidawang-meme-stickers",
+    "title": "专属 Meme / 四格表情贴纸",
+    "category": "illustration",
+    "image": "https://mosaic.fxtwitter.com/jpeg/2092177843451207751/HQjnZJaaMAAkP2J/HQjnaZYa4AAnkyf/HQjnbk2bUAAQEdE/HQjnc9naQAA4kb3",
+    "ratio": "square",
+    "author": "@zhidawang219555",
+    "sourceLabel": "X",
+    "source": "https://x.com/zhidawang219555/status/2092177843451207751",
+    "sources": [{ "label": "X", "url": "https://x.com/zhidawang219555/status/2092177843451207751" }],
+    "prompt": "Turn the uploaded portrait into a playful four-panel meme sticker sheet. Preserve the person's recognizable face, hairstyle, clothing cues, and natural expression while exaggerating four distinct reactions: delighted, shocked, smug, and exhausted. Use bold clean outlines, expressive eyes, compact speech-bubble areas without unreadable filler text, sticker-cut contours, bright but controlled colors, soft paper grain, and a consistent character design across all panels. Deliver a polished social-chat sticker pack on a clean light background, with generous spacing and no watermark. This prompt is reconstructed from the creator's public post description; use the uploaded photo as the source image.",
+    "featured": false
+  },
+  {
+    "id": "x-zhidawang-lego-storybook",
+    "title": "童话积木世界 / 四阶段角色转化",
+    "category": "illustration",
+    "image": "https://mosaic.fxtwitter.com/jpeg/2092062124730384570/HQh-bHBaAAAbKiZ/HQh_Xe4bIAAcQa9",
+    "ratio": "portrait",
+    "author": "@zhidawang219555",
+    "sourceLabel": "X",
+    "source": "https://x.com/zhidawang219555/status/2092062124730384570",
+    "sources": [{ "label": "X", "url": "https://x.com/zhidawang219555/status/2092062124730384570" }],
+    "prompt": "Use the uploaded reference photo of a person, pet, or charming small object to create a cohesive four-stage transformation sheet. Keep the same subject recognizable while evolving it through: Korean naive flat illustration, a warm fairytale printmaking picture-book scene, and a polished LEGO brick art world. Preserve the subject's silhouette, key colors, expression, and distinctive details across all four stages. Use tactile paper grain, simple friendly shapes, storybook composition, believable brick geometry, soft studio lighting, and clean separation between stages. Arrange the progression as one premium editorial poster with consistent scale, generous spacing, and no watermark. This prompt is reconstructed from the creator's public post description; use the uploaded photo as the source image.",
+    "featured": false
+  }
+]
