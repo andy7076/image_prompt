@@ -640,9 +640,9 @@ function MasonryGallery({ items, favoriteIds, onOpen, onFavorite }) {
     const heights = Array.from({ length: columnCount }, () => 0)
 
     items.forEach((item, index) => {
-      // Seed the first visual row left-to-right, then keep each following card
-      // on the shortest column so the waterfall stays balanced at the bottom.
-      const columnIndex = index < columnCount ? index : heights.indexOf(Math.min(...heights))
+      // Always append to the shortest column. Equal initial heights naturally
+      // produce a left-to-right first layer, while later cards stay balanced.
+      const columnIndex = heights.indexOf(Math.min(...heights))
       nextColumns[columnIndex].push({ item, index })
       heights[columnIndex] += estimateMasonryWeight(item)
     })
