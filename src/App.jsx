@@ -40,17 +40,17 @@ const DEFAULT_API_CONFIG = {
 }
 
 const PROMPT_STATUS_LABELS = {
-  template: 'TEMPLATE · EDITABLE PARAMETERS',
-  structured: 'STRUCTURED · FORMATTED',
-  bilingual: 'BILINGUAL · CN / EN',
-  reconstructed: 'RECONSTRUCTED · SOURCE DESCRIPTION',
+  template: 'PROMPT FORMAT · EDITABLE TEMPLATE',
+  structured: 'PROMPT FORMAT · STRUCTURED',
+  bilingual: 'PROMPT FORMAT · BILINGUAL',
+  reconstructed: 'PROMPT FORMAT · SOURCE-BASED EDIT',
 }
 
 const PROMPT_STATUS_LABELS_ZH = {
-  template: '模板 · 可编辑参数',
-  structured: '结构化 · 已格式化',
-  bilingual: '双语 · CN / EN',
-  reconstructed: '重构 · 来源描述',
+  template: 'PROMPT 格式 · 可编辑模板',
+  structured: 'PROMPT 格式 · 结构化',
+  bilingual: 'PROMPT 格式 · 双语',
+  reconstructed: 'PROMPT 格式 · 来源整理',
 }
 
 const CATEGORY_TRANSLATIONS = {

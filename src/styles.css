@@ -208,14 +208,14 @@ footer a:hover { color: var(--signal); }
 .detail-heading p { margin: 0; color: #777771; font-family: "SFMono-Regular", Consolas, monospace; font-size: 9px; }
 .prompt-status { width: fit-content; max-width: 100%; margin-top: 16px; padding: 7px 9px; border: 1px solid #4a4a43; color: #a9a9a0; font-family: "SFMono-Regular", Consolas, monospace; font-size: 8px; line-height: 1.3; letter-spacing: .02em; }
 .prompt-status span { display: inline-block; width: 5px; height: 5px; margin-right: 7px; border-radius: 50%; background: #a9a9a0; vertical-align: 1px; }
-.prompt-status-template { border-color: #6b7026; color: #d7e45b; }
-.prompt-status-template span { background: var(--signal); }
-.prompt-status-structured { border-color: #405b66; color: #9bc9d5; }
-.prompt-status-structured span { background: #72c6dc; }
-.prompt-status-bilingual { border-color: #51466b; color: #c8b5f2; }
-.prompt-status-bilingual span { background: #ae8cff; }
-.prompt-status-reconstructed { border-color: #70483f; color: #f0aa98; }
-.prompt-status-reconstructed span { background: #ff826d; }
+.prompt-status-template { border-color: #596020; color: #cbd37a; }
+.prompt-status-template span { background: #b8c541; }
+.prompt-status-structured { border-color: #3e555d; color: #a2c3ca; }
+.prompt-status-structured span { background: #72b6c4; }
+.prompt-status-bilingual { border-color: #514e61; color: #c0b7d4; }
+.prompt-status-bilingual span { background: #a59ac4; }
+.prompt-status-reconstructed { border-color: #565348; color: #c7c1aa; }
+.prompt-status-reconstructed span { background: #aaa17e; }
 .prompt-block { margin-top: clamp(34px, 5vh, 64px); border-top: 1px solid #42423e; border-bottom: 1px solid var(--line); }
 .prompt-label { height: 46px; display: flex; align-items: center; justify-content: space-between; color: #74746e; font-family: "SFMono-Regular", Consolas, monospace; font-size: 8px; }
 .prompt-block > p { max-height: 260px; margin: 0; padding: 0 10px 26px 0; overflow-y: auto; color: #c9c9c2; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; line-height: 1.75; white-space: pre-wrap; }
