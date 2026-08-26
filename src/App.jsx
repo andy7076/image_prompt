@@ -620,6 +620,12 @@ function getGalleryColumnCount() {
   return 4
 }
 
+function estimateMasonryWeight(item) {
+  const imageWeight = { portrait: 1.34, landscape: 0.78, square: 1, wide: 0.54 }[item.ratio] || 1
+  const titleWeight = Math.min(0.24, Math.ceil(String(item.title || '').length / 22) * 0.06)
+  return imageWeight + titleWeight + 0.26
+}
+
 function MasonryGallery({ items, favoriteIds, onOpen, onFavorite }) {
   const [columnCount, setColumnCount] = useState(getGalleryColumnCount)
 
@@ -629,9 +635,19 @@ function MasonryGallery({ items, favoriteIds, onOpen, onFavorite }) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const columns = Array.from({ length: columnCount }, (_, columnIndex) => items
-    .map((item, index) => ({ item, index }))
-    .filter(({ index }) => index % columnCount === columnIndex))
+  const columns = useMemo(() => {
+    const nextColumns = Array.from({ length: columnCount }, () => [])
+    const heights = Array.from({ length: columnCount }, () => 0)
+
+    items.forEach((item, index) => {
+      // Seed the first visual row left-to-right, then keep each following card
+      // on the shortest column so the waterfall stays balanced at the bottom.
+      const columnIndex = index < columnCount ? index : heights.indexOf(Math.min(...heights))
+      nextColumns[columnIndex].push({ item, index })
+      heights[columnIndex] += estimateMasonryWeight(item)
+    })
+    return nextColumns
+  }, [columnCount, items])
 
   return (
     <section className="masonry" aria-live="polite">
