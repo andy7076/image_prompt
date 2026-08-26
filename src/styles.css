@@ -138,12 +138,11 @@ main { min-height: calc(100vh - 74px); }
 .filter-meta select { width: 100%; color: #c7c7c0; background: transparent; border: 0; outline: 0; appearance: none; font-size: 11px; padding-right: 20px; cursor: pointer; }
 .filter-meta label svg { position: absolute; right: 0; pointer-events: none; color: #777; }
 
-.masonry { padding: 28px var(--gutter) 100px; column-count: 4; column-gap: 18px; }
+.masonry { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; gap: 30px 18px; padding: 28px var(--gutter) 100px; }
 .gallery-card {
   width: 100%;
-  break-inside: avoid;
-  margin: 0 0 30px;
-  display: inline-block;
+  margin: 0;
+  display: block;
   content-visibility: auto;
   contain-intrinsic-size: auto 480px;
   opacity: 0;
@@ -353,7 +352,7 @@ footer a:hover { color: var(--signal); }
 .image-lightbox > button:hover { color: #0a0a0a; background: var(--signal); border-color: var(--signal); }
 
 @media (max-width: 1180px) {
-  .masonry { column-count: 3; }
+  .masonry { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .site-header { grid-template-columns: 1fr minmax(250px, 390px) 1fr; }
   .detail-layout { grid-template-columns: minmax(0, 1fr) minmax(380px, .85fr); }
 }
@@ -383,8 +382,7 @@ footer a:hover { color: var(--signal); }
   .category-scroll { height: 66px; padding: 0 14px; }
   .category-scroll button { padding: 0 13px; }
   .filter-meta { display: none; }
-  .masonry { padding: 18px 14px 70px; column-count: 2; column-gap: 10px; }
-  .gallery-card { margin-bottom: 22px; }
+  .masonry { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 10px; padding: 18px 14px 70px; }
   .card-info h2 { font-size: 13px; }
   .card-info p { font-size: 9px; }
   .favorite { display: none; }
@@ -408,7 +406,7 @@ footer a:hover { color: var(--signal); }
 
 @media (max-width: 480px) {
   .brand > span:last-child { display: none; }
-  .masonry { column-count: 1; padding-left: 12px; padding-right: 12px; }
+  .masonry { grid-template-columns: 1fr; gap: 22px; padding-left: 12px; padding-right: 12px; }
   .intro { min-height: 390px; }
   .intro-title h1 { font-size: clamp(48px, 15vw, 72px); }
   .card-info { padding-left: 2px; padding-right: 2px; }
