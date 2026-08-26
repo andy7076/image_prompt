@@ -5,8 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0a0a0a" />
     <meta name="description" content="精选 GPT-Image-2 热门 Prompt 案例画廊" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <link rel="mask-icon" href="%BASE_URL%favicon.svg" color="#c7f36b" />
+    <script>
+      (() => {
+        const currentVersion = '__PROMPT_SIGNAL_BUILD_VERSION__'
+        const versionUrl = '%BASE_URL%version.json?check=' + Date.now()
+        fetch(versionUrl, { cache: 'no-store' })
+          .then((response) => response.ok ? response.json() : null)
+          .then((latest) => {
+            if (!latest?.version || latest.version === currentVersion) return
+            const url = new URL(window.location.href)
+            url.searchParams.set('v', latest.version)
+            window.location.replace(url.toString())
+          })
+          .catch(() => {})
+      })()
+    </script>
     <title>PROMPT/SIGNAL - GPT-Image-2 Gallery</title>
   </head>
   <body>

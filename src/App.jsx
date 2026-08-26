@@ -32,6 +32,13 @@ const DEFAULT_API_CONFIG = {
   quality: 'auto',
 }
 
+const PROMPT_STATUS_LABELS = {
+  template: 'TEMPLATE · EDITABLE PARAMETERS',
+  structured: 'STRUCTURED · FORMATTED',
+  bilingual: 'BILINGUAL · CN / EN',
+  reconstructed: 'RECONSTRUCTED · SOURCE DESCRIPTION',
+}
+
 function getItemSources(item) {
   const candidates = item.sources ?? item.sourceLinks ?? item.source
   if (Array.isArray(candidates)) {
@@ -381,6 +388,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             <span>{CATEGORY_LABELS.get(item.category)}</span>
             <h2>{item.title}</h2>
             <p>CURATED BY {item.author}</p>
+            {item.promptStatus && item.promptStatus !== 'clean' ? <div className={`prompt-status prompt-status-${item.promptStatus}`}><span />{PROMPT_STATUS_LABELS[item.promptStatus] || item.promptStatus.toUpperCase()}</div> : null}
           </div>
 
           <div className="prompt-block">

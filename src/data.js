@@ -329,8 +329,148 @@ export const featuredPrompts = [
 import generatedCases from './cases.generated.json'
 import zhidawangCases from './zhidawang.generated.json'
 
-export const prompts = [...featuredPrompts, ...generatedCases, ...zhidawangCases].map((item, index) => ({
-  ...item,
-  // The array is assembled in ingestion order; later imports are newer.
-  addedOrder: index,
-}))
+function replaceArgumentDefaults(value) {
+  return value.replace(
+    /\{argument\s+name=(?:"([^"]*)"|'([^']*)')\s+default=(?:"((?:\\.|[^"])*)"|'((?:\\.|[^'])*)')\}/gi,
+    (_match, _doubleName, _singleName, doubleDefault, singleDefault) => (doubleDefault ?? singleDefault ?? '').replace(/\\(["'])/g, '$1'),
+  )
+}
+
+function normalizePlaceholders(value) {
+  return value
+    .replace(/\{([A-Z][A-Z0-9 _-]*)\}/g, '[$1]')
+    .replace(/\[([A-Z][A-Z0-9 _-]+)\]/g, (_match, name) => `[${name.trim().replace(/\s+/g, '_')}]`)
+}
+
+function labelKey(key) {
+  return key
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
+
+function formatStructuredPrompt(value, depth = 0) {
+  if (value == null) return ''
+  if (typeof value === 'string') return normalizePlaceholders(replaceArgumentDefaults(value)).trim()
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  const indent = '  '.repeat(depth)
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => {
+        const formatted = formatStructuredPrompt(entry, depth + 1)
+        return formatted ? `${indent}- ${formatted}` : ''
+      })
+      .filter(Boolean)
+      .join('\n')
+  }
+  return Object.entries(value)
+    .map(([key, entry]) => {
+      const formatted = formatStructuredPrompt(entry, depth + 1)
+      if (!formatted) return ''
+      if (typeof entry === 'object' && entry !== null) return `${indent}${labelKey(key)}:\n${formatted}`
+      return `${indent}${labelKey(key)}: ${formatted}`
+    })
+    .filter(Boolean)
+    .join('\n')
+}
+
+function parseJsonObject(value) {
+  const start = value.indexOf('{')
+  const end = value.lastIndexOf('}')
+  if (start < 0 || end <= start) return null
+  try {
+    return { parsed: JSON.parse(value.slice(start, end + 1)), prefix: value.slice(0, start).trim(), suffix: value.slice(end + 1).trim() }
+  } catch {
+    return null
+  }
+}
+
+function extractPromptValue(value) {
+  if (typeof value === 'string') return value
+  if (value && typeof value === 'object' && typeof value.prompt === 'string') return value.prompt
+  return ''
+}
+
+function formatParsedPrompt(value) {
+  const promptValue = extractPromptValue(value)
+  if (!promptValue) return formatStructuredPrompt(value)
+  const metadata = Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'prompt'))
+  const metadataText = formatStructuredPrompt(metadata)
+  return [promptValue, metadataText].filter(Boolean).join('\n\n')
+}
+
+function decodeLooseString(value) {
+  return value.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\')
+}
+
+function formatLooseStructuredPrompt(value) {
+  const text = value.trim()
+  const negativeMatch = text.match(/,\s*"negative_prompt"\s*:\s*"([\s\S]*)"\s*}\s*$/)
+  if (negativeMatch) {
+    const main = text
+      .slice(0, negativeMatch.index)
+      .replace(/^\s*\{\s*/, '')
+      .replace(/"\s*$/, '')
+      .trim()
+    return `${decodeLooseString(main)}\n\nNegative Prompt:\n${decodeLooseString(negativeMatch[1])}`
+  }
+  const promptMatch = text.match(/"prompt"\s*:\s*"([\s\S]*?)"\s*(?:,|})/)
+  if (promptMatch) return decodeLooseString(promptMatch[1])
+  return decodeLooseString(text.replace(/^\s*\{\s*/, '').replace(/\s*}\s*$/, '').replace(/"([\w-]+)"\s*:/g, '$1:'))
+}
+
+function normalizePrompt(rawPrompt) {
+  const raw = String(rawPrompt ?? '').trim()
+  const hadArguments = /\{argument\s+name=/i.test(raw)
+  const hadPlaceholders = /\{[A-Z][A-Z0-9 _-]*\}|\[[A-Z][A-Z0-9 _-]+\]/.test(raw)
+  const hadBilingualMarkers = /\[(?:中文|English)\]/i.test(raw)
+  const cleaned = replaceArgumentDefaults(raw).replace(
+    /\s*This prompt is reconstructed from the creator's public post description;\s*use the uploaded photo as the source image\.?/i,
+    '\nUse the uploaded photo as the source image.',
+  )
+  const sections = cleaned.split(/\[(中文|English)\]/i).filter((part) => part.trim())
+  const bilingual = sections.length > 1 && sections.some((part) => /^(中文|English)$/i.test(part.trim()))
+  const chunks = []
+
+  if (bilingual) {
+    for (let index = 0; index < sections.length; index += 2) {
+      const language = sections[index]?.trim()
+      const content = sections[index + 1]?.trim()
+      if (!content) continue
+      const parsed = parseJsonObject(content)
+      const text = parsed ? formatParsedPrompt(parsed.parsed) : formatLooseStructuredPrompt(content)
+      if (text) chunks.push(`${language}\n${text}`)
+    }
+  } else {
+    const parsed = parseJsonObject(cleaned)
+    if (parsed?.parsed) {
+      const body = formatParsedPrompt(parsed.parsed)
+      const prefix = parsed.prefix.replace(/^@+/, '').trim()
+      chunks.push([prefix, body, parsed.suffix].filter(Boolean).join('\n\n'))
+    } else {
+      // Some scraped posts contain JSON-like keys but are not valid JSON. Keep their wording,
+      // while removing wrapper punctuation so the prompt remains editable and copyable.
+      chunks.push(formatLooseStructuredPrompt(cleaned))
+    }
+  }
+
+  const text = normalizePlaceholders(chunks.join('\n\n')).replace(/\n{3,}/g, '\n\n').trim()
+  let status = 'clean'
+  if (/reconstructed|重建/i.test(raw)) status = 'reconstructed'
+  else if (hadArguments || hadPlaceholders) status = 'template'
+  else if (hadBilingualMarkers || bilingual) status = 'bilingual'
+  else if (parseJsonObject(cleaned)) status = 'structured'
+  return { text: text || raw, status }
+}
+
+export const prompts = [...featuredPrompts, ...generatedCases, ...zhidawangCases].map((item, index) => {
+  const rawPrompt = item.prompt ?? ''
+  const normalized = normalizePrompt(rawPrompt)
+  return {
+    ...item,
+    prompt: normalized.text,
+    rawPrompt,
+    promptStatus: item.promptStatus || normalized.status,
+    // The array is assembled in ingestion order; later imports are newer.
+    addedOrder: index,
+  }
+})
