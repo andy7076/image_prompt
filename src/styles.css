@@ -139,6 +139,9 @@ main { min-height: calc(100vh - 74px); }
 .filter-meta label svg { position: absolute; right: 0; pointer-events: none; color: #777; }
 
 .masonry { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; gap: 30px 18px; padding: 28px var(--gutter) 100px; }
+@supports (grid-template-rows: masonry) {
+  .masonry { grid-template-rows: masonry; }
+}
 .gallery-card {
   width: 100%;
   margin: 0;
