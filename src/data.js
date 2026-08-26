@@ -328,6 +328,7 @@ export const featuredPrompts = [
 
 import generatedCases from './cases.generated.json'
 import zhidawangCases from './zhidawang.generated.json'
+import hotXCases from './x.hot.generated.json'
 
 function replaceArgumentDefaults(value) {
   return value.replace(
@@ -462,7 +463,7 @@ function normalizePrompt(rawPrompt) {
   return { text: text || raw, status }
 }
 
-export const prompts = [...featuredPrompts, ...generatedCases, ...zhidawangCases].map((item, index) => {
+export const prompts = [...featuredPrompts, ...generatedCases, ...zhidawangCases, ...hotXCases].map((item, index) => {
   const rawPrompt = item.prompt ?? ''
   const normalized = normalizePrompt(rawPrompt)
   return {

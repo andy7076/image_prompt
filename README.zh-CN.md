@@ -104,6 +104,8 @@ Content-Type: application/json
 - [`wuyoscar/GPT-Image2-Skill`](https://github.com/wuyoscar/GPT-Image2-Skill)
 - X 上公开的案例和创作者内容
 
+新增的 X 数据会保留公开原帖地址和采集时的互动快照；互动数据只用于提供背景，不代表推荐或永久排名。
+
 Prompt、图片、作者名和商标的权利归原始作者及其许可条款所有。商业使用前请核验来源授权。欢迎通过 Issue 或 Pull Request 提交新案例、来源修正和数据纠错。
 
 ## 项目结构
@@ -114,6 +116,7 @@ src/styles.css              视觉系统、响应式布局与动效
 src/data.js                 案例、分类和来源元数据
 src/cases.generated.json    GitHub 案例数据
 src/zhidawang.generated.json X 案例数据
+src/x.hot.generated.json    额外的高互动 X Prompt 案例
 public/images/              画廊图片与 README 截图
 .github/workflows/          GitHub Pages 自动部署
 ```

@@ -104,6 +104,8 @@ The gallery combines curated material from:
 - [`wuyoscar/GPT-Image2-Skill`](https://github.com/wuyoscar/GPT-Image2-Skill)
 - Public X posts and creator references
 
+The additional X set stores the public post URL and an engagement snapshot captured at collection time; engagement numbers are context, not an endorsement or a ranking guarantee.
+
 Prompt text, images, names, and trademarks remain subject to their original authors and licenses. Check the source and obtain permission before commercial use. Corrections and additional source URLs are welcome through an issue or pull request.
 
 ## Project structure
@@ -114,6 +116,7 @@ src/styles.css              Design system, responsive layout, and motion
 src/data.js                 Curated cases, categories, and source metadata
 src/cases.generated.json    GitHub-derived prompt records
 src/zhidawang.generated.json X-derived prompt records
+src/x.hot.generated.json    Additional high-engagement X prompt records
 public/images/              Gallery assets and README screenshots
 .github/workflows/          GitHub Pages deployment
 ```
