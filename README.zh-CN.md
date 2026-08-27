@@ -43,6 +43,7 @@ npm run dev
 ```bash
 npm run build
 npm run preview
+npm run check
 ```
 
 ## 配置图片模型 / 代理网关
@@ -51,7 +52,8 @@ npm run preview
 
 | 字段 | 填写内容 | 示例 |
 | --- | --- | --- |
-| `API URL` | 完整的图片生成接口地址 | `https://gateway.example/v1/images/generations` |
+| `API 协议` | 接口实际实现的请求与响应格式 | `Images API` |
+| `API URL` | 完整生成地址或 GenerateContent API 基础地址 | `https://gateway.example/v1/images/generations` |
 | `API KEY` | 服务商签发的 Bearer Token | `sk-...` |
 | `MODEL` | 接口接受的精确模型名 | `gpt-image-2` |
 | `SIZE` | 输出尺寸，默认 `auto` | `auto` |
@@ -59,10 +61,10 @@ npm run preview
 
 ### 代理和兼容要求
 
-PROMPT/SIGNAL 会从浏览器直接发起请求，因此接口必须允许当前网站域名的 CORS，并接受 `Authorization: Bearer <key>` 请求头。
+PROMPT/SIGNAL 会从浏览器直接发起请求，因此接口必须允许当前网站域名的 CORS。**Images API** 使用 `Authorization: Bearer <key>`，**GenerateContent API** 使用 `x-goog-api-key`。
 
 - 如果平台只提供基础地址，请在后面补上图片路由，通常是 `/v1/images/generations`。
-- 上传参考图时，应用会把末尾的 `/generations` 自动替换为 `/edits`，用于图片编辑请求。
+- 上传参考图时，应用会把末尾的 `/generations` 自动替换为 `/edits`。单图使用 `image` 字段，多图使用 `image[]`。
 - 如果你的网关使用不同的编辑路径，请把最终编辑地址配置到网关中，或增加一层兼容路由。
 - 不要把生产 Key 提交到 Git。配置只写入当前浏览器的 `localStorage`，不会打包进仓库，但浏览器在使用页面时仍然可以读取它。
 
@@ -84,13 +86,29 @@ Content-Type: application/json
 }
 ```
 
-上传参考图时，应用会以 `multipart/form-data` 发送 `image`、`model`、`prompt`、`size`、`quality` 和 `n` 字段。接口响应需要返回 `data[0].url` 或 `data[0].b64_json`。
+上传参考图时，应用会以 `multipart/form-data` 发送图片文件以及 `model`、`prompt`、`size`、`quality` 和 `n`。接口响应需要返回 `data[0].url` 或 `data[0].b64_json`。
+
+### Gemini 图片模型 / Nano Banana
+
+Gemini 应用内的 Pro 订阅不等于 Gemini API 配额。需要先在 Google AI Studio 创建 API Key；所选模型需要付费额度时，还要在 AI Studio 对应项目中启用结算。配置如下：
+
+| 字段 | 填写内容 |
+| --- | --- |
+| `API 协议` | `GenerateContent API` |
+| `API URL` | `https://generativelanguage.googleapis.com/v1beta` |
+| `API KEY` | Google AI Studio 创建的 API Key |
+| `MODEL` | Nano Banana 2 填 `gemini-3.1-flash-image`；Nano Banana Pro 填 `gemini-3-pro-image` |
+| `SIZE` / `QUALITY` | `auto` / `auto` |
+
+应用会自动补全 `/models/{model}:generateContent`，把所有参考图作为内嵌图片 part 发送，并从响应中读取生成图片。Key 只保存在当前浏览器；公开部署并给多人使用时，建议增加服务端代理隐藏 Key。
+
+`gemini-2.5-flash-image` 仍可作为初代 Nano Banana 使用，但 Google 当前建议新接入优先选择 Gemini 3 图片模型。
 
 ## 使用流程
 
 1. 搜索或筛选画廊，找到想参考的案例。
 2. 打开详情页，直接编辑 Prompt。
-3. 可选上传本地参考图，在确认弹窗中同时检查 Prompt 和参考图。
+3. 可选上传最多 8 张本地参考图，在确认弹窗中检查 Prompt 和全部参考图。
 4. 点击确认生成，结果会自动进入 **Generation history / 生成记录**。
 5. 从记录面板重新打开结果，可复制 Prompt、下载图片或再次生成。
 
@@ -129,7 +147,7 @@ public/images/              画廊图片与 README 截图
 
 ## 贡献规范
 
-提交案例时请附公开原始链接、署名信息，以及 Prompt 或元数据的修改说明。修改后请先运行 `npm run build`。
+提交案例时请附公开原始链接、署名信息，以及 Prompt 或元数据的修改说明。修改后请先运行 `npm run check`。
 
 ## License
 

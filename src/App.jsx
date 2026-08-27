@@ -1,4 +1,4 @@
-import { createContext, useContext, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
@@ -19,11 +19,20 @@ import {
   Upload,
   Search,
   Settings2,
+  Share2,
   Sparkles,
   Trash2,
   X,
 } from 'lucide-react'
-import { categories, prompts, PROJECT_REPO } from './data.js'
+import { categories, loadPromptCatalog, PROJECT_REPO } from './data.js'
+import {
+  clearGenerationRecords,
+  deleteGenerationRecord,
+  loadGenerationRecords,
+  migrateGenerationRecords,
+  revokeGenerationRecordAssets,
+  saveGenerationRecord,
+} from './history-storage.js'
 
 const CATEGORY_LABELS = new Map(categories.map((item) => [item.id, item.label]))
 const LANGUAGE_KEY = 'prompt-signal:language:v1'
@@ -31,7 +40,11 @@ const FAVORITES_KEY = 'prompt-signal:favorites:v1'
 const IMAGE_API_CONFIG_KEY = 'prompt-signal:image-api:v1'
 const GENERATION_HISTORY_KEY = 'prompt-signal:generation-history:v1'
 const MAX_GENERATION_HISTORY = 30
+const GALLERY_PAGE_SIZE = 48
+const MAX_REFERENCE_IMAGES = 8
+const PROMPT_QUERY_KEY = 'prompt'
 const DEFAULT_API_CONFIG = {
+  protocol: 'images',
   endpoint: '',
   apiKey: '',
   model: '',
@@ -94,12 +107,16 @@ const TRANSLATIONS = {
     'actions.unfavorite': 'Remove from favorites',
     'settings.eyebrow': 'IMAGE ENGINE',
     'settings.title': 'Image model settings',
-    'settings.note': 'Settings stay in this browser and are sent only when you generate. Use an image endpoint that follows a common Images API format.',
+    'settings.note': 'Settings stay in this browser and are sent only when you generate. Choose the protocol implemented by your endpoint.',
+    'settings.protocol': 'API PROTOCOL',
+    'settings.protocolImages': 'Images API',
+    'settings.protocolGenerateContent': 'GenerateContent API',
     'settings.apiUrl': 'API URL',
     'settings.apiKey': 'API KEY',
     'settings.model': 'MODEL',
     'settings.modelPlaceholder': 'e.g. gpt-image-2',
     'settings.endpointPlaceholder': 'https://your-endpoint.example/v1/images/generations',
+    'settings.generateContentPlaceholder': 'https://your-endpoint.example/v1beta',
     'settings.save': 'Save settings',
     'settings.clear': 'Clear local settings',
     'settings.security': 'Stored locally in this browser · never uploaded to Prompt Signal',
@@ -107,6 +124,8 @@ const TRANSLATIONS = {
     'history.title': 'Generation history',
     'history.records': '{{count}} / {{max}} RECORDS',
     'history.clear': 'Clear history',
+    'history.delete': 'Delete generation record',
+    'history.loading': 'Loading local generation history...',
     'history.open': 'Open generation record',
     'history.resultAlt': '{{title}} generated result',
     'history.reference': 'REFERENCE · {{name}}',
@@ -118,10 +137,12 @@ const TRANSLATIONS = {
     'filters.results': '{{count}} RESULTS',
     'filters.sort': 'Sort results',
     'filters.newest': 'Newest first',
+    'filters.relevance': 'Best match',
     'filters.curated': 'Curated order',
     'filters.title': 'Title A–Z',
     'gallery.view': 'VIEW PROMPT',
     'gallery.unavailable': 'IMAGE UNAVAILABLE',
+    'gallery.loading': 'Loading prompt catalog...',
     'gallery.viewDetails': 'View {{title}} details',
     'empty.noFavorites': 'No favorites yet',
     'empty.noMatch': 'No matching prompts',
@@ -134,14 +155,22 @@ const TRANSLATIONS = {
     'detail.generated': 'GENERATED',
     'detail.curatedBy': 'CURATED BY {{author}}',
     'detail.prompt': 'PROMPT',
+    'detail.templateVariables': 'TEMPLATE VARIABLES',
+    'detail.templateHint': 'Fill reusable placeholders, then apply them to the editable prompt.',
+    'detail.applyVariables': 'Apply variables',
+    'detail.originalPrompt': 'View original source prompt',
+    'detail.copyOriginal': 'Copy original',
     'detail.chars': 'CHAR',
-    'detail.reference': 'REFERENCE IMAGE',
+    'detail.reference': 'REFERENCE IMAGES',
     'detail.optional': 'OPTIONAL',
-    'detail.referenceUpload': 'Upload a local image as reference',
-    'detail.referenceHint': 'PNG / JPG / WEBP · Sent to the model when generating',
+    'detail.referenceUpload': 'Upload local reference images',
+    'detail.referenceAdd': 'Add more images',
+    'detail.referenceHint': 'PNG / JPG / WEBP · Up to 8 images',
+    'detail.referenceCount': '{{count}} ATTACHED',
     'detail.referenceRemove': 'Remove reference image',
     'detail.referenceAlt': 'Reference image preview',
     'detail.copy': 'Copy prompt',
+    'detail.share': 'Copy case link',
     'detail.generate': 'Generate',
     'detail.checkSettings': 'Check settings',
     'detail.download': 'Download generated result',
@@ -163,7 +192,11 @@ const TRANSLATIONS = {
     'errors.request': 'Request failed (HTTP {{status}}).',
     'errors.imageResponse': 'The endpoint returned no image URL or b64_json.',
     'errors.invalidFile': 'Choose a PNG, JPEG, or WEBP image file.',
+    'errors.tooManyFiles': 'You can attach up to {{max}} reference images.',
+    'errors.fileRead': 'A reference image could not be read.',
     'toast.copied': 'Prompt copied to clipboard',
+    'toast.linkCopied': 'Case link copied to clipboard',
+    'toast.settingsSaved': 'Image model settings saved',
     'footer': 'OPEN PROMPTS · REAL OUTPUTS · 2026',
   },
   zh: {
@@ -187,12 +220,16 @@ const TRANSLATIONS = {
     'actions.unfavorite': '取消收藏',
     'settings.eyebrow': 'IMAGE ENGINE',
     'settings.title': '图片模型配置',
-    'settings.note': '配置会保存在当前浏览器，仅在点击生成时发送。请填写兼容常见 Images API 格式的图片接口。',
+    'settings.note': '配置会保存在当前浏览器，仅在点击生成时发送。请选择接口实际实现的请求协议。',
+    'settings.protocol': 'API 协议',
+    'settings.protocolImages': 'Images API',
+    'settings.protocolGenerateContent': 'GenerateContent API',
     'settings.apiUrl': 'API URL',
     'settings.apiKey': 'API KEY',
     'settings.model': 'MODEL',
     'settings.modelPlaceholder': '例如 gpt-image-2',
     'settings.endpointPlaceholder': 'https://your-endpoint.example/v1/images/generations',
+    'settings.generateContentPlaceholder': 'https://your-endpoint.example/v1beta',
     'settings.save': '保存配置',
     'settings.clear': '清除本地配置',
     'settings.security': '浏览器本地保存 · 不会上传到 Prompt Signal',
@@ -200,6 +237,8 @@ const TRANSLATIONS = {
     'history.title': '生成记录',
     'history.records': '{{count}} / {{max}} RECORDS',
     'history.clear': '清空记录',
+    'history.delete': '删除这条生成记录',
+    'history.loading': '正在读取本地生成记录…',
     'history.open': '查看生成记录',
     'history.resultAlt': '{{title}} 生成结果',
     'history.reference': 'REFERENCE · {{name}}',
@@ -211,10 +250,12 @@ const TRANSLATIONS = {
     'filters.results': '{{count}} 结果',
     'filters.sort': '排序方式',
     'filters.newest': '最新添加',
+    'filters.relevance': '最佳匹配',
     'filters.curated': '精选排序',
     'filters.title': '标题排序',
     'gallery.view': '查看 Prompt',
     'gallery.unavailable': '图片不可用',
+    'gallery.loading': '正在加载案例目录…',
     'gallery.viewDetails': '查看 {{title}} 详情',
     'empty.noFavorites': '还没有收藏案例',
     'empty.noMatch': '没有匹配的 Prompt',
@@ -227,14 +268,22 @@ const TRANSLATIONS = {
     'detail.generated': '生成图',
     'detail.curatedBy': 'CURATED BY {{author}}',
     'detail.prompt': 'PROMPT',
+    'detail.templateVariables': '模板变量',
+    'detail.templateHint': '填写可复用占位符，然后应用到下方可编辑 Prompt。',
+    'detail.applyVariables': '应用变量',
+    'detail.originalPrompt': '查看来源原始 Prompt',
+    'detail.copyOriginal': '复制原始 Prompt',
     'detail.chars': '字符',
-    'detail.reference': 'REFERENCE IMAGE',
+    'detail.reference': 'REFERENCE IMAGES',
     'detail.optional': '可选',
-    'detail.referenceUpload': '上传本地图片作为参考',
-    'detail.referenceHint': 'PNG / JPG / WEBP · 生成时发送给模型',
+    'detail.referenceUpload': '上传本地参考图片',
+    'detail.referenceAdd': '继续添加图片',
+    'detail.referenceHint': 'PNG / JPG / WEBP · 最多 8 张',
+    'detail.referenceCount': '已附加 {{count}} 张',
     'detail.referenceRemove': '移除参考图',
     'detail.referenceAlt': '待上传的参考图',
     'detail.copy': '复制 Prompt',
+    'detail.share': '复制案例链接',
     'detail.generate': '生成',
     'detail.checkSettings': '检查配置',
     'detail.download': '下载生成结果',
@@ -256,12 +305,112 @@ const TRANSLATIONS = {
     'errors.request': '请求失败（HTTP {{status}}）。',
     'errors.imageResponse': '接口没有返回图片 URL 或 b64_json。',
     'errors.invalidFile': '请选择 PNG、JPEG 或 WEBP 图片文件。',
+    'errors.tooManyFiles': '最多可以附加 {{max}} 张参考图片。',
+    'errors.fileRead': '无法读取其中一张参考图片。',
     'toast.copied': 'Prompt 已复制到剪贴板',
+    'toast.linkCopied': '案例链接已复制',
+    'toast.settingsSaved': '图片模型配置已保存',
     'footer': 'OPEN PROMPTS · REAL OUTPUTS · 2026',
   },
 }
 
 const LanguageContext = createContext(null)
+let openDialogCount = 0
+
+function isEditableTarget(target) {
+  return target instanceof HTMLInputElement
+    || target instanceof HTMLTextAreaElement
+    || target instanceof HTMLSelectElement
+    || target?.isContentEditable
+}
+
+function readPromptIdFromLocation() {
+  if (typeof window === 'undefined') return null
+  return new URL(window.location.href).searchParams.get(PROMPT_QUERY_KEY)
+}
+
+function updatePromptUrl(promptId, mode = 'replace') {
+  const url = new URL(window.location.href)
+  if (promptId) url.searchParams.set(PROMPT_QUERY_KEY, promptId)
+  else url.searchParams.delete(PROMPT_QUERY_KEY)
+  const previousState = window.history.state || {}
+  const openedFromGallery = mode === 'push' || previousState.promptSignalDetail === true
+  const state = { ...previousState, promptSignalDetail: Boolean(promptId && openedFromGallery) }
+  window.history[mode === 'push' ? 'pushState' : 'replaceState'](state, '', url)
+}
+
+function useDialogFocus(active, onEscape) {
+  const dialogRef = useRef(null)
+  const escapeRef = useRef(onEscape)
+  escapeRef.current = onEscape
+
+  useEffect(() => {
+    if (!active) return undefined
+    const dialog = dialogRef.current
+    if (!dialog) return undefined
+    const previousFocus = document.activeElement
+    const siblings = [...(dialog.parentElement?.children || [])]
+      .filter((element) => element !== dialog)
+      .map((element) => ({ element, ariaHidden: element.getAttribute('aria-hidden'), inert: element.inert }))
+
+    siblings.forEach(({ element }) => {
+      element.setAttribute('aria-hidden', 'true')
+      element.inert = true
+    })
+
+    openDialogCount += 1
+    document.body.classList.add('modal-open')
+
+    const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    const focusFirst = () => {
+      const firstFocusable = dialog.querySelector(focusableSelector)
+      ;(firstFocusable || dialog).focus({ preventScroll: true })
+    }
+    const frame = window.requestAnimationFrame(focusFirst)
+
+    const onKeyDown = (event) => {
+      const dialogs = [...document.querySelectorAll('[data-dialog-layer="true"]')]
+      if (dialogs.at(-1) !== dialog) return
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        escapeRef.current?.()
+        return
+      }
+      if (event.key !== 'Tab') return
+      const focusable = [...dialog.querySelectorAll(focusableSelector)].filter((element) => !element.inert && element.offsetParent !== null)
+      if (!focusable.length) {
+        event.preventDefault()
+        dialog.focus({ preventScroll: true })
+        return
+      }
+      const first = focusable[0]
+      const last = focusable.at(-1)
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      document.removeEventListener('keydown', onKeyDown)
+      siblings.forEach(({ element, ariaHidden, inert }) => {
+        if (ariaHidden == null) element.removeAttribute('aria-hidden')
+        else element.setAttribute('aria-hidden', ariaHidden)
+        element.inert = inert
+      })
+      openDialogCount = Math.max(0, openDialogCount - 1)
+      if (!openDialogCount) document.body.classList.remove('modal-open')
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus({ preventScroll: true })
+    }
+  }, [active])
+
+  return dialogRef
+}
 
 function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(() => {
@@ -306,6 +455,139 @@ function getItemSources(item) {
       .map((source) => ({ ...source, label: source.label || source.platform || 'SOURCE' }))
   }
   return candidates ? [{ label: item.sourceLabel || 'SOURCE', url: candidates }] : []
+}
+
+function scorePromptMatch(item, query) {
+  const terms = query.split(/\s+/).filter(Boolean)
+  const fields = [
+    [String(item.title || '').toLowerCase(), 120],
+    [String(item.author || '').toLowerCase(), 80],
+    [String(item.category || '').toLowerCase(), 60],
+    [String(item.sourceLabel || '').toLowerCase(), 35],
+    [String(item.prompt || '').toLowerCase(), 10],
+  ]
+  let score = 0
+  for (const term of terms) {
+    const field = fields.find(([value]) => value.includes(term))
+    if (!field) return -1
+    score += field[1]
+    if (fields[0][0].startsWith(term)) score += 40
+  }
+  return score
+}
+
+function createTemplateValues(variables) {
+  return Object.fromEntries((variables || []).map((variable) => [variable.key, variable.defaultValue || '']))
+}
+
+function replaceFirst(value, search, replacement) {
+  const index = value.indexOf(search)
+  return index < 0 ? value : `${value.slice(0, index)}${replacement}${value.slice(index + search.length)}`
+}
+
+function applyPromptVariables(prompt, variables, values, previousValues) {
+  let next = prompt
+  variables.forEach((variable) => {
+    const value = String(values[variable.key] ?? '').trim()
+    if (!value) return
+    const previousValue = previousValues[variable.key]
+    if (variable.kind === 'placeholder') {
+      if (next.includes(variable.token)) next = next.split(variable.token).join(value)
+      else if (previousValue && previousValue !== value) next = next.split(previousValue).join(value)
+      return
+    }
+    const target = previousValue || variable.defaultValue
+    if (target && target !== value) next = replaceFirst(next, target, value)
+  })
+  return next
+}
+
+function resolveGenerateContentEndpoint(endpoint, model) {
+  const base = endpoint.trim().replace(/\/+$/, '')
+  if (base.includes('{model}')) return base.replace('{model}', encodeURIComponent(model))
+  if (/\/models\/[^/]+:(?:generateContent|streamGenerateContent)$/i.test(base)) return base
+  const modelsBase = /\/models$/i.test(base) ? base : `${base}/models`
+  return `${modelsBase}/${encodeURIComponent(model)}:generateContent`
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result || '').split(',', 2)[1] || '')
+    reader.onerror = () => reject(reader.error || new Error('Could not read reference image'))
+    reader.readAsDataURL(file)
+  })
+}
+
+function imageConfigForSize(size) {
+  const aspectRatio = {
+    '1024x1024': '1:1',
+    '1536x1024': '3:2',
+    '1024x1536': '2:3',
+  }[size]
+  return aspectRatio ? { aspectRatio } : null
+}
+
+function extractGeneratedImage(payload) {
+  const imageOutput = payload?.data?.[0]
+  if (imageOutput?.url) return imageOutput.url
+  if (imageOutput?.b64_json) return `data:image/png;base64,${imageOutput.b64_json}`
+
+  const parts = (payload?.candidates || []).flatMap((candidate) => candidate?.content?.parts || [])
+  const inlineImage = parts
+    .map((part) => part?.inlineData || part?.inline_data)
+    .find((inlineData) => inlineData?.data)
+  if (!inlineImage) return ''
+  return `data:${inlineImage.mimeType || inlineImage.mime_type || 'image/png'};base64,${inlineImage.data}`
+}
+
+async function generateImageRequest({ config, prompt, referenceFiles, t }) {
+  let endpoint = config.endpoint.trim()
+  const headers = {}
+  let body
+
+  if (config.protocol === 'generate-content') {
+    endpoint = resolveGenerateContentEndpoint(endpoint, config.model.trim())
+    headers['Content-Type'] = 'application/json'
+    headers['x-goog-api-key'] = config.apiKey.trim()
+    const imageParts = await Promise.all(referenceFiles.map(async (file) => ({
+      inlineData: {
+        mimeType: file.type,
+        data: await fileToBase64(file),
+      },
+    })))
+    const imageConfig = imageConfigForSize(config.size)
+    body = JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: prompt }, ...imageParts] }],
+      generationConfig: {
+        responseModalities: ['TEXT', 'IMAGE'],
+        ...(imageConfig ? { imageConfig } : {}),
+      },
+    })
+  } else {
+    headers.Authorization = `Bearer ${config.apiKey.trim()}`
+    if (referenceFiles.length) {
+      endpoint = endpoint.replace(/\/generations\/?$/, '/edits')
+      body = new FormData()
+      const imageField = referenceFiles.length > 1 ? 'image[]' : 'image'
+      referenceFiles.forEach((file) => body.append(imageField, file))
+      body.append('model', config.model.trim())
+      body.append('prompt', prompt)
+      body.append('size', config.size)
+      body.append('quality', config.quality)
+      body.append('n', '1')
+    } else {
+      headers['Content-Type'] = 'application/json'
+      body = JSON.stringify({ model: config.model.trim(), prompt, size: config.size, quality: config.quality, n: 1 })
+    }
+  }
+
+  const response = await fetch(endpoint, { method: 'POST', headers, body })
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(payload?.error?.message || payload?.message || t('errors.request', { status: response.status }))
+  const generatedImage = extractGeneratedImage(payload)
+  if (!generatedImage) throw new Error(t('errors.imageResponse'))
+  return generatedImage
 }
 
 function GithubMark({ size = 18 }) {
@@ -456,20 +738,22 @@ function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavori
 function SettingsPanel({ config, onChange, onSave, onClear, onClose }) {
   const [showKey, setShowKey] = useState(false)
   const { t } = useLanguage()
+  const dialogRef = useDialogFocus(true, onClose)
   return (
-    <div className="settings-backdrop" role="dialog" aria-modal="true" aria-label={t('settings.title')}>
+    <div ref={dialogRef} className="settings-backdrop" role="dialog" aria-modal="true" aria-label={t('settings.title')} data-dialog-layer="true" tabIndex={-1}>
       <div className="settings-panel">
         <div className="settings-heading">
           <div><span>{t('settings.eyebrow')}</span><h2>{t('settings.title')}</h2></div>
           <IconButton label={t('actions.closeSettings')} onClick={onClose}><X size={19} /></IconButton>
         </div>
         <p className="settings-note">{t('settings.note')}</p>
-        <label className="settings-field"><span>{t('settings.apiUrl')}</span><input value={config.endpoint} onChange={(e) => onChange({ endpoint: e.target.value })} placeholder={t('settings.endpointPlaceholder')} /></label>
-        <label className="settings-field"><span>{t('settings.apiKey')}</span><div className="key-input"><input type={showKey ? 'text' : 'password'} value={config.apiKey} onChange={(e) => onChange({ apiKey: e.target.value })} placeholder="sk-..." autoComplete="off" /><IconButton label={showKey ? t('actions.hideKey') : t('actions.showKey')} onClick={() => setShowKey((v) => !v)}>{showKey ? <EyeOff size={17} /> : <Eye size={17} />}</IconButton></div></label>
-        <div className="settings-grid">
-          <label className="settings-field"><span>{t('settings.model')}</span><input value={config.model} onChange={(e) => onChange({ model: e.target.value })} placeholder={t('settings.modelPlaceholder')} /></label>
+        <label className="settings-field"><span>{t('settings.protocol')}</span><select value={config.protocol} onChange={(e) => onChange({ protocol: e.target.value })}><option value="images">{t('settings.protocolImages')}</option><option value="generate-content">{t('settings.protocolGenerateContent')}</option></select></label>
+        <label className="settings-field"><span>{t('settings.apiUrl')}</span><input value={config.endpoint} onChange={(e) => onChange({ endpoint: e.target.value })} placeholder={config.protocol === 'generate-content' ? t('settings.generateContentPlaceholder') : t('settings.endpointPlaceholder')} /></label>
+        <label className="settings-field"><span>{t('settings.apiKey')}</span><div className="key-input"><input type={showKey ? 'text' : 'password'} value={config.apiKey} onChange={(e) => onChange({ apiKey: e.target.value })} placeholder="your-api-key" autoComplete="off" /><IconButton label={showKey ? t('actions.hideKey') : t('actions.showKey')} onClick={() => setShowKey((v) => !v)}>{showKey ? <EyeOff size={17} /> : <Eye size={17} />}</IconButton></div></label>
+        <div className={`settings-grid ${config.protocol === 'generate-content' ? 'is-generate-content' : ''}`}>
+          <label className="settings-field"><span>{t('settings.model')}</span><input value={config.model} onChange={(e) => onChange({ model: e.target.value })} placeholder={config.protocol === 'generate-content' ? 'e.g. gemini-3.1-flash-image' : t('settings.modelPlaceholder')} /></label>
           <label className="settings-field"><span>SIZE</span><select value={config.size} onChange={(e) => onChange({ size: e.target.value })}><option>auto</option><option>1024x1024</option><option>1536x1024</option><option>1024x1536</option></select></label>
-          <label className="settings-field"><span>QUALITY</span><select value={config.quality} onChange={(e) => onChange({ quality: e.target.value })}><option>auto</option><option>low</option><option>medium</option><option>high</option></select></label>
+          {config.protocol === 'images' ? <label className="settings-field"><span>QUALITY</span><select value={config.quality} onChange={(e) => onChange({ quality: e.target.value })}><option>auto</option><option>low</option><option>medium</option><option>high</option></select></label> : null}
         </div>
         <div className="settings-actions"><button className="settings-save" onClick={onSave}><Check size={17} />{t('settings.save')}</button><button className="settings-clear" onClick={onClear}>{t('settings.clear')}</button></div>
         <div className="settings-security"><KeyRound size={14} />{t('settings.security')}</div>
@@ -478,10 +762,11 @@ function SettingsPanel({ config, onChange, onSave, onClear, onClose }) {
   )
 }
 
-function HistoryPanel({ records, onOpen, onClear, onClose }) {
+function HistoryPanel({ records, loading, onOpen, onDelete, onClear, onClose }) {
   const { language, t } = useLanguage()
+  const dialogRef = useDialogFocus(true, onClose)
   return (
-    <div className="history-backdrop" role="dialog" aria-modal="true" aria-label={t('history.title')}>
+    <div ref={dialogRef} className="history-backdrop" role="dialog" aria-modal="true" aria-label={t('history.title')} data-dialog-layer="true" tabIndex={-1}>
       <div className="history-panel">
         <div className="history-heading">
           <div><span>{t('history.eyebrow')}</span><h2>{t('history.title')}</h2></div>
@@ -491,7 +776,9 @@ function HistoryPanel({ records, onOpen, onClear, onClose }) {
           <span>{t('history.records', { count: records.length, max: MAX_GENERATION_HISTORY })}</span>
           {records.length ? <button onClick={onClear}><Trash2 size={14} />{t('history.clear')}</button> : null}
         </div>
-        {records.length ? (
+        {loading ? (
+          <div className="history-empty"><LoaderCircle size={28} className="spin" /><p>{t('history.loading')}</p></div>
+        ) : records.length ? (
           <div className="history-grid">
             {records.map((record) => (
               <article className="history-card" key={record.id}>
@@ -500,6 +787,7 @@ function HistoryPanel({ records, onOpen, onClear, onClose }) {
                   <span>OPEN <ArrowUpRight size={14} /></span>
                 </button>
                 <div className="history-card-info">
+                  <IconButton className="history-card-delete" label={t('history.delete')} onClick={() => onDelete(record)}><Trash2 size={14} /></IconButton>
                   <div>
                     <span>{formatHistoryDate(record.createdAt, language)} · {record.model || 'IMAGE MODEL'}</span>
                     <h3>{record.title}</h3>
@@ -533,13 +821,13 @@ function Intro({ count }) {
       <div className="intro-note">
         <span className="live-dot" />
         <p>{t('intro.note').split('\n').map((line, index) => <span key={line}>{index ? <br /> : null}{line}</span>)}</p>
-        <strong>{String(count).padStart(2, '0')} / {t('intro.curated')}</strong>
+        <strong>{count == null ? '...' : String(count).padStart(2, '0')} / {t('intro.curated')}</strong>
       </div>
     </section>
   )
 }
 
-function FilterBar({ activeCategory, setActiveCategory, resultCount, sort, setSort }) {
+function FilterBar({ activeCategory, setActiveCategory, resultCount, loading, searchActive, sort, setSort }) {
   const { language, t } = useLanguage()
   return (
     <div className="filter-sticky">
@@ -558,11 +846,11 @@ function FilterBar({ activeCategory, setActiveCategory, resultCount, sort, setSo
           ))}
         </div>
         <div className="filter-meta">
-          <span>{t('filters.results', { count: String(resultCount).padStart(2, '0') })}</span>
+          <span>{loading ? '... RESULTS' : t('filters.results', { count: String(resultCount).padStart(2, '0') })}</span>
           <label>
             <span className="sr-only">{t('filters.sort')}</span>
             <select value={sort} onChange={(event) => setSort(event.target.value)}>
-              <option value="newest">{t('filters.newest')}</option>
+              <option value="newest">{searchActive ? t('filters.relevance') : t('filters.newest')}</option>
               <option value="curated">{t('filters.curated')}</option>
               <option value="title">{t('filters.title')}</option>
             </select>
@@ -574,8 +862,9 @@ function FilterBar({ activeCategory, setActiveCategory, resultCount, sort, setSo
   )
 }
 
-function GalleryCard({ item, index, favorite, onOpen, onFavorite }) {
+function GalleryCard({ item, index, favorite, onOpen, onFavorite, onMeasure }) {
   const [imageState, setImageState] = useState('loading')
+  const cardRef = useRef(null)
   const imageRef = useRef(null)
   const { language, t } = useLanguage()
 
@@ -585,8 +874,25 @@ function GalleryCard({ item, index, favorite, onOpen, onFavorite }) {
     setImageState(image.naturalWidth > 0 ? 'loaded' : 'error')
   }, [item.image])
 
+  useEffect(() => {
+    const card = cardRef.current
+    if (!card) return undefined
+    const measure = () => {
+      const { width, height } = card.getBoundingClientRect()
+      if (width > 0 && height > 0) onMeasure(item.id, height / width)
+    }
+    const frame = window.requestAnimationFrame(measure)
+    if (!('ResizeObserver' in window)) return () => window.cancelAnimationFrame(frame)
+    const observer = new ResizeObserver(measure)
+    observer.observe(card)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      observer.disconnect()
+    }
+  }, [item.id, onMeasure])
+
   return (
-    <article className={`gallery-card ratio-${item.ratio}`} style={{ '--delay': `${Math.min(index, 9) * 45}ms` }}>
+    <article ref={cardRef} className={`gallery-card ratio-${item.ratio}`} data-prompt-id={item.id} style={{ '--delay': `${Math.min(index, 9) * 45}ms` }}>
       <button className={`card-image is-${imageState}`} onClick={() => onOpen(item)} aria-label={t('gallery.viewDetails', { title: item.title })} aria-busy={imageState === 'loading'}>
         <span className="image-skeleton" aria-hidden="true" />
         {imageState === 'error' ? <span className="image-fallback">{t('gallery.unavailable')}</span> : null}
@@ -628,6 +934,20 @@ function estimateMasonryWeight(item) {
 
 function MasonryGallery({ items, favoriteIds, onOpen, onFavorite }) {
   const [columnCount, setColumnCount] = useState(getGalleryColumnCount)
+  const [measurementRevision, setMeasurementRevision] = useState(0)
+  const measuredWeightsRef = useRef(new Map())
+  const measurementFrameRef = useRef(null)
+
+  const handleMeasure = useCallback((id, weight) => {
+    const previous = measuredWeightsRef.current.get(id)
+    if (previous != null && Math.abs(previous - weight) < 0.01) return
+    measuredWeightsRef.current.set(id, weight)
+    if (measurementFrameRef.current) return
+    measurementFrameRef.current = window.requestAnimationFrame(() => {
+      measurementFrameRef.current = null
+      setMeasurementRevision((revision) => revision + 1)
+    })
+  }, [])
 
   useEffect(() => {
     const handleResize = () => setColumnCount(getGalleryColumnCount())
@@ -635,19 +955,33 @@ function MasonryGallery({ items, favoriteIds, onOpen, onFavorite }) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  useEffect(() => () => window.cancelAnimationFrame(measurementFrameRef.current), [])
+
   const columns = useMemo(() => {
     const nextColumns = Array.from({ length: columnCount }, () => [])
     const heights = Array.from({ length: columnCount }, () => 0)
 
-    items.forEach((item, index) => {
-      // Always append to the shortest column. Equal initial heights naturally
-      // produce a left-to-right first layer, while later cards stay balanced.
-      const columnIndex = heights.indexOf(Math.min(...heights))
-      nextColumns[columnIndex].push({ item, index })
-      heights[columnIndex] += estimateMasonryWeight(item)
-    })
+    for (let layerStart = 0; layerStart < items.length; layerStart += columnCount) {
+      const columnOrder = heights
+        .map((height, index) => ({ height, index }))
+        .sort((first, second) => first.height - second.height || first.index - second.index)
+      const layer = items
+        .slice(layerStart, layerStart + columnCount)
+        .map((item, offset) => ({
+          item,
+          index: layerStart + offset,
+          weight: measuredWeightsRef.current.get(item.id) || estimateMasonryWeight(item),
+        }))
+        .sort((first, second) => second.weight - first.weight || first.index - second.index)
+
+      layer.forEach((entry, offset) => {
+        const columnIndex = columnOrder[offset].index
+        nextColumns[columnIndex].push({ item: entry.item, index: entry.index })
+        heights[columnIndex] += entry.weight
+      })
+    }
     return nextColumns
-  }, [columnCount, items])
+  }, [columnCount, items, measurementRevision])
 
   return (
     <section className="masonry" aria-live="polite">
@@ -661,10 +995,21 @@ function MasonryGallery({ items, favoriteIds, onOpen, onFavorite }) {
               favorite={favoriteIds.has(item.id)}
               onOpen={onOpen}
               onFavorite={onFavorite}
+              onMeasure={handleMeasure}
             />
           ))}
         </div>
       ))}
+    </section>
+  )
+}
+
+function CatalogSkeleton() {
+  const { t } = useLanguage()
+  return (
+    <section className="catalog-skeleton" aria-live="polite" aria-label={t('gallery.loading')}>
+      {Array.from({ length: 8 }, (_, index) => <span key={index} aria-hidden="true" />)}
+      <p><LoaderCircle size={16} className="spin" />{t('gallery.loading')}</p>
     </section>
   )
 }
@@ -680,7 +1025,7 @@ function EmptyState({ showFavorites, clearFilters }) {
   )
 }
 
-function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCopy, config, onOpenSettings, onGenerationComplete }) {
+function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCopy, onCopyLink, config, onOpenSettings, onGenerationComplete }) {
   const isHistoryItem = item.kind === 'generation-history'
   const { language, t } = useLanguage()
   const [promptText, setPromptText] = useState(item.prompt)
@@ -689,9 +1034,14 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
   const [generationState, setGenerationState] = useState('idle')
   const [generationError, setGenerationError] = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [referenceFile, setReferenceFile] = useState(null)
-  const [referencePreview, setReferencePreview] = useState('')
+  const [referenceImages, setReferenceImages] = useState([])
   const [zoomedImage, setZoomedImage] = useState(null)
+  const [templateValues, setTemplateValues] = useState(() => createTemplateValues(item.promptVariables))
+  const referenceImagesRef = useRef([])
+  const appliedTemplateValuesRef = useRef({})
+  const detailDialogRef = useDialogFocus(true, onClose)
+  const confirmDialogRef = useDialogFocus(confirmOpen, () => setConfirmOpen(false))
+  const lightboxDialogRef = useDialogFocus(Boolean(zoomedImage), () => setZoomedImage(null))
 
   useEffect(() => {
     setPromptText(item.prompt)
@@ -699,24 +1049,47 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     setViewMode(item.generatedUrl ? 'generated' : 'source')
     setGenerationState('idle')
     setGenerationError('')
-    setReferenceFile(null)
-    setReferencePreview('')
+    setReferenceImages((current) => {
+      current.forEach((reference) => URL.revokeObjectURL(reference.preview))
+      return []
+    })
     setZoomedImage(null)
-  }, [item.id, item.prompt])
+    setTemplateValues(createTemplateValues(item.promptVariables))
+    appliedTemplateValuesRef.current = {}
+  }, [item.id, item.prompt, item.promptVariables])
+
+  useEffect(() => {
+    referenceImagesRef.current = referenceImages
+  }, [referenceImages])
+
+  useEffect(() => () => {
+    referenceImagesRef.current.forEach((reference) => URL.revokeObjectURL(reference.preview))
+  }, [])
+
+  const templateVariables = item.promptVariables || []
+
+  const applyTemplateVariables = () => {
+    const previousValues = appliedTemplateValuesRef.current
+    setPromptText((current) => applyPromptVariables(current, templateVariables, templateValues, previousValues))
+    appliedTemplateValuesRef.current = { ...templateValues }
+  }
 
   useEffect(() => {
     const onKeyDown = (event) => {
-      if (event.key === 'Escape') onClose()
-      if (event.key === 'ArrowLeft') onPrev()
-      if (event.key === 'ArrowRight') onNext()
+      const dialogs = [...document.querySelectorAll('[data-dialog-layer="true"]')]
+      if (dialogs.at(-1) !== detailDialogRef.current || isEditableTarget(event.target)) return
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault()
+        onPrev()
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault()
+        onNext()
+      }
     }
-    document.body.classList.add('modal-open')
     window.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.body.classList.remove('modal-open')
-      window.removeEventListener('keydown', onKeyDown)
-    }
-  }, [onClose, onNext, onPrev])
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [detailDialogRef, onNext, onPrev])
 
   const runGeneration = async () => {
     if (!config.apiKey.trim() || !config.endpoint.trim() || !config.model.trim()) {
@@ -726,29 +1099,12 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     setGenerationState('loading')
     setGenerationError('')
     try {
-      const endpoint = referenceFile
-        ? config.endpoint.trim().replace(/\/generations\/?$/, '/edits')
-        : config.endpoint.trim()
-      const headers = { Authorization: `Bearer ${config.apiKey.trim()}` }
-      let body
-      if (referenceFile) {
-        body = new FormData()
-        body.append('image', referenceFile)
-        body.append('model', config.model.trim())
-        body.append('prompt', promptText)
-        body.append('size', config.size)
-        body.append('quality', config.quality)
-        body.append('n', '1')
-      } else {
-        headers['Content-Type'] = 'application/json'
-        body = JSON.stringify({ model: config.model.trim(), prompt: promptText, size: config.size, quality: config.quality, n: 1 })
-      }
-      const response = await fetch(endpoint, { method: 'POST', headers, body })
-      const payload = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(payload?.error?.message || payload?.message || t('errors.request', { status: response.status }))
-      const output = payload?.data?.[0]
-      const url = output?.url || (output?.b64_json ? `data:image/png;base64,${output.b64_json}` : '')
-      if (!url) throw new Error(t('errors.imageResponse'))
+      const url = await generateImageRequest({
+        config,
+        prompt: promptText,
+        referenceFiles: referenceImages.map((reference) => reference.file),
+        t,
+      })
       setGeneratedUrl(url)
       setViewMode('generated')
       setGenerationState('success')
@@ -763,12 +1119,13 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
         size: config.size,
         quality: config.quality,
         createdAt: new Date().toISOString(),
-        referenceName: referenceFile?.name || '',
-        referencePreview: referencePreview.length <= 500000 ? referencePreview : '',
+        referenceName: referenceImages.map((reference) => reference.file.name).join(', '),
       })
     } catch (error) {
       const message = error?.message || (language === 'zh' ? '生成失败' : 'Generation failed')
-      setGenerationError(message.includes('Failed to fetch') ? t('errors.fetch') : message)
+      setGenerationError(message.includes('Failed to fetch')
+        ? t('errors.fetch')
+        : message.includes('Could not read reference image') ? t('errors.fileRead') : message)
       setGenerationState('error')
     }
   }
@@ -783,28 +1140,45 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
   }
 
   const handleReferenceChange = (event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
+    const files = [...(event.target.files || [])]
+    event.target.value = ''
+    if (!files.length) return
+    if (files.some((file) => !file.type.startsWith('image/'))) {
       setGenerationError(t('errors.invalidFile'))
       setGenerationState('error')
       return
     }
-    setReferenceFile(file)
-    const reader = new FileReader()
-    reader.onload = () => setReferencePreview(String(reader.result || ''))
-    reader.readAsDataURL(file)
+    const existingKeys = new Set(referenceImages.map((reference) => `${reference.file.name}-${reference.file.size}-${reference.file.lastModified}`))
+    const uniqueFiles = files.filter((file) => !existingKeys.has(`${file.name}-${file.size}-${file.lastModified}`))
+    if (referenceImages.length + uniqueFiles.length > MAX_REFERENCE_IMAGES) {
+      setGenerationError(t('errors.tooManyFiles', { max: MAX_REFERENCE_IMAGES }))
+      setGenerationState('error')
+      return
+    }
+    setReferenceImages((current) => [
+      ...current,
+      ...uniqueFiles.map((file) => ({
+        id: `${file.name}-${file.size}-${file.lastModified}`,
+        file,
+        preview: URL.createObjectURL(file),
+      })),
+    ])
+    setGenerationError('')
+    setGenerationState('idle')
   }
 
-  const clearReference = () => {
-    setReferenceFile(null)
-    setReferencePreview('')
+  const removeReference = (id) => {
+    setReferenceImages((current) => {
+      const removed = current.find((reference) => reference.id === id)
+      if (removed) URL.revokeObjectURL(removed.preview)
+      return current.filter((reference) => reference.id !== id)
+    })
   }
 
   const displayImage = viewMode === 'generated' && generatedUrl ? generatedUrl : item.image
 
   return (
-    <div className="detail-backdrop" role="dialog" aria-modal="true" aria-label={t('gallery.viewDetails', { title: item.title })}>
+    <div ref={detailDialogRef} className="detail-backdrop" role="dialog" aria-modal="true" aria-label={t('gallery.viewDetails', { title: item.title })} data-dialog-layer="true" tabIndex={-1}>
       <div className="detail-topbar">
         <button onClick={onClose}><X size={19} /> {t('detail.close')}</button>
         {!isHistoryItem ? <div>
@@ -838,16 +1212,32 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             <textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} aria-label={t('detail.confirmPrompt')} />
           </div>
 
+          {templateVariables.length ? <div className="template-variables">
+            <div><span>{t('detail.templateVariables')}</span><p>{t('detail.templateHint')}</p></div>
+            <div className="template-variable-grid">
+              {templateVariables.map((variable) => <label key={variable.key}><span>{variable.label}</span><input value={templateValues[variable.key] || ''} onChange={(event) => setTemplateValues((current) => ({ ...current, [variable.key]: event.target.value }))} placeholder={variable.defaultValue || variable.label} /></label>)}
+            </div>
+            <button onClick={applyTemplateVariables} disabled={!templateVariables.some((variable) => templateValues[variable.key]?.trim())}>{t('detail.applyVariables')}</button>
+          </div> : null}
+
+          {item.rawPrompt && item.rawPrompt.trim() !== item.prompt.trim() ? <details className="original-prompt">
+            <summary>{t('detail.originalPrompt')}</summary>
+            <pre>{item.rawPrompt}</pre>
+            <button onClick={() => onCopy(item.rawPrompt)}><Copy size={14} />{t('detail.copyOriginal')}</button>
+          </details> : null}
+
           <div className="reference-upload">
-            <div className="reference-upload-heading"><span>{t('detail.reference')}</span><span>{t('detail.optional')}</span></div>
-            {referencePreview ? (
-              <div className="reference-preview">
-                <button className="reference-preview-image" onClick={() => setZoomedImage({ src: referencePreview, alt: t('detail.referenceAlt') })} aria-label={t('detail.expand')}><img src={referencePreview} alt={t('detail.referenceAlt')} /></button>
-                <div><span>{referenceFile?.name}</span><button onClick={clearReference}><X size={14} />{t('detail.referenceRemove')}</button></div>
-              </div>
-            ) : (
-              <label className="upload-reference"><Upload size={17} /><span>{t('detail.referenceUpload')}</span><small>{t('detail.referenceHint')}</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleReferenceChange} /></label>
-            )}
+            <div className="reference-upload-heading"><span>{t('detail.reference')}</span><span>{referenceImages.length ? t('detail.referenceCount', { count: referenceImages.length }) : t('detail.optional')}</span></div>
+            {referenceImages.length ? <div className="reference-preview-grid">
+              {referenceImages.map((reference) => (
+                <div className="reference-preview" key={reference.id}>
+                  <button className="reference-preview-image" onClick={() => setZoomedImage({ src: reference.preview, alt: reference.file.name })} aria-label={`${t('detail.expand')} · ${reference.file.name}`}><img src={reference.preview} alt={reference.file.name} /></button>
+                  <span title={reference.file.name}>{reference.file.name}</span>
+                  <IconButton label={`${t('detail.referenceRemove')} · ${reference.file.name}`} onClick={() => removeReference(reference.id)}><X size={14} /></IconButton>
+                </div>
+              ))}
+            </div> : null}
+            {referenceImages.length < MAX_REFERENCE_IMAGES ? <label className="upload-reference"><Upload size={17} /><span>{referenceImages.length ? t('detail.referenceAdd') : t('detail.referenceUpload')}</span><small>{t('detail.referenceHint')}</small><input type="file" multiple accept="image/png,image/jpeg,image/webp" onChange={handleReferenceChange} /></label> : null}
           </div>
 
           <div className="detail-actions">
@@ -864,6 +1254,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             >
               <Heart size={20} fill={favorite ? 'currentColor' : 'none'} />
             </IconButton> : null}
+            {!isHistoryItem ? <IconButton label={t('detail.share')} className="detail-share" onClick={onCopyLink}><Share2 size={19} /></IconButton> : null}
           </div>
           {generationState === 'error' ? <div className="generation-error" role="alert">{generationError}<button onClick={onOpenSettings}><Settings2 size={14} />{t('detail.checkSettings')}</button></div> : null}
           {generatedUrl ? <a className="download-link" href={generatedUrl} download="prompt-signal-generated.png" target="_blank" rel="noreferrer"><Download size={16} />{t('detail.download')}</a> : null}
@@ -877,57 +1268,157 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
         </div>
       </div>
       {confirmOpen ? (
-        <div className="generation-confirm-backdrop" role="dialog" aria-modal="true" aria-label={t('detail.confirmTitle')}>
+        <div ref={confirmDialogRef} className="generation-confirm-backdrop" role="dialog" aria-modal="true" aria-label={t('detail.confirmTitle')} data-dialog-layer="true" tabIndex={-1}>
           <div className="generation-confirm">
             <div className="generation-confirm-heading"><span>{t('detail.confirmEyebrow')}</span><IconButton label={t('detail.cancelGeneration')} onClick={() => setConfirmOpen(false)}><X size={17} /></IconButton></div>
             <h3>{t('detail.confirmTitle')}</h3>
             <p>{t('detail.confirmCopy')}</p>
             <label className="confirm-prompt-field"><span>{t('detail.confirmPrompt')}</span><textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} /></label>
-            {referencePreview ? <div className="confirm-reference"><span>{t('detail.reference')}</span><button onClick={() => setZoomedImage({ src: referencePreview, alt: referenceFile?.name || t('detail.referenceAlt') })}><img src={referencePreview} alt={referenceFile?.name || t('detail.referenceAlt')} /><div><b>{referenceFile?.name || t('detail.reference')}</b><small>{t('detail.confirmPreview')}</small></div></button></div> : null}
-            <div className="generation-confirm-meta"><span>MODEL <b>{config.model}</b></span><span>{t('detail.reference')} <b>{referenceFile ? t('detail.confirmAttached') : t('detail.confirmNone')}</b></span></div>
+            {referenceImages.length ? <div className="confirm-reference"><span>{t('detail.reference')} · {referenceImages.length}</span><div className="confirm-reference-grid">{referenceImages.map((reference) => <button key={reference.id} onClick={() => setZoomedImage({ src: reference.preview, alt: reference.file.name })}><img src={reference.preview} alt={reference.file.name} /><div><b>{reference.file.name}</b><small>{t('detail.confirmPreview')}</small></div></button>)}</div></div> : null}
+            <div className="generation-confirm-meta"><span>MODEL <b>{config.model}</b></span><span>{t('detail.reference')} <b>{referenceImages.length ? `${t('detail.confirmAttached')} · ${referenceImages.length}` : t('detail.confirmNone')}</b></span></div>
             <div className="generation-confirm-actions"><button className="confirm-cancel" onClick={() => setConfirmOpen(false)}>{t('detail.confirmCancel')}</button><button className="confirm-submit" onClick={() => { setConfirmOpen(false); runGeneration() }}><Sparkles size={17} />{t('detail.confirmSubmit')}</button></div>
           </div>
         </div>
       ) : null}
-      {zoomedImage ? <div className="image-lightbox" role="dialog" aria-modal="true" aria-label={t('detail.preview')} onClick={() => setZoomedImage(null)}><button onClick={() => setZoomedImage(null)} aria-label={t('actions.closeSettings')}><X size={22} /></button><img src={zoomedImage.src} alt={zoomedImage.alt} onClick={(event) => event.stopPropagation()} /></div> : null}
+      {zoomedImage ? <div ref={lightboxDialogRef} className="image-lightbox" role="dialog" aria-modal="true" aria-label={t('detail.preview')} data-dialog-layer="true" tabIndex={-1} onClick={() => setZoomedImage(null)}><button onClick={() => setZoomedImage(null)} aria-label={t('actions.closeSettings')}><X size={22} /></button><img src={zoomedImage.src} alt={zoomedImage.alt} onClick={(event) => event.stopPropagation()} /></div> : null}
     </div>
   )
 }
 
 function AppContent() {
   const { t } = useLanguage()
+  const [promptCatalog, setPromptCatalog] = useState([])
+  const [catalogLoading, setCatalogLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('all')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('newest')
   const [showFavorites, setShowFavorites] = useState(false)
   const [favorites, setFavorites] = useState(readFavorites)
-  const [selectedId, setSelectedId] = useState(null)
+  const [selectedId, setSelectedId] = useState(readPromptIdFromLocation)
   const [selectedHistory, setSelectedHistory] = useState(null)
-  const [toast, setToast] = useState(false)
+  const [toast, setToast] = useState('')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [generationHistory, setGenerationHistory] = useState(readGenerationHistory)
+  const [generationHistory, setGenerationHistory] = useState([])
+  const [historyLoading, setHistoryLoading] = useState(true)
   const [apiConfig, setApiConfig] = useState(readApiConfig)
-  const [visibleLimit, setVisibleLimit] = useState(48)
+  const [visibleLimit, setVisibleLimit] = useState(GALLERY_PAGE_SIZE)
+  const generationHistoryRef = useRef([])
+  const pendingGalleryScrollRef = useRef(null)
+  const detailOpenedInSessionRef = useRef(false)
+  const toastTimerRef = useRef(null)
   const deferredSearch = useDeferredValue(search.trim().toLowerCase())
 
+  useEffect(() => {
+    let cancelled = false
+    loadPromptCatalog()
+      .then((catalog) => {
+        if (!cancelled) setPromptCatalog(catalog)
+      })
+      .catch(() => {
+        if (!cancelled) setPromptCatalog([])
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
+
   const filteredPrompts = useMemo(() => {
-    const result = prompts.filter((item) => {
+    const matches = []
+    promptCatalog.forEach((item) => {
       if (showFavorites && !favorites.has(item.id)) return false
       if (activeCategory !== 'all' && item.category !== activeCategory) return false
-      if (!deferredSearch) return true
-      return `${item.title} ${item.author} ${item.prompt}`.toLowerCase().includes(deferredSearch)
+      const score = deferredSearch ? scorePromptMatch(item, deferredSearch) : 0
+      if (score >= 0) matches.push({ item, score })
     })
-    if (sort === 'title') return [...result].sort((a, b) => a.title.localeCompare(b.title))
-    if (sort === 'newest') return [...result].sort((a, b) => b.addedOrder - a.addedOrder)
-    return result
-  }, [activeCategory, deferredSearch, favorites, showFavorites, sort])
+    if (sort === 'title') matches.sort((first, second) => first.item.title.localeCompare(second.item.title))
+    if (sort === 'newest') {
+      matches.sort((first, second) => (
+        deferredSearch
+          ? second.score - first.score || second.item.addedOrder - first.item.addedOrder
+          : second.item.addedOrder - first.item.addedOrder
+      ))
+    }
+    return matches.map(({ item }) => item)
+  }, [activeCategory, deferredSearch, favorites, promptCatalog, showFavorites, sort])
 
   useEffect(() => {
-    setVisibleLimit(48)
+    setVisibleLimit(GALLERY_PAGE_SIZE)
   }, [activeCategory, deferredSearch, showFavorites, sort])
 
-  const selected = selectedHistory || (selectedId ? prompts.find((item) => item.id === selectedId) : null)
+  useEffect(() => {
+    generationHistoryRef.current = generationHistory
+  }, [generationHistory])
+
+  useEffect(() => () => window.clearTimeout(toastTimerRef.current), [])
+
+  useEffect(() => {
+    let cancelled = false
+    const loadHistory = async () => {
+      const legacyRecords = readGenerationHistory()
+      try {
+        if (legacyRecords.length) {
+          await migrateGenerationRecords(legacyRecords, MAX_GENERATION_HISTORY)
+          localStorage.removeItem(GENERATION_HISTORY_KEY)
+        }
+        const records = await loadGenerationRecords(MAX_GENERATION_HISTORY)
+        if (cancelled) records.forEach(revokeGenerationRecordAssets)
+        else setGenerationHistory(records)
+      } catch {
+        if (!cancelled) setGenerationHistory(legacyRecords)
+      } finally {
+        if (!cancelled) setHistoryLoading(false)
+      }
+    }
+    loadHistory()
+    return () => {
+      cancelled = true
+      generationHistoryRef.current.forEach(revokeGenerationRecordAssets)
+    }
+  }, [])
+
+  const selected = selectedHistory || (selectedId ? promptCatalog.find((item) => item.id === selectedId) : null)
+
+  useEffect(() => {
+    if (selectedId || selectedHistory || !pendingGalleryScrollRef.current) return undefined
+    const frame = window.requestAnimationFrame(() => {
+      const nestedFrame = window.requestAnimationFrame(() => {
+        const target = pendingGalleryScrollRef.current
+        if (!target) return
+        const targetIds = new Set(target.ids)
+        const cards = [...document.querySelectorAll('[data-prompt-id]')]
+          .filter((element) => targetIds.has(element.dataset.promptId))
+          .sort((first, second) => first.getBoundingClientRect().top - second.getBoundingClientRect().top)
+        if (!cards.length) return
+        pendingGalleryScrollRef.current = null
+        cards[0].scrollIntoView({ block: target.block, behavior: 'instant' })
+      })
+      pendingGalleryScrollRef.currentFrame = nestedFrame
+    })
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.cancelAnimationFrame(pendingGalleryScrollRef.currentFrame)
+    }
+  }, [selectedHistory, selectedId, visibleLimit])
+
+  useEffect(() => {
+    if (catalogLoading || !selectedId || selectedHistory) return
+    if (!promptCatalog.some((item) => item.id === selectedId)) {
+      updatePromptUrl(null)
+      setSelectedId(null)
+    }
+  }, [catalogLoading, promptCatalog, selectedHistory, selectedId])
+
+  useEffect(() => {
+    const onPopState = () => {
+      const promptId = readPromptIdFromLocation()
+      setSelectedHistory(null)
+      setSelectedId(promptId)
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
 
   const persistFavorites = (next) => {
     setFavorites(next)
@@ -941,11 +1432,59 @@ function AppContent() {
     persistFavorites(next)
   }
 
+  const openPrompt = (item) => {
+    detailOpenedInSessionRef.current = true
+    updatePromptUrl(item.id, 'push')
+    setSelectedHistory(null)
+    setSelectedId(item.id)
+  }
+
+  const closeDetail = () => {
+    setSelectedHistory(null)
+    if (!selectedId) return
+
+    if (detailOpenedInSessionRef.current && window.history.state?.promptSignalDetail) {
+      const selectedIndex = filteredPrompts.findIndex((item) => item.id === selectedId)
+      if (selectedIndex >= 0) {
+        pendingGalleryScrollRef.current = { ids: [selectedId], block: 'center' }
+        const requiredLimit = Math.ceil((selectedIndex + 1) / GALLERY_PAGE_SIZE) * GALLERY_PAGE_SIZE
+        setVisibleLimit((current) => Math.max(current, requiredLimit))
+      }
+      detailOpenedInSessionRef.current = false
+      window.history.back()
+      return
+    }
+
+    detailOpenedInSessionRef.current = false
+    pendingGalleryScrollRef.current = null
+    updatePromptUrl(null)
+    setSelectedId(null)
+    setVisibleLimit(GALLERY_PAGE_SIZE)
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }))
+  }
+
   const navigateDetail = (direction) => {
     if (!selectedId || selectedHistory) return
-    const index = prompts.findIndex((item) => item.id === selectedId)
-    const nextIndex = (index + direction + prompts.length) % prompts.length
-    setSelectedId(prompts[nextIndex].id)
+    const index = filteredPrompts.findIndex((item) => item.id === selectedId)
+    if (index < 0 || !filteredPrompts.length) return
+    const nextIndex = (index + direction + filteredPrompts.length) % filteredPrompts.length
+    const nextId = filteredPrompts[nextIndex].id
+    updatePromptUrl(nextId)
+    setSelectedId(nextId)
+  }
+
+  const loadMorePrompts = () => {
+    const firstLayer = filteredPrompts
+      .slice(visibleLimit, visibleLimit + getGalleryColumnCount())
+      .map((item) => item.id)
+    if (firstLayer.length) pendingGalleryScrollRef.current = { ids: firstLayer, block: 'start' }
+    setVisibleLimit((limit) => limit + GALLERY_PAGE_SIZE)
+  }
+
+  const showToast = (message) => {
+    window.clearTimeout(toastTimerRef.current)
+    setToast(message)
+    toastTimerRef.current = window.setTimeout(() => setToast(''), 1800)
   }
 
   const copyPrompt = async (prompt) => {
@@ -959,8 +1498,21 @@ function AppContent() {
       document.execCommand('copy')
       helper.remove()
     }
-    setToast(true)
-    window.setTimeout(() => setToast(false), 1800)
+    showToast(t('toast.copied'))
+  }
+
+  const copyPromptLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+    } catch {
+      const helper = document.createElement('textarea')
+      helper.value = window.location.href
+      document.body.appendChild(helper)
+      helper.select()
+      document.execCommand('copy')
+      helper.remove()
+    }
+    showToast(t('toast.linkCopied'))
   }
 
   const clearFilters = () => {
@@ -972,8 +1524,7 @@ function AppContent() {
   const saveApiConfig = () => {
     localStorage.setItem(IMAGE_API_CONFIG_KEY, JSON.stringify(apiConfig))
     setSettingsOpen(false)
-    setToast(true)
-    window.setTimeout(() => setToast(false), 1800)
+    showToast(t('toast.settingsSaved'))
   }
 
   const clearApiConfig = () => {
@@ -981,13 +1532,41 @@ function AppContent() {
     setApiConfig(DEFAULT_API_CONFIG)
   }
 
-  const saveGeneration = (record) => {
-    setGenerationHistory((current) => writeGenerationHistory([record, ...current]))
+  const saveGeneration = async (record) => {
+    try {
+      const saved = await saveGenerationRecord(record, MAX_GENERATION_HISTORY)
+      setGenerationHistory((current) => {
+        const next = [saved, ...current.filter((item) => item.id !== saved.id)].slice(0, MAX_GENERATION_HISTORY)
+        current.filter((item) => !next.includes(item)).forEach(revokeGenerationRecordAssets)
+        return next
+      })
+    } catch {
+      setGenerationHistory((current) => writeGenerationHistory([record, ...current]))
+    }
   }
 
-  const clearGenerationHistory = () => {
+  const clearGenerationHistory = async () => {
+    try {
+      await clearGenerationRecords()
+    } catch {
+      // The localStorage fallback below still clears history when IndexedDB is unavailable.
+    }
     localStorage.removeItem(GENERATION_HISTORY_KEY)
-    setGenerationHistory([])
+    setGenerationHistory((current) => {
+      current.forEach(revokeGenerationRecordAssets)
+      return []
+    })
+  }
+
+  const removeGenerationHistory = async (record) => {
+    try {
+      await deleteGenerationRecord(record.id)
+    } catch {
+      const next = generationHistory.filter((item) => item.id !== record.id)
+      writeGenerationHistory(next)
+    }
+    revokeGenerationRecordAssets(record)
+    setGenerationHistory((current) => current.filter((item) => item.id !== record.id))
   }
 
   const openHistoryRecord = (record) => {
@@ -1017,23 +1596,25 @@ function AppContent() {
         onSettings={() => setSettingsOpen(true)}
       />
       <main>
-        <Intro count={prompts.length} />
+        <Intro count={catalogLoading ? null : promptCatalog.length} />
         <FilterBar
           activeCategory={activeCategory}
           setActiveCategory={setActiveCategory}
           resultCount={filteredPrompts.length}
+          loading={catalogLoading}
+          searchActive={Boolean(deferredSearch)}
           sort={sort}
           setSort={setSort}
         />
-        {filteredPrompts.length ? (
+        {catalogLoading ? <CatalogSkeleton /> : filteredPrompts.length ? (
           <>
             <MasonryGallery
               items={filteredPrompts.slice(0, visibleLimit)}
               favoriteIds={favorites}
-              onOpen={(prompt) => setSelectedId(prompt.id)}
+              onOpen={openPrompt}
               onFavorite={toggleFavorite}
             />
-            {visibleLimit < filteredPrompts.length ? <div className="load-more-wrap"><button className="load-more" onClick={() => setVisibleLimit((limit) => limit + 48)}>{t('loadMore.button')} <ArrowDown size={17} /></button><span>{t('loadMore.status', { shown: Math.min(visibleLimit, filteredPrompts.length), total: filteredPrompts.length })}</span></div> : null}
+            {visibleLimit < filteredPrompts.length ? <div className="load-more-wrap"><button className="load-more" onClick={loadMorePrompts}>{t('loadMore.button')} <ArrowDown size={17} /></button><span>{t('loadMore.status', { shown: Math.min(visibleLimit, filteredPrompts.length), total: filteredPrompts.length })}</span></div> : null}
           </>
         ) : (
           <EmptyState showFavorites={showFavorites} clearFilters={clearFilters} />
@@ -1052,21 +1633,22 @@ function AppContent() {
           item={selected}
           favorite={!selectedHistory && favorites.has(selected.id)}
           onFavorite={toggleFavorite}
-          onClose={() => { setSelectedId(null); setSelectedHistory(null) }}
+          onClose={closeDetail}
           onPrev={() => navigateDetail(-1)}
           onNext={() => navigateDetail(1)}
           onCopy={copyPrompt}
+          onCopyLink={copyPromptLink}
           config={apiConfig}
           onOpenSettings={() => setSettingsOpen(true)}
           onGenerationComplete={saveGeneration}
         />
       ) : null}
 
-      {historyOpen ? <HistoryPanel records={generationHistory} onOpen={openHistoryRecord} onClear={clearGenerationHistory} onClose={() => setHistoryOpen(false)} /> : null}
+      {historyOpen ? <HistoryPanel records={generationHistory} loading={historyLoading} onOpen={openHistoryRecord} onDelete={removeGenerationHistory} onClear={clearGenerationHistory} onClose={() => setHistoryOpen(false)} /> : null}
       {settingsOpen ? <SettingsPanel config={apiConfig} onChange={(patch) => setApiConfig((current) => ({ ...current, ...patch }))} onSave={saveApiConfig} onClear={clearApiConfig} onClose={() => setSettingsOpen(false)} /> : null}
 
       <div className={`toast ${toast ? 'is-visible' : ''}`} role="status">
-        <Check size={17} /> {t('toast.copied')}
+        <Check size={17} /> {toast}
       </div>
     </>
   )

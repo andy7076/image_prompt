@@ -326,10 +326,6 @@ export const featuredPrompts = [
   },
 ]
 
-import generatedCases from './cases.generated.json'
-import zhidawangCases from './zhidawang.generated.json'
-import hotXCases from './x.hot.generated.json'
-
 function replaceArgumentDefaults(value) {
   return value.replace(
     /\{argument\s+name=(?:"([^"]*)"|'([^']*)')\s+default=(?:"((?:\\.|[^"])*)"|'((?:\\.|[^'])*)')\}/gi,
@@ -341,6 +337,69 @@ function normalizePlaceholders(value) {
   return value
     .replace(/\{([A-Z][A-Z0-9 _-]*)\}/g, '[$1]')
     .replace(/\[([A-Z][A-Z0-9 _-]+)\]/g, (_match, name) => `[${name.trim().replace(/\s+/g, '_')}]`)
+}
+
+function isEditableBracket(content, fullWidth) {
+  const name = content.trim()
+  if (!name || /^(?:中文|English)$/i.test(name)) return false
+  if (fullWidth) return true
+  return /^[A-Z][A-Z0-9 _-]*$/.test(name) || /自定义|请填写|请输入|可修改|替换为/.test(name)
+}
+
+function collectStringValues(value, output) {
+  if (typeof value === 'string') {
+    output.push(value)
+    return
+  }
+  if (Array.isArray(value)) {
+    value.forEach((entry) => collectStringValues(entry, output))
+    return
+  }
+  if (value && typeof value === 'object') {
+    Object.values(value).forEach((entry) => collectStringValues(entry, output))
+  }
+}
+
+function extractPromptVariables(prompt, rawPrompt) {
+  const variables = new Map()
+  const argumentPattern = /\{argument\s+name=(?:"([^"]*)"|'([^']*)')\s+default=(?:"((?:\\.|[^"])*)"|'((?:\\.|[^'])*)')\}/gi
+  const raw = String(rawPrompt || '')
+  const argumentSources = [raw]
+  const parsedRaw = parseJsonObject(raw)
+  if (parsedRaw?.parsed) collectStringValues(parsedRaw.parsed, argumentSources)
+  else if (raw.includes('\\"')) argumentSources.push(raw.replace(/\\"/g, '"'))
+
+  for (const source of argumentSources) {
+    for (const match of source.matchAll(argumentPattern)) {
+      const label = (match[1] ?? match[2] ?? '').trim()
+      const defaultValue = (match[3] ?? match[4] ?? '').replace(/\\(["'\\])/g, '$1')
+      if (!label || variables.has(`argument:${label}`)) continue
+      variables.set(`argument:${label}`, {
+        key: `argument:${label}`,
+        label,
+        defaultValue,
+        kind: 'argument',
+      })
+    }
+  }
+
+  const bracketPattern = /\[([^\]\n]{1,48})\]|【([^】\n]{1,48})】/g
+  for (const match of String(prompt || '').matchAll(bracketPattern)) {
+    const fullWidth = match[2] != null
+    const label = (match[1] ?? match[2] ?? '').trim()
+    if (!isEditableBracket(label, fullWidth)) continue
+    const key = `placeholder:${label}`
+    if (variables.has(key)) continue
+    variables.set(key, {
+      key,
+      label: label.replace(/_/g, ' '),
+      defaultValue: label,
+      token: match[0],
+      kind: 'placeholder',
+    })
+  }
+
+  return [...variables.values()]
 }
 
 function labelKey(key) {
@@ -422,7 +481,7 @@ function formatLooseStructuredPrompt(value) {
 function normalizePrompt(rawPrompt) {
   const raw = String(rawPrompt ?? '').trim()
   const hadArguments = /\{argument\s+name=/i.test(raw)
-  const hadPlaceholders = /\{[A-Z][A-Z0-9 _-]*\}|\[[A-Z][A-Z0-9 _-]+\]/.test(raw)
+  const hadPlaceholders = /\{[A-Z][A-Z0-9 _-]*\}|\[[A-Z][A-Z0-9 _-]+\]|\[(?:[^\]\n]*(?:自定义|请填写|请输入|可修改|替换为)[^\]\n]*)\]|【[^】\n]{1,48}】/.test(raw)
   const hadBilingualMarkers = /\[(?:中文|English)\]/i.test(raw)
   const cleaned = replaceArgumentDefaults(raw).replace(
     /\s*This prompt is reconstructed from the creator's public post description;\s*use the uploaded photo as the source image\.?/i,
@@ -463,15 +522,33 @@ function normalizePrompt(rawPrompt) {
   return { text: text || raw, status }
 }
 
-export const prompts = [...featuredPrompts, ...generatedCases, ...zhidawangCases, ...hotXCases].map((item, index) => {
-  const rawPrompt = item.prompt ?? ''
-  const normalized = normalizePrompt(rawPrompt)
-  return {
-    ...item,
-    prompt: normalized.text,
-    rawPrompt,
-    promptStatus: item.promptStatus || normalized.status,
-    // The array is assembled in ingestion order; later imports are newer.
-    addedOrder: index,
+function preparePrompts(items) {
+  return items.map((item, index) => {
+    const rawPrompt = item.prompt ?? ''
+    const normalized = normalizePrompt(rawPrompt)
+    return {
+      ...item,
+      prompt: normalized.text,
+      rawPrompt,
+      promptVariables: extractPromptVariables(normalized.text, rawPrompt),
+      promptStatus: item.promptStatus || normalized.status,
+      // The array is assembled in ingestion order; later imports are newer.
+      addedOrder: index,
+    }
+  })
+}
+
+let promptCatalogPromise
+
+export function loadPromptCatalog() {
+  if (!promptCatalogPromise) {
+    promptCatalogPromise = Promise.all([
+      import('./cases.generated.json').then((module) => module.default),
+      import('./zhidawang.generated.json').then((module) => module.default),
+      import('./x.hot.generated.json').then((module) => module.default),
+    ]).then(([generatedCases, zhidawangCases, hotXCases]) => (
+      preparePrompts([...featuredPrompts, ...generatedCases, ...zhidawangCases, ...hotXCases])
+    ))
   }
-})
+  return promptCatalogPromise
+}

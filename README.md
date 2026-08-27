@@ -43,6 +43,7 @@ Open the local URL printed by Vite. For a production build:
 ```bash
 npm run build
 npm run preview
+npm run check
 ```
 
 ## Connect an image provider
@@ -51,7 +52,8 @@ Open **Image model settings** in the top-right corner. The form is intentionally
 
 | Field | What to enter | Example |
 | --- | --- | --- |
-| `API URL` | The complete image-generation endpoint | `https://gateway.example/v1/images/generations` |
+| `API PROTOCOL` | Request/response format implemented by the endpoint | `Images API` |
+| `API URL` | Complete endpoint or GenerateContent API base URL | `https://gateway.example/v1/images/generations` |
 | `API KEY` | The bearer token issued by your service | `sk-...` |
 | `MODEL` | The exact model name accepted by the endpoint | `gpt-image-2` |
 | `SIZE` | Output size; `auto` is the default | `auto` |
@@ -59,10 +61,10 @@ Open **Image model settings** in the top-right corner. The form is intentionally
 
 ### Gateway and proxy rules
 
-PROMPT/SIGNAL sends requests directly from the browser. Your endpoint therefore needs browser CORS permission for the site origin and must accept an `Authorization: Bearer <key>` header.
+PROMPT/SIGNAL sends requests directly from the browser. Your endpoint therefore needs browser CORS permission for the site origin. **Images API** uses `Authorization: Bearer <key>`; **GenerateContent API** uses `x-goog-api-key`.
 
 - If your service gives you a base URL, append its image route, usually `/v1/images/generations`.
-- When a reference image is attached, the app derives the edit route by replacing the trailing `/generations` with `/edits`.
+- When reference images are attached, the app derives the edit route by replacing the trailing `/generations` with `/edits`. One image uses `image`; multiple images use `image[]`.
 - If your gateway uses a different edit path, configure that final edit URL as the API URL or add a small compatibility route in your gateway.
 - Never commit a production key. Settings are stored in `localStorage` and are never bundled into the repository, but a browser can still access the key while you use the page.
 
@@ -84,13 +86,29 @@ Content-Type: application/json
 }
 ```
 
-For a reference image, the app submits `multipart/form-data` with `image`, `model`, `prompt`, `size`, `quality`, and `n` fields. The response should expose either `data[0].url` or `data[0].b64_json`.
+For reference images, the app submits `multipart/form-data` with image files plus `model`, `prompt`, `size`, `quality`, and `n`. The response should expose either `data[0].url` or `data[0].b64_json`.
+
+### Gemini image models
+
+A Gemini app subscription does not automatically include Gemini API quota. Create an API key in Google AI Studio and enable billing there if your selected model requires it. Use:
+
+| Field | Value |
+| --- | --- |
+| `API PROTOCOL` | `GenerateContent API` |
+| `API URL` | `https://generativelanguage.googleapis.com/v1beta` |
+| `API KEY` | Your Google AI Studio API key |
+| `MODEL` | `gemini-3.1-flash-image` for Nano Banana 2, or `gemini-3-pro-image` for Nano Banana Pro |
+| `SIZE` / `QUALITY` | `auto` / `auto` |
+
+The app appends `/models/{model}:generateContent`, sends every attached reference as an inline image part, and reads the generated image from the response. Keep the key local; for a shared production deployment, place a server-side proxy in front of the API.
+
+`gemini-2.5-flash-image` remains available as the original Nano Banana model, but Google currently recommends the newer Gemini 3 image models for new integrations.
 
 ## Use the workspace
 
 1. Search or filter the gallery to find a reference.
 2. Open a case and edit the prompt directly in the detail panel.
-3. Optionally upload a local reference image, then review both prompt and reference in the confirmation dialog.
+3. Optionally upload up to eight local reference images, then review the prompt and every reference in the confirmation dialog.
 4. Confirm generation. The result is recorded in **Generation history**.
 5. Reopen a previous result from the history panel to copy its prompt, download the image, or render another variation.
 
@@ -129,7 +147,7 @@ Pushes to `main` trigger [`.github/workflows/deploy-pages.yml`](./.github/workfl
 
 ## Contributing
 
-Please include the original public URL, attribution details, and a short explanation of any prompt or metadata change. Keep generated data deterministic and run `npm run build` before opening a pull request.
+Please include the original public URL, attribution details, and a short explanation of any prompt or metadata change. Keep generated data deterministic and run `npm run check` before opening a pull request.
 
 ## License
 
