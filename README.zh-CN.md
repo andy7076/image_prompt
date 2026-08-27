@@ -22,10 +22,12 @@ PROMPT/SIGNAL 将公开的图片 Prompt 案例整理成可搜索的瀑布流工�
 
 ## 核心能力
 
-- **瀑布流发现**：保留图片原始比例，支持渐进加载、类型筛选、全文搜索，以及最新、标题和精选排序。
-- **Prompt 工作台**：详情页可编辑 Prompt、复制内容、查看来源、切换上下案例和放大图片。
+- **精准物理瀑布流**：内置全量图片的物理宽高元数据（`width` / `height`），通过 `aspect-ratio` 提前精确占位（CLS = 0），零抖动、零跳变；结合贪心最短列插入算法，四列总高度数学级平衡，100% 保留原始比例，绝不裁切。
+- **自定义生图工作台**：顶部导航栏一键直达自定义生图界面，支持纯文本生成与多张参考图垫图渲染。
+- **多配置 Profile 管理**：支持保存、命名、切换多套 API 配置（如 Google AI Studio、SiliconFlow、OpenAI 网关等），详情页可直接一键切换不同引擎对比效果。
+- **Prompt 工作台**：详情页可编辑 Prompt、提取模板变量、复制内容、查看多出处来源、切换上下案例与全屏放大图片。
 - **生成流程**：生成前确认并再次编辑 Prompt，可上传 PNG/JPEG/WEBP 参考图，支持原图/生成图切换和新标签页下载。
-- **本地记录**：收藏、模型配置、语言偏好以及最多 30 条生成记录只保存在当前浏览器。
+- **本地记录**：收藏、多配置 Profile、语言偏好以及最多 30 条生成记录只保存在当前浏览器。
 - **多出处归档**：一个案例可以同时保留 GitHub、X 等多个来源地址。
 - **静态部署**：浏览不需要后端，GitHub Actions 负责构建并发布到 GitHub Pages。
 
@@ -38,24 +40,25 @@ npm install
 npm run dev
 ```
 
-打开 Vite 输出的本地地址即可。生产构建：
+打开 Vite 输出的本地地址即可。常用命令：
 
 ```bash
-npm run build
-npm run preview
-npm run check
+npm run build              # 生产构建
+npm run preview            # 预览生产构建
+npm run check              # 数据校验与构建检查
+npm run extract:dimensions # 并发探测并更新图片宽高尺寸
 ```
 
 ## 配置图片模型 / 代理网关
 
-点击右上角 **Image model settings / 图片模型配置**。配置表单不绑定某一家服务商，只需要填写你的网关或图片服务实际提供的 URL、Key 和模型名。
+点击右上角 **Image model settings / 图片模型配置**。支持保存多套 Profile 预设，表单不绑定某一家服务商，填写你的网关或图片服务实际提供的 URL、Key 和模型名即可：
 
 | 字段 | 填写内容 | 示例 |
 | --- | --- | --- |
-| `API 协议` | 接口实际实现的请求与响应格式 | `Images API` |
+| `API 协议` | 接口实际实现的请求与响应格式 | `Images API` / `GenerateContent API` |
 | `API URL` | 完整生成地址或 GenerateContent API 基础地址 | `https://gateway.example/v1/images/generations` |
-| `API KEY` | 服务商签发的 Bearer Token | `sk-...` |
-| `MODEL` | 接口接受的精确模型名 | `gpt-image-2` |
+| `API KEY` | 服务商签发的 Bearer Token 或 Google API Key | `sk-...` / `AIzaSy...` |
+| `MODEL` | 接口接受的精确模型名 | `gpt-image-2` / `gemini-3.1-flash-image` |
 | `SIZE` | 输出尺寸，默认 `auto (1024x1024)`，支持 `1:1`、`3:2`、`2:3`、`16:9`、`9:16` | `1024x1024` |
 | `QUALITY` | 输出质量，默认 `auto`，支持 `standard` / `hd` | `auto` |
 
@@ -65,7 +68,7 @@ PROMPT/SIGNAL 会从浏览器直接发起请求，因此接口必须允许当前
 
 - 如果平台只提供基础地址，请在后面补上图片路由，通常是 `/v1/images/generations`。
 - 上传参考图时，应用会把末尾的 `/generations` 自动替换为 `/edits`。单图使用 `image` 字段，多图使用 `image[]`。
-- 如果你的网关使用不同的编辑路径，请把最终编辑地址配置到网关中，或增加一层兼容路由。
+- `auto` 尺寸会自动智能适配为三方平台标准 `1024x1024`，且包含智能错误诊断提示。
 - 不要把生产 Key 提交到 Git。配置只写入当前浏览器的 `localStorage`，不会打包进仓库，但浏览器在使用页面时仍然可以读取它。
 
 纯文本生成请求等价于：
@@ -80,8 +83,8 @@ Content-Type: application/json
 {
   "model": "gpt-image-2",
   "prompt": "你编辑后的 Prompt",
-  "size": "auto",
-  "quality": "auto",
+  "size": "1024x1024",
+  "quality": "standard",
   "n": 1
 }
 ```
@@ -106,8 +109,8 @@ Gemini 应用内的 Pro 订阅不等于 Gemini API 配额。需要先在 Google 
 
 ## 使用流程
 
-1. 搜索或筛选画廊，找到想参考的案例。
-2. 打开详情页，直接编辑 Prompt。
+1. 搜索或筛选画廊，找到想参考的案例（或点击顶部「Create image」直接创建）。
+2. 打开详情页，直接编辑 Prompt，或直接修改提取出的模板参数。
 3. 可选上传最多 8 张本地参考图，在确认弹窗中检查 Prompt 和全部参考图。
 4. 点击确认生成，结果会自动进入 **Generation history / 生成记录**。
 5. 从记录面板重新打开结果，可复制 Prompt、下载图片或再次生成。
@@ -132,9 +135,10 @@ Prompt、图片、作者名和商标的权利归原始作者及其许可条款�
 src/App.jsx                 React UI、国际化、交互与生成流程
 src/styles.css              视觉系统、响应式布局与动效
 src/data.js                 案例、分类和来源元数据
-src/cases.generated.json    GitHub 案例数据
-src/zhidawang.generated.json X 案例数据
-src/x.hot.generated.json    额外的高互动 X Prompt 案例
+src/cases.generated.json    GitHub 案例数据（含真实宽高）
+src/zhidawang.generated.json X 案例数据（含真实宽高）
+src/x.hot.generated.json    额外的高互动 X Prompt 案例（含真实宽高）
+scripts/                    校验与尺寸提取脚本
 public/images/              画廊图片与 README 截图
 .github/workflows/          GitHub Pages 自动部署
 ```

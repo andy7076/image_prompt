@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "validate:data": "node scripts/validate-data.mjs",
+    "extract:dimensions": "node scripts/extract-image-dimensions.mjs",
     "check": "npm run validate:data && npm run build"
   },
   "dependencies": {

@@ -22,10 +22,12 @@ PROMPT/SIGNAL turns public image-prompt references into a searchable masonry wor
 
 ## What ships
 
-- **Masonry discovery** — natural image ratios, progressive loading, category filters, search, and newest/title/curated sorting.
-- **Prompt workspace** — full prompt editing, copy-to-clipboard, source links, previous/next navigation, and image zoom.
-- **Generation flow** — editable confirmation dialog, optional PNG/JPEG/WEBP reference image, generated/source switching, and download in a new tab.
-- **Local archive** — favorites, model settings, language preference, and up to 30 generated results persist in the current browser only.
+- **Physical masonry engine** — exact image dimensions (`width` / `height`) pre-calculated for zero layout shift (CLS = 0), uncropped natural ratios, and greedy shortest-column distribution for mathematically balanced column heights (<0.5% variance).
+- **Custom image creation** — dedicated top-level "Create image" studio supporting custom prompt generation and multiple reference photo uploads.
+- **Multi-profile engine settings** — save, name, and switch between multiple provider profiles (e.g. Google AI Studio, SiliconFlow, OpenAI-compatible gateways) with fast inline switching in the detail panel.
+- **Prompt workspace** — full prompt editing, interactive template variable inputs, copy-to-clipboard, multi-source links, previous/next navigation, and image zoom.
+- **Generation flow** — editable confirmation dialog, optional PNG/JPEG/WEBP reference images, generated/source switching, and download in a new tab.
+- **Local archive** — favorites, multi-profile configurations, language preference, and up to 30 generated results persist in the current browser only.
 - **Multi-source attribution** — a case can retain multiple source URLs across GitHub, X, and other public references.
 - **Static-first deployment** — no backend is required for browsing; GitHub Actions builds and deploys the site to Pages.
 
@@ -38,24 +40,25 @@ npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite. For a production build:
+Open the local URL printed by Vite. Useful scripts:
 
 ```bash
-npm run build
-npm run preview
-npm run check
+npm run build              # Production build
+npm run preview            # Preview production build
+npm run check              # Validate data integrity and compile
+npm run extract:dimensions # Concurrently detect and update image dimensions
 ```
 
 ## Connect an image provider
 
-Open **Image model settings** in the top-right corner. The form is intentionally provider-neutral: enter the exact URL, key, and model identifier supplied by your gateway or image service.
+Open **Image model settings** in the top-right corner. Configure and save multiple provider profiles; enter the exact URL, key, and model identifier supplied by your gateway or image service:
 
 | Field | What to enter | Example |
 | --- | --- | --- |
-| `API PROTOCOL` | Request/response format implemented by the endpoint | `Images API` |
+| `API PROTOCOL` | Request/response format implemented by the endpoint | `Images API` / `GenerateContent API` |
 | `API URL` | Complete endpoint or GenerateContent API base URL | `https://gateway.example/v1/images/generations` |
-| `API KEY` | The bearer token issued by your service | `sk-...` |
-| `MODEL` | The exact model name accepted by the endpoint | `gpt-image-2` |
+| `API KEY` | Bearer token issued by your service or Google API Key | `sk-...` / `AIzaSy...` |
+| `MODEL` | The exact model name accepted by the endpoint | `gpt-image-2` / `gemini-3.1-flash-image` |
 | `SIZE` | Output size (`auto (1024x1024)`, `1:1`, `3:2`, `2:3`, `16:9`, `9:16`) | `1024x1024` |
 | `QUALITY` | Output quality (`auto`, `standard`, `hd`) | `auto` |
 
@@ -65,7 +68,7 @@ PROMPT/SIGNAL sends requests directly from the browser. Your endpoint therefore 
 
 - If your service gives you a base URL, append its image route, usually `/v1/images/generations`.
 - When reference images are attached, the app derives the edit route by replacing the trailing `/generations` with `/edits`. One image uses `image`; multiple images use `image[]`.
-- If your gateway uses a different edit path, configure that final edit URL as the API URL or add a small compatibility route in your gateway.
+- `auto` size automatically resolves to `1024x1024` for third-party gateways with helpful error diagnostics.
 - Never commit a production key. Settings are stored in `localStorage` and are never bundled into the repository, but a browser can still access the key while you use the page.
 
 The text-only request is equivalent to:
@@ -80,8 +83,8 @@ Content-Type: application/json
 {
   "model": "gpt-image-2",
   "prompt": "Your edited prompt",
-  "size": "auto",
-  "quality": "auto",
+  "size": "1024x1024",
+  "quality": "standard",
   "n": 1
 }
 ```
@@ -106,8 +109,8 @@ The app appends `/models/{model}:generateContent`, sends every attached referenc
 
 ## Use the workspace
 
-1. Search or filter the gallery to find a reference.
-2. Open a case and edit the prompt directly in the detail panel.
+1. Search or filter the gallery to find a reference (or click "Create image" in the header to start from scratch).
+2. Open a case and edit the prompt directly or modify extracted template parameters.
 3. Optionally upload up to eight local reference images, then review the prompt and every reference in the confirmation dialog.
 4. Confirm generation. The result is recorded in **Generation history**.
 5. Reopen a previous result from the history panel to copy its prompt, download the image, or render another variation.
@@ -132,9 +135,10 @@ Prompt text, images, names, and trademarks remain subject to their original auth
 src/App.jsx                 React UI, i18n, interactions, and generation flow
 src/styles.css              Design system, responsive layout, and motion
 src/data.js                 Curated cases, categories, and source metadata
-src/cases.generated.json    GitHub-derived prompt records
-src/zhidawang.generated.json X-derived prompt records
-src/x.hot.generated.json    Additional high-engagement X prompt records
+src/cases.generated.json    GitHub-derived prompt records (with exact dimensions)
+src/zhidawang.generated.json X-derived prompt records (with exact dimensions)
+src/x.hot.generated.json    Additional high-engagement X prompt records (with exact dimensions)
+scripts/                    Validation and dimension extraction scripts
 public/images/              Gallery assets and README screenshots
 .github/workflows/          GitHub Pages deployment
 ```
