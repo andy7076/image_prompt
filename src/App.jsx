@@ -16,6 +16,7 @@ import {
   KeyRound,
   Languages,
   LoaderCircle,
+  Plus,
   Upload,
   Search,
   Settings2,
@@ -38,6 +39,7 @@ const CATEGORY_LABELS = new Map(categories.map((item) => [item.id, item.label]))
 const LANGUAGE_KEY = 'prompt-signal:language:v1'
 const FAVORITES_KEY = 'prompt-signal:favorites:v1'
 const IMAGE_API_CONFIG_KEY = 'prompt-signal:image-api:v1'
+const IMAGE_API_CONFIG_VERSION = 2
 const GENERATION_HISTORY_KEY = 'prompt-signal:generation-history:v1'
 const MAX_GENERATION_HISTORY = 30
 const GALLERY_PAGE_SIZE = 48
@@ -51,6 +53,10 @@ const DEFAULT_API_CONFIG = {
   size: 'auto',
   quality: 'auto',
 }
+
+const API_PROTOCOLS = new Set(['images', 'generate-content'])
+const API_SIZES = new Set(['auto', '1024x1024', '1536x1024', '1024x1536', '1792x1024', '1024x1792'])
+const API_QUALITIES = new Set(['auto', 'standard', 'hd', 'low', 'medium', 'high'])
 
 const PROMPT_STATUS_LABELS = {
   template: 'PROMPT FORMAT · EDITABLE TEMPLATE',
@@ -95,6 +101,7 @@ const TRANSLATIONS = {
     'actions.search': 'Search',
     'actions.favorites': 'Favorites',
     'actions.history': 'Generation history',
+    'actions.create': 'Create image',
     'actions.settings': 'Image model settings',
     'actions.language': 'Switch to Chinese',
     'actions.closeSettings': 'Close settings',
@@ -107,7 +114,15 @@ const TRANSLATIONS = {
     'actions.unfavorite': 'Remove from favorites',
     'settings.eyebrow': 'IMAGE ENGINE',
     'settings.title': 'Image model settings',
-    'settings.note': 'Settings stay in this browser and are sent only when you generate. Choose the protocol implemented by your endpoint.',
+    'settings.note': 'Save multiple image model connections in this browser, then switch the active one whenever you generate. Changes apply only after saving.',
+    'settings.profile': 'ACTIVE CONFIGURATION',
+    'settings.profileName': 'CONFIGURATION NAME',
+    'settings.defaultProfileName': 'Model {{index}}',
+    'settings.addProfile': 'Add configuration',
+    'settings.deleteProfile': 'Delete configuration',
+    'settings.deleteDisabled': 'Keep at least one configuration',
+    'settings.profileCount': '{{count}} configurations saved in this session',
+    'settings.notConfigured': 'Not configured',
     'settings.protocol': 'API PROTOCOL',
     'settings.protocolImages': 'Images API',
     'settings.protocolGenerateContent': 'GenerateContent API',
@@ -118,7 +133,7 @@ const TRANSLATIONS = {
     'settings.endpointPlaceholder': 'https://your-endpoint.example/v1/images/generations',
     'settings.generateContentPlaceholder': 'https://your-endpoint.example/v1beta',
     'settings.save': 'Save settings',
-    'settings.clear': 'Clear local settings',
+    'settings.clear': 'Reset configurations',
     'settings.security': 'Stored locally in this browser · never uploaded to Prompt Signal',
     'history.eyebrow': 'LOCAL ARCHIVE',
     'history.title': 'Generation history',
@@ -172,6 +187,8 @@ const TRANSLATIONS = {
     'detail.copy': 'Copy prompt',
     'detail.share': 'Copy case link',
     'detail.generate': 'Generate',
+    'detail.imageEngine': 'IMAGE MODEL',
+    'detail.editModels': 'Manage model configurations',
     'detail.checkSettings': 'Check settings',
     'detail.download': 'Download generated result',
     'detail.historyLabel': 'GENERATED HISTORY',
@@ -188,12 +205,18 @@ const TRANSLATIONS = {
     'detail.confirmSubmit': 'Confirm generation',
     'detail.cancelGeneration': 'Cancel generation',
     'detail.preview': 'Image preview',
+    'custom.eyebrow': 'CUSTOM STUDIO',
+    'custom.title': 'Create your own image',
+    'custom.topbar': 'CUSTOM GENERATION',
+    'custom.mediaEmpty': 'Your generated image will appear here',
+    'custom.promptPlaceholder': 'Describe the image you want to create...',
     'errors.fetch': 'Could not reach the endpoint. Check the URL, CORS, or network settings.',
     'errors.request': 'Request failed (HTTP {{status}}).',
     'errors.imageResponse': 'The endpoint returned no image URL or b64_json.',
     'errors.invalidFile': 'Choose a PNG, JPEG, or WEBP image file.',
     'errors.tooManyFiles': 'You can attach up to {{max}} reference images.',
     'errors.fileRead': 'A reference image could not be read.',
+    'errors.promptRequired': 'Enter a prompt before generating.',
     'toast.copied': 'Prompt copied to clipboard',
     'toast.linkCopied': 'Case link copied to clipboard',
     'toast.settingsSaved': 'Image model settings saved',
@@ -208,6 +231,7 @@ const TRANSLATIONS = {
     'actions.search': '搜索',
     'actions.favorites': '收藏',
     'actions.history': '生成记录',
+    'actions.create': '自由创作',
     'actions.settings': '图片模型配置',
     'actions.language': '切换为英文',
     'actions.closeSettings': '关闭配置',
@@ -220,7 +244,15 @@ const TRANSLATIONS = {
     'actions.unfavorite': '取消收藏',
     'settings.eyebrow': 'IMAGE ENGINE',
     'settings.title': '图片模型配置',
-    'settings.note': '配置会保存在当前浏览器，仅在点击生成时发送。请选择接口实际实现的请求协议。',
+    'settings.note': '可以在当前浏览器保存多个图片模型配置，并在每次生成前随时切换当前使用的配置。所有修改仅在保存后生效。',
+    'settings.profile': '当前配置',
+    'settings.profileName': '配置名称',
+    'settings.defaultProfileName': '模型 {{index}}',
+    'settings.addProfile': '添加配置',
+    'settings.deleteProfile': '删除配置',
+    'settings.deleteDisabled': '至少保留一个配置',
+    'settings.profileCount': '当前会话中共有 {{count}} 个配置',
+    'settings.notConfigured': '未配置',
     'settings.protocol': 'API 协议',
     'settings.protocolImages': 'Images API',
     'settings.protocolGenerateContent': 'GenerateContent API',
@@ -231,7 +263,7 @@ const TRANSLATIONS = {
     'settings.endpointPlaceholder': 'https://your-endpoint.example/v1/images/generations',
     'settings.generateContentPlaceholder': 'https://your-endpoint.example/v1beta',
     'settings.save': '保存配置',
-    'settings.clear': '清除本地配置',
+    'settings.clear': '重置配置',
     'settings.security': '浏览器本地保存 · 不会上传到 Prompt Signal',
     'history.eyebrow': 'LOCAL ARCHIVE',
     'history.title': '生成记录',
@@ -285,6 +317,8 @@ const TRANSLATIONS = {
     'detail.copy': '复制 Prompt',
     'detail.share': '复制案例链接',
     'detail.generate': '生成',
+    'detail.imageEngine': '图片模型',
+    'detail.editModels': '管理模型配置',
     'detail.checkSettings': '检查配置',
     'detail.download': '下载生成结果',
     'detail.historyLabel': 'GENERATED HISTORY',
@@ -301,12 +335,18 @@ const TRANSLATIONS = {
     'detail.confirmSubmit': '确认生成',
     'detail.cancelGeneration': '取消生成',
     'detail.preview': '图片预览',
+    'custom.eyebrow': '自由创作',
+    'custom.title': '生成自定义图片',
+    'custom.topbar': '自定义生成',
+    'custom.mediaEmpty': '生成结果会显示在这里',
+    'custom.promptPlaceholder': '描述你想要生成的图片...',
     'errors.fetch': '无法连接接口。请检查 URL、CORS 或网络设置。',
     'errors.request': '请求失败（HTTP {{status}}）。',
     'errors.imageResponse': '接口没有返回图片 URL 或 b64_json。',
     'errors.invalidFile': '请选择 PNG、JPEG 或 WEBP 图片文件。',
     'errors.tooManyFiles': '最多可以附加 {{max}} 张参考图片。',
     'errors.fileRead': '无法读取其中一张参考图片。',
+    'errors.promptRequired': '请先填写 Prompt 再生成。',
     'toast.copied': 'Prompt 已复制到剪贴板',
     'toast.linkCopied': '案例链接已复制',
     'toast.settingsSaved': '图片模型配置已保存',
@@ -524,12 +564,14 @@ function imageConfigForSize(size) {
     '1024x1024': '1:1',
     '1536x1024': '3:2',
     '1024x1536': '2:3',
+    '1792x1024': '16:9',
+    '1024x1792': '9:16',
   }[size]
   return aspectRatio ? { aspectRatio } : null
 }
 
 function extractGeneratedImage(payload) {
-  const imageOutput = payload?.data?.[0]
+  const imageOutput = payload?.data?.[0] || payload?.images?.[0]
   if (imageOutput?.url) return imageOutput.url
   if (imageOutput?.b64_json) return `data:image/png;base64,${imageOutput.b64_json}`
 
@@ -541,7 +583,7 @@ function extractGeneratedImage(payload) {
   return `data:${inlineImage.mimeType || inlineImage.mime_type || 'image/png'};base64,${inlineImage.data}`
 }
 
-async function generateImageRequest({ config, prompt, referenceFiles, t }) {
+async function generateImageRequest({ config, prompt, referenceFiles, t, language }) {
   let endpoint = config.endpoint.trim()
   const headers = {}
   let body
@@ -566,6 +608,11 @@ async function generateImageRequest({ config, prompt, referenceFiles, t }) {
     })
   } else {
     headers.Authorization = `Bearer ${config.apiKey.trim()}`
+    const resolvedSize = config.size === 'auto' ? '1024x1024' : config.size
+    const resolvedQuality = config.quality === 'auto'
+      ? undefined
+      : (config.quality === 'low' || config.quality === 'medium' ? 'standard' : (config.quality === 'high' ? 'hd' : config.quality))
+
     if (referenceFiles.length) {
       endpoint = endpoint.replace(/\/generations\/?$/, '/edits')
       body = new FormData()
@@ -573,18 +620,36 @@ async function generateImageRequest({ config, prompt, referenceFiles, t }) {
       referenceFiles.forEach((file) => body.append(imageField, file))
       body.append('model', config.model.trim())
       body.append('prompt', prompt)
-      body.append('size', config.size)
-      body.append('quality', config.quality)
+      body.append('size', resolvedSize)
+      if (resolvedQuality) body.append('quality', resolvedQuality)
       body.append('n', '1')
     } else {
       headers['Content-Type'] = 'application/json'
-      body = JSON.stringify({ model: config.model.trim(), prompt, size: config.size, quality: config.quality, n: 1 })
+      const payloadData = {
+        model: config.model.trim(),
+        prompt,
+        size: resolvedSize,
+        n: 1,
+      }
+      if (resolvedQuality) payloadData.quality = resolvedQuality
+      body = JSON.stringify(payloadData)
     }
   }
 
   const response = await fetch(endpoint, { method: 'POST', headers, body })
   const payload = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(payload?.error?.message || payload?.message || t('errors.request', { status: response.status }))
+  if (!response.ok) {
+    let errorMsg = payload?.error?.message || payload?.message || payload?.error || ''
+    if (typeof errorMsg !== 'string') errorMsg = JSON.stringify(errorMsg)
+    if (!errorMsg) errorMsg = t('errors.request', { status: response.status })
+
+    if (/unknown error/i.test(errorMsg) || payload?.code === 50507) {
+      errorMsg = language === 'zh'
+        ? `${errorMsg} (建议排查: 检查 SIZE 是否需指定为具体尺寸如 1024x1024，或核对模型名与接口兼容性)`
+        : `${errorMsg} (Hint: Check if provider requires explicit SIZE like 1024x1024, or verify model compatibility)`
+    }
+    throw new Error(errorMsg)
+  }
   const generatedImage = extractGeneratedImage(payload)
   if (!generatedImage) throw new Error(t('errors.imageResponse'))
   return generatedImage
@@ -611,16 +676,53 @@ function readFavorites() {
   }
 }
 
-function readApiConfig() {
+function createApiProfile(index = 0, overrides = {}) {
+  const generatedId = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `model-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  return {
+    id: String(overrides.id || generatedId),
+    name: String(overrides.name || `Model ${index + 1}`),
+    protocol: API_PROTOCOLS.has(overrides.protocol) ? overrides.protocol : DEFAULT_API_CONFIG.protocol,
+    endpoint: typeof overrides.endpoint === 'string' ? overrides.endpoint : '',
+    apiKey: typeof overrides.apiKey === 'string' ? overrides.apiKey : '',
+    model: typeof overrides.model === 'string' ? overrides.model : '',
+    size: API_SIZES.has(overrides.size) ? overrides.size : DEFAULT_API_CONFIG.size,
+    quality: API_QUALITIES.has(overrides.quality) ? overrides.quality : DEFAULT_API_CONFIG.quality,
+  }
+}
+
+function createApiConfigStore(profileOverrides = {}) {
+  const profile = createApiProfile(0, profileOverrides)
+  return { version: IMAGE_API_CONFIG_VERSION, activeId: profile.id, profiles: [profile] }
+}
+
+function normalizeApiConfigStore(stored) {
+  if (!Array.isArray(stored?.profiles) || !stored.profiles.length) return null
+  const usedIds = new Set()
+  const profiles = stored.profiles.map((profile, index) => {
+    const normalized = createApiProfile(index, profile)
+    while (usedIds.has(normalized.id)) normalized.id = `${normalized.id}-${index + 1}`
+    usedIds.add(normalized.id)
+    return normalized
+  })
+  const activeId = usedIds.has(String(stored.activeId)) ? String(stored.activeId) : profiles[0].id
+  return { version: IMAGE_API_CONFIG_VERSION, activeId, profiles }
+}
+
+function readApiConfigStore() {
   try {
     const stored = JSON.parse(localStorage.getItem(IMAGE_API_CONFIG_KEY) || '{}')
+    const normalizedStore = normalizeApiConfigStore(stored)
+    if (normalizedStore) return normalizedStore
     // Clear the old built-in OpenAI defaults so a first-time setup starts blank.
     if (stored.endpoint === 'https://api.openai.com/v1/images/generations' && !stored.apiKey) {
-      return DEFAULT_API_CONFIG
+      return createApiConfigStore()
     }
-    return { ...DEFAULT_API_CONFIG, ...stored, size: stored.size || 'auto' }
+    const hasLegacyConfig = ['endpoint', 'apiKey', 'model'].some((key) => typeof stored[key] === 'string' && stored[key])
+    return createApiConfigStore(hasLegacyConfig ? stored : {})
   } catch {
-    return DEFAULT_API_CONFIG
+    return createApiConfigStore()
   }
 }
 
@@ -672,7 +774,7 @@ function IconButton({ label, children, className = '', ...props }) {
   )
 }
 
-function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavorites, historyCount, onHistory, onSettings }) {
+function Header({ search, setSearch, favoriteCount, showFavorites, onToggleFavorites, historyCount, onCreate, onHistory, onSettings }) {
   const [mobileSearch, setMobileSearch] = useState(false)
   const { language, t, toggleLanguage } = useLanguage()
 
@@ -702,9 +804,13 @@ function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavori
         <IconButton label={t('actions.search')} className="mobile-only" onClick={() => setMobileSearch((value) => !value)}>
           <Search size={19} />
         </IconButton>
+        <button className="create-button" onClick={onCreate} aria-label={t('actions.create')} title={t('actions.create')}>
+          <Sparkles size={18} />
+          <span>{t('actions.create')}</span>
+        </button>
         <button
           className={`favorites-button ${showFavorites ? 'is-active' : ''}`}
-          onClick={() => setShowFavorites((value) => !value)}
+          onClick={onToggleFavorites}
           aria-pressed={showFavorites}
           aria-label={t('actions.favorites')}
         >
@@ -735,7 +841,7 @@ function Header({ search, setSearch, favoriteCount, showFavorites, setShowFavori
   )
 }
 
-function SettingsPanel({ config, onChange, onSave, onClear, onClose }) {
+function SettingsPanel({ config, profiles, activeId, onChange, onSelect, onAdd, onRemove, onSave, onClear, onClose }) {
   const [showKey, setShowKey] = useState(false)
   const { t } = useLanguage()
   const dialogRef = useDialogFocus(true, onClose)
@@ -747,13 +853,47 @@ function SettingsPanel({ config, onChange, onSave, onClear, onClose }) {
           <IconButton label={t('actions.closeSettings')} onClick={onClose}><X size={19} /></IconButton>
         </div>
         <p className="settings-note">{t('settings.note')}</p>
+        <div className="settings-profile-toolbar">
+          <label className="settings-profile-picker">
+            <span>{t('settings.profile')}</span>
+            <span className="settings-profile-select">
+              <select value={activeId} onChange={(event) => onSelect(event.target.value)}>
+                {profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}
+              </select>
+              <ChevronDown size={15} aria-hidden="true" />
+            </span>
+          </label>
+          <IconButton className="settings-profile-action" label={t('settings.addProfile')} onClick={() => onAdd(t('settings.defaultProfileName', { index: profiles.length + 1 }))}><Plus size={18} /></IconButton>
+          <IconButton className="settings-profile-action settings-profile-delete" label={profiles.length === 1 ? t('settings.deleteDisabled') : t('settings.deleteProfile')} onClick={onRemove} disabled={profiles.length === 1}><Trash2 size={17} /></IconButton>
+        </div>
+        <div className="settings-profile-meta">{t('settings.profileCount', { count: profiles.length })}</div>
+        <label className="settings-field"><span>{t('settings.profileName')}</span><input value={config.name} onChange={(event) => onChange({ name: event.target.value })} placeholder={t('settings.defaultProfileName', { index: profiles.findIndex((profile) => profile.id === activeId) + 1 })} /></label>
         <label className="settings-field"><span>{t('settings.protocol')}</span><select value={config.protocol} onChange={(e) => onChange({ protocol: e.target.value })}><option value="images">{t('settings.protocolImages')}</option><option value="generate-content">{t('settings.protocolGenerateContent')}</option></select></label>
         <label className="settings-field"><span>{t('settings.apiUrl')}</span><input value={config.endpoint} onChange={(e) => onChange({ endpoint: e.target.value })} placeholder={config.protocol === 'generate-content' ? t('settings.generateContentPlaceholder') : t('settings.endpointPlaceholder')} /></label>
         <label className="settings-field"><span>{t('settings.apiKey')}</span><div className="key-input"><input type={showKey ? 'text' : 'password'} value={config.apiKey} onChange={(e) => onChange({ apiKey: e.target.value })} placeholder="your-api-key" autoComplete="off" /><IconButton label={showKey ? t('actions.hideKey') : t('actions.showKey')} onClick={() => setShowKey((v) => !v)}>{showKey ? <EyeOff size={17} /> : <Eye size={17} />}</IconButton></div></label>
         <div className={`settings-grid ${config.protocol === 'generate-content' ? 'is-generate-content' : ''}`}>
           <label className="settings-field"><span>{t('settings.model')}</span><input value={config.model} onChange={(e) => onChange({ model: e.target.value })} placeholder={config.protocol === 'generate-content' ? 'e.g. gemini-3.1-flash-image' : t('settings.modelPlaceholder')} /></label>
-          <label className="settings-field"><span>SIZE</span><select value={config.size} onChange={(e) => onChange({ size: e.target.value })}><option>auto</option><option>1024x1024</option><option>1536x1024</option><option>1024x1536</option></select></label>
-          {config.protocol === 'images' ? <label className="settings-field"><span>QUALITY</span><select value={config.quality} onChange={(e) => onChange({ quality: e.target.value })}><option>auto</option><option>low</option><option>medium</option><option>high</option></select></label> : null}
+          <label className="settings-field">
+            <span>SIZE</span>
+            <select value={config.size} onChange={(e) => onChange({ size: e.target.value })}>
+              <option value="auto">auto (1024x1024)</option>
+              <option value="1024x1024">1024x1024 (1:1)</option>
+              <option value="1536x1024">1536x1024 (3:2)</option>
+              <option value="1024x1536">1024x1536 (2:3)</option>
+              <option value="1792x1024">1792x1024 (16:9)</option>
+              <option value="1024x1792">1024x1792 (9:16)</option>
+            </select>
+          </label>
+          {config.protocol === 'images' ? (
+            <label className="settings-field">
+              <span>QUALITY</span>
+              <select value={config.quality} onChange={(e) => onChange({ quality: e.target.value })}>
+                <option value="auto">auto</option>
+                <option value="standard">standard</option>
+                <option value="hd">hd</option>
+              </select>
+            </label>
+          ) : null}
         </div>
         <div className="settings-actions"><button className="settings-save" onClick={onSave}><Check size={17} />{t('settings.save')}</button><button className="settings-clear" onClick={onClear}>{t('settings.clear')}</button></div>
         <div className="settings-security"><KeyRound size={14} />{t('settings.security')}</div>
@@ -862,7 +1002,7 @@ function FilterBar({ activeCategory, setActiveCategory, resultCount, loading, se
   )
 }
 
-function GalleryCard({ item, index, favorite, onOpen, onFavorite, onMeasure }) {
+function GalleryCard({ item, index, favorite, onOpen, onFavorite }) {
   const [imageState, setImageState] = useState('loading')
   const cardRef = useRef(null)
   const imageRef = useRef(null)
@@ -874,29 +1014,27 @@ function GalleryCard({ item, index, favorite, onOpen, onFavorite, onMeasure }) {
     setImageState(image.naturalWidth > 0 ? 'loaded' : 'error')
   }, [item.image])
 
-  useEffect(() => {
-    const card = cardRef.current
-    if (!card) return undefined
-    const measure = () => {
-      const { width, height } = card.getBoundingClientRect()
-      if (width > 0 && height > 0) onMeasure(item.id, height / width)
-    }
-    const frame = window.requestAnimationFrame(measure)
-    if (!('ResizeObserver' in window)) return () => window.cancelAnimationFrame(frame)
-    const observer = new ResizeObserver(measure)
-    observer.observe(card)
-    return () => {
-      window.cancelAnimationFrame(frame)
-      observer.disconnect()
-    }
-  }, [item.id, onMeasure])
+  const imageAspect = item.width && item.height ? `${item.width} / ${item.height}` : undefined
 
   return (
-    <article ref={cardRef} className={`gallery-card ratio-${item.ratio}`} data-prompt-id={item.id} style={{ '--delay': `${Math.min(index, 9) * 45}ms` }}>
-      <button className={`card-image is-${imageState}`} onClick={() => onOpen(item)} aria-label={t('gallery.viewDetails', { title: item.title })} aria-busy={imageState === 'loading'}>
+    <article ref={cardRef} className={`gallery-card ratio-${item.ratio}`} data-prompt-id={item.id} style={{ '--delay': `${Math.min(index % 12, 11) * 35}ms` }}>
+      <button
+        className={`card-image is-${imageState}`}
+        style={imageAspect ? { aspectRatio: imageAspect } : undefined}
+        onClick={() => onOpen(item)}
+        aria-label={t('gallery.viewDetails', { title: item.title })}
+        aria-busy={imageState === 'loading'}
+      >
         <span className="image-skeleton" aria-hidden="true" />
         {imageState === 'error' ? <span className="image-fallback">{t('gallery.unavailable')}</span> : null}
-        <img ref={imageRef} src={item.image} alt={item.title} loading={index > 5 ? 'lazy' : 'eager'} onLoad={() => setImageState('loaded')} onError={() => setImageState('error')} />
+        <img
+          ref={imageRef}
+          src={item.image}
+          alt={item.title}
+          loading={index > 8 ? 'lazy' : 'eager'}
+          onLoad={() => setImageState('loaded')}
+          onError={() => setImageState('error')}
+        />
         <span className="card-number">{String(index + 1).padStart(2, '0')}</span>
         <span className="view-cue">{t('gallery.view')} <ArrowUpRight size={16} /></span>
       </button>
@@ -926,28 +1064,14 @@ function getGalleryColumnCount() {
   return 4
 }
 
-function estimateMasonryWeight(item) {
-  const imageWeight = { portrait: 1.34, landscape: 0.78, square: 1, wide: 0.54 }[item.ratio] || 1
-  const titleWeight = Math.min(0.24, Math.ceil(String(item.title || '').length / 22) * 0.06)
-  return imageWeight + titleWeight + 0.26
+function getCardWeight(item) {
+  const imgRatio = item.width && item.height ? item.height / item.width : 1.34
+  const titleLines = Math.ceil(String(item.title || '').length / 20)
+  return imgRatio + titleLines * 0.08 + 0.2
 }
 
 function MasonryGallery({ items, favoriteIds, onOpen, onFavorite }) {
   const [columnCount, setColumnCount] = useState(getGalleryColumnCount)
-  const [measurementRevision, setMeasurementRevision] = useState(0)
-  const measuredWeightsRef = useRef(new Map())
-  const measurementFrameRef = useRef(null)
-
-  const handleMeasure = useCallback((id, weight) => {
-    const previous = measuredWeightsRef.current.get(id)
-    if (previous != null && Math.abs(previous - weight) < 0.01) return
-    measuredWeightsRef.current.set(id, weight)
-    if (measurementFrameRef.current) return
-    measurementFrameRef.current = window.requestAnimationFrame(() => {
-      measurementFrameRef.current = null
-      setMeasurementRevision((revision) => revision + 1)
-    })
-  }, [])
 
   useEffect(() => {
     const handleResize = () => setColumnCount(getGalleryColumnCount())
@@ -955,33 +1079,21 @@ function MasonryGallery({ items, favoriteIds, onOpen, onFavorite }) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  useEffect(() => () => window.cancelAnimationFrame(measurementFrameRef.current), [])
-
   const columns = useMemo(() => {
     const nextColumns = Array.from({ length: columnCount }, () => [])
     const heights = Array.from({ length: columnCount }, () => 0)
 
-    for (let layerStart = 0; layerStart < items.length; layerStart += columnCount) {
-      const columnOrder = heights
-        .map((height, index) => ({ height, index }))
-        .sort((first, second) => first.height - second.height || first.index - second.index)
-      const layer = items
-        .slice(layerStart, layerStart + columnCount)
-        .map((item, offset) => ({
-          item,
-          index: layerStart + offset,
-          weight: measuredWeightsRef.current.get(item.id) || estimateMasonryWeight(item),
-        }))
-        .sort((first, second) => second.weight - first.weight || first.index - second.index)
+    items.forEach((item, index) => {
+      let minCol = 0
+      for (let c = 1; c < columnCount; c++) {
+        if (heights[c] < heights[minCol]) minCol = c
+      }
+      nextColumns[minCol].push({ item, index })
+      heights[minCol] += getCardWeight(item)
+    })
 
-      layer.forEach((entry, offset) => {
-        const columnIndex = columnOrder[offset].index
-        nextColumns[columnIndex].push({ item: entry.item, index: entry.index })
-        heights[columnIndex] += entry.weight
-      })
-    }
     return nextColumns
-  }, [columnCount, items, measurementRevision])
+  }, [columnCount, items])
 
   return (
     <section className="masonry" aria-live="polite">
@@ -995,7 +1107,6 @@ function MasonryGallery({ items, favoriteIds, onOpen, onFavorite }) {
               favorite={favoriteIds.has(item.id)}
               onOpen={onOpen}
               onFavorite={onFavorite}
-              onMeasure={handleMeasure}
             />
           ))}
         </div>
@@ -1003,6 +1114,8 @@ function MasonryGallery({ items, favoriteIds, onOpen, onFavorite }) {
     </section>
   )
 }
+
+
 
 function CatalogSkeleton() {
   const { t } = useLanguage()
@@ -1025,8 +1138,9 @@ function EmptyState({ showFavorites, clearFilters }) {
   )
 }
 
-function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCopy, onCopyLink, config, onOpenSettings, onGenerationComplete }) {
+function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCopy, onCopyLink, config, profiles, onSelectConfig, onOpenSettings, onGenerationComplete }) {
   const isHistoryItem = item.kind === 'generation-history'
+  const isCustomItem = item.kind === 'custom-generation'
   const { language, t } = useLanguage()
   const [promptText, setPromptText] = useState(item.prompt)
   const [generatedUrl, setGeneratedUrl] = useState(item.generatedUrl || '')
@@ -1077,7 +1191,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
   useEffect(() => {
     const onKeyDown = (event) => {
       const dialogs = [...document.querySelectorAll('[data-dialog-layer="true"]')]
-      if (dialogs.at(-1) !== detailDialogRef.current || isEditableTarget(event.target)) return
+      if (dialogs.at(-1) !== detailDialogRef.current || isCustomItem || isEditableTarget(event.target)) return
       if (event.key === 'ArrowLeft') {
         event.preventDefault()
         onPrev()
@@ -1089,9 +1203,14 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [detailDialogRef, onNext, onPrev])
+  }, [detailDialogRef, isCustomItem, onNext, onPrev])
 
   const runGeneration = async () => {
+    if (!promptText.trim()) {
+      setGenerationError(t('errors.promptRequired'))
+      setGenerationState('error')
+      return
+    }
     if (!config.apiKey.trim() || !config.endpoint.trim() || !config.model.trim()) {
       onOpenSettings()
       return
@@ -1104,6 +1223,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
         prompt: promptText,
         referenceFiles: referenceImages.map((reference) => reference.file),
         t,
+        language,
       })
       setGeneratedUrl(url)
       setViewMode('generated')
@@ -1131,6 +1251,11 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
   }
 
   const requestGeneration = () => {
+    if (!promptText.trim()) {
+      setGenerationError(t('errors.promptRequired'))
+      setGenerationState('error')
+      return
+    }
     if (!config.apiKey.trim() || !config.endpoint.trim() || !config.model.trim()) {
       onOpenSettings()
       return
@@ -1181,35 +1306,42 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     <div ref={detailDialogRef} className="detail-backdrop" role="dialog" aria-modal="true" aria-label={t('gallery.viewDetails', { title: item.title })} data-dialog-layer="true" tabIndex={-1}>
       <div className="detail-topbar">
         <button onClick={onClose}><X size={19} /> {t('detail.close')}</button>
-        {!isHistoryItem ? <div>
+        {isCustomItem ? <span className="detail-history-label"><Sparkles size={14} />{t('custom.topbar')}</span> : !isHistoryItem ? <div>
           <IconButton label={t('actions.previous')} onClick={onPrev}><ArrowLeft size={19} /></IconButton>
           <IconButton label={t('actions.next')} onClick={onNext}><ArrowRight size={19} /></IconButton>
         </div> : <span className="detail-history-label"><History size={14} /> GENERATED HISTORY</span>}
       </div>
       <div className="detail-layout">
         <div className="detail-media">
-          <button className="detail-image-trigger" onClick={() => setZoomedImage({ src: displayImage, alt: viewMode === 'generated' ? t('history.resultAlt', { title: item.title }) : item.title })} aria-label={t('detail.expand')}>
-            <img src={displayImage} alt={viewMode === 'generated' ? t('history.resultAlt', { title: item.title }) : item.title} />
-            <span>{t('detail.expand')}</span>
-          </button>
-          <div className="detail-media-index">GPT—IMAGE—2</div>
-          {generatedUrl && !isHistoryItem ? <div className="image-switcher"><button className={viewMode === 'source' ? 'is-active' : ''} onClick={() => setViewMode('source')}>{t('detail.source')}</button><button className={viewMode === 'generated' ? 'is-active' : ''} onClick={() => setViewMode('generated')}>{t('detail.generated')}</button></div> : null}
+          {displayImage ? (
+            <button className="detail-image-trigger" onClick={() => setZoomedImage({ src: displayImage, alt: viewMode === 'generated' ? t('history.resultAlt', { title: item.title }) : item.title })} aria-label={t('detail.expand')}>
+              <img src={displayImage} alt={viewMode === 'generated' ? t('history.resultAlt', { title: item.title }) : item.title} />
+              <span>{t('detail.expand')}</span>
+            </button>
+          ) : generationState !== 'loading' ? (
+            <div className="custom-media-empty">
+              <Sparkles size={31} />
+              <span>{t('custom.mediaEmpty')}</span>
+            </div>
+          ) : null}
+          <div className="detail-media-index">{isCustomItem ? 'PROMPT—SIGNAL—STUDIO' : 'GPT—IMAGE—2'}</div>
+          {generatedUrl && !isHistoryItem && !isCustomItem ? <div className="image-switcher"><button className={viewMode === 'source' ? 'is-active' : ''} onClick={() => setViewMode('source')}>{t('detail.source')}</button><button className={viewMode === 'generated' ? 'is-active' : ''} onClick={() => setViewMode('generated')}>{t('detail.generated')}</button></div> : null}
           {generationState === 'loading' ? <div className="generation-overlay"><LoaderCircle size={23} className="spin" /><span>{t('detail.loading')}</span></div> : null}
         </div>
         <div className="detail-panel">
           <div className="detail-heading">
-            <span>{categoryLabel(item.category, language)}</span>
+            <span>{isCustomItem ? t('custom.eyebrow') : categoryLabel(item.category, language)}</span>
             <h2>{item.title}</h2>
-            <p>{t('detail.curatedBy', { author: item.author })}</p>
+            {!isCustomItem ? <p>{t('detail.curatedBy', { author: item.author })}</p> : null}
             {item.promptStatus && item.promptStatus !== 'clean' ? <div className={`prompt-status prompt-status-${item.promptStatus}`}><span />{language === 'zh' ? (PROMPT_STATUS_LABELS_ZH[item.promptStatus] || item.promptStatus.toUpperCase()) : (PROMPT_STATUS_LABELS[item.promptStatus] || item.promptStatus.toUpperCase())}</div> : null}
           </div>
 
           <div className="prompt-block">
             <div className="prompt-label">
               <span>{t('detail.prompt')}</span>
-              <span>{item.prompt.length} {t('detail.chars')}</span>
+              <span>{promptText.length} {t('detail.chars')}</span>
             </div>
-            <textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} aria-label={t('detail.confirmPrompt')} />
+            <textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} aria-label={t('detail.confirmPrompt')} placeholder={isCustomItem ? t('custom.promptPlaceholder') : ''} />
           </div>
 
           {templateVariables.length ? <div className="template-variables">
@@ -1240,31 +1372,42 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             {referenceImages.length < MAX_REFERENCE_IMAGES ? <label className="upload-reference"><Upload size={17} /><span>{referenceImages.length ? t('detail.referenceAdd') : t('detail.referenceUpload')}</span><small>{t('detail.referenceHint')}</small><input type="file" multiple accept="image/png,image/jpeg,image/webp" onChange={handleReferenceChange} /></label> : null}
           </div>
 
-          <div className="detail-actions">
-            <button className="copy-button" onClick={() => onCopy(promptText)}>
+          <div className="detail-engine-selector">
+            <span>{t('detail.imageEngine')}</span>
+            <label>
+              <select value={config.id} onChange={(event) => onSelectConfig(event.target.value)}>
+                {profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name} · {profile.model || t('settings.notConfigured')}</option>)}
+              </select>
+              <ChevronDown size={15} aria-hidden="true" />
+            </label>
+            <IconButton label={t('detail.editModels')} onClick={onOpenSettings}><Settings2 size={17} /></IconButton>
+          </div>
+
+          <div className={`detail-actions ${isCustomItem ? 'is-custom' : ''}`}>
+            {!isCustomItem ? <button className="copy-button" onClick={() => onCopy(promptText)}>
               <Copy size={18} /> {t('detail.copy')}
-            </button>
+            </button> : null}
             <button className="generate-button" onClick={requestGeneration} disabled={generationState === 'loading'}>
               {generationState === 'loading' ? <LoaderCircle size={18} className="spin" /> : <Sparkles size={18} />} {t('detail.generate')}
             </button>
-            {!isHistoryItem ? <IconButton
+            {!isHistoryItem && !isCustomItem ? <IconButton
               label={favorite ? t('actions.unfavorite') : t('actions.favorite')}
               className={favorite ? 'detail-favorite is-active' : 'detail-favorite'}
               onClick={() => onFavorite(item.id)}
             >
               <Heart size={20} fill={favorite ? 'currentColor' : 'none'} />
             </IconButton> : null}
-            {!isHistoryItem ? <IconButton label={t('detail.share')} className="detail-share" onClick={onCopyLink}><Share2 size={19} /></IconButton> : null}
+            {!isHistoryItem && !isCustomItem ? <IconButton label={t('detail.share')} className="detail-share" onClick={onCopyLink}><Share2 size={19} /></IconButton> : null}
           </div>
           {generationState === 'error' ? <div className="generation-error" role="alert">{generationError}<button onClick={onOpenSettings}><Settings2 size={14} />{t('detail.checkSettings')}</button></div> : null}
           {generatedUrl ? <a className="download-link" href={generatedUrl} download="prompt-signal-generated.png" target="_blank" rel="noreferrer"><Download size={16} />{t('detail.download')}</a> : null}
 
-          {isHistoryItem ? <div className="history-detail-meta"><span><Clock3 size={13} /> {formatHistoryDate(item.createdAt, language)}</span><span>{t('detail.historyMeta', { model: item.model || 'IMAGE MODEL', size: item.size || 'auto', quality: item.quality || 'auto' })}</span>{item.referenceName ? <span>{t('history.reference', { name: item.referenceName })}</span> : null}</div> : <div className="source-link">
+          {isHistoryItem ? <div className="history-detail-meta"><span><Clock3 size={13} /> {formatHistoryDate(item.createdAt, language)}</span><span>{t('detail.historyMeta', { model: item.model || 'IMAGE MODEL', size: item.size || 'auto', quality: item.quality || 'auto' })}</span>{item.referenceName ? <span>{t('history.reference', { name: item.referenceName })}</span> : null}</div> : !isCustomItem ? <div className="source-link">
             <span><i /> {t('detail.source')}</span>
             <div className="source-links">
               {getItemSources(item).map((source) => <a key={`${source.label}-${source.url}`} href={source.url} target="_blank" rel="noreferrer">{source.label}<ArrowUpRight size={14} /></a>)}
             </div>
-          </div>}
+          </div> : null}
         </div>
       </div>
       {confirmOpen ? (
@@ -1275,7 +1418,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             <p>{t('detail.confirmCopy')}</p>
             <label className="confirm-prompt-field"><span>{t('detail.confirmPrompt')}</span><textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} /></label>
             {referenceImages.length ? <div className="confirm-reference"><span>{t('detail.reference')} · {referenceImages.length}</span><div className="confirm-reference-grid">{referenceImages.map((reference) => <button key={reference.id} onClick={() => setZoomedImage({ src: reference.preview, alt: reference.file.name })}><img src={reference.preview} alt={reference.file.name} /><div><b>{reference.file.name}</b><small>{t('detail.confirmPreview')}</small></div></button>)}</div></div> : null}
-            <div className="generation-confirm-meta"><span>MODEL <b>{config.model}</b></span><span>{t('detail.reference')} <b>{referenceImages.length ? `${t('detail.confirmAttached')} · ${referenceImages.length}` : t('detail.confirmNone')}</b></span></div>
+            <div className="generation-confirm-meta"><span>{t('settings.profile')} <b>{config.name}</b></span><span>MODEL <b>{config.model}</b></span><span>{t('detail.reference')} <b>{referenceImages.length ? `${t('detail.confirmAttached')} · ${referenceImages.length}` : t('detail.confirmNone')}</b></span></div>
             <div className="generation-confirm-actions"><button className="confirm-cancel" onClick={() => setConfirmOpen(false)}>{t('detail.confirmCancel')}</button><button className="confirm-submit" onClick={() => { setConfirmOpen(false); runGeneration() }}><Sparkles size={17} />{t('detail.confirmSubmit')}</button></div>
           </div>
         </div>
@@ -1296,18 +1439,31 @@ function AppContent() {
   const [favorites, setFavorites] = useState(readFavorites)
   const [selectedId, setSelectedId] = useState(readPromptIdFromLocation)
   const [selectedHistory, setSelectedHistory] = useState(null)
+  const [customOpen, setCustomOpen] = useState(false)
   const [toast, setToast] = useState('')
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsDraft, setSettingsDraft] = useState(null)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [generationHistory, setGenerationHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(true)
-  const [apiConfig, setApiConfig] = useState(readApiConfig)
+  const [apiConfigStore, setApiConfigStore] = useState(readApiConfigStore)
   const [visibleLimit, setVisibleLimit] = useState(GALLERY_PAGE_SIZE)
   const generationHistoryRef = useRef([])
   const pendingGalleryScrollRef = useRef(null)
   const detailOpenedInSessionRef = useRef(false)
   const toastTimerRef = useRef(null)
   const deferredSearch = useDeferredValue(search.trim().toLowerCase())
+  const apiConfig = useMemo(() => apiConfigStore.profiles.find((profile) => profile.id === apiConfigStore.activeId) || apiConfigStore.profiles[0], [apiConfigStore])
+  const settingsConfig = settingsDraft?.profiles.find((profile) => profile.id === settingsDraft.activeId) || settingsDraft?.profiles[0]
+  const customItem = {
+    id: 'custom-generation',
+    kind: 'custom-generation',
+    title: t('custom.title'),
+    category: 'other',
+    author: 'PROMPT/SIGNAL',
+    prompt: '',
+    image: '',
+    sources: [],
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -1474,10 +1630,6 @@ function AppContent() {
   }
 
   const loadMorePrompts = () => {
-    const firstLayer = filteredPrompts
-      .slice(visibleLimit, visibleLimit + getGalleryColumnCount())
-      .map((item) => item.id)
-    if (firstLayer.length) pendingGalleryScrollRef.current = { ids: firstLayer, block: 'start' }
     setVisibleLimit((limit) => limit + GALLERY_PAGE_SIZE)
   }
 
@@ -1521,15 +1673,83 @@ function AppContent() {
     setShowFavorites(false)
   }
 
+  const scrollToResults = () => {
+    pendingGalleryScrollRef.current = null
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const resultsAnchor = document.getElementById('results-start')
+        if (!resultsAnchor) return
+        const headerHeight = window.innerWidth <= 820 ? 64 : 74
+        const targetTop = Math.max(0, window.scrollY + resultsAnchor.getBoundingClientRect().top - headerHeight)
+        if (Math.abs(window.scrollY - targetTop) < 120) return
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        window.scrollTo({ top: targetTop, left: 0, behavior: reduceMotion ? 'auto' : 'smooth' })
+      })
+    })
+  }
+
+  const changeCategory = (categoryId) => {
+    if (categoryId === activeCategory) return
+    setActiveCategory(categoryId)
+    scrollToResults()
+  }
+
+  const toggleFavoritesView = () => {
+    setShowFavorites((value) => !value)
+    scrollToResults()
+  }
+
+  const openApiSettings = () => {
+    setSettingsDraft({ ...apiConfigStore, profiles: apiConfigStore.profiles.map((profile) => ({ ...profile })) })
+  }
+
+  const updateDraftApiProfile = (patch) => {
+    setSettingsDraft((current) => current ? ({
+      ...current,
+      profiles: current.profiles.map((profile) => profile.id === current.activeId ? { ...profile, ...patch } : profile),
+    }) : current)
+  }
+
+  const selectApiProfile = (id, persist = false) => {
+    if (!apiConfigStore.profiles.some((profile) => profile.id === id)) return
+    const next = { ...apiConfigStore, activeId: id }
+    setApiConfigStore(next)
+    if (persist) localStorage.setItem(IMAGE_API_CONFIG_KEY, JSON.stringify(next))
+  }
+
+  const selectDraftApiProfile = (id) => {
+    setSettingsDraft((current) => current?.profiles.some((profile) => profile.id === id) ? { ...current, activeId: id } : current)
+  }
+
+  const addDraftApiProfile = (name) => {
+    setSettingsDraft((current) => {
+      if (!current) return current
+      const profile = createApiProfile(current.profiles.length, { name })
+      return { ...current, activeId: profile.id, profiles: [...current.profiles, profile] }
+    })
+  }
+
+  const removeActiveDraftApiProfile = () => {
+    setSettingsDraft((current) => {
+      if (!current || current.profiles.length === 1) return current
+      const activeIndex = current.profiles.findIndex((profile) => profile.id === current.activeId)
+      const profiles = current.profiles.filter((profile) => profile.id !== current.activeId)
+      const nextActive = profiles[Math.min(activeIndex, profiles.length - 1)] || profiles[0]
+      return { ...current, activeId: nextActive.id, profiles }
+    })
+  }
+
   const saveApiConfig = () => {
-    localStorage.setItem(IMAGE_API_CONFIG_KEY, JSON.stringify(apiConfig))
-    setSettingsOpen(false)
+    if (!settingsDraft) return
+    const next = normalizeApiConfigStore(settingsDraft) || createApiConfigStore()
+    localStorage.setItem(IMAGE_API_CONFIG_KEY, JSON.stringify(next))
+    setApiConfigStore(next)
+    setSettingsDraft(null)
     showToast(t('toast.settingsSaved'))
   }
 
-  const clearApiConfig = () => {
-    localStorage.removeItem(IMAGE_API_CONFIG_KEY)
-    setApiConfig(DEFAULT_API_CONFIG)
+  const resetApiConfigDraft = () => {
+    setSettingsDraft(createApiConfigStore())
   }
 
   const saveGeneration = async (record) => {
@@ -1590,16 +1810,18 @@ function AppContent() {
         setSearch={setSearch}
         favoriteCount={favorites.size}
         showFavorites={showFavorites}
-        setShowFavorites={setShowFavorites}
+        onToggleFavorites={toggleFavoritesView}
         historyCount={generationHistory.length}
+        onCreate={() => setCustomOpen(true)}
         onHistory={() => setHistoryOpen(true)}
-        onSettings={() => setSettingsOpen(true)}
+        onSettings={openApiSettings}
       />
       <main>
         <Intro count={catalogLoading ? null : promptCatalog.length} />
+        <div id="results-start" className="results-anchor" aria-hidden="true" />
         <FilterBar
           activeCategory={activeCategory}
-          setActiveCategory={setActiveCategory}
+          setActiveCategory={changeCategory}
           resultCount={filteredPrompts.length}
           loading={catalogLoading}
           searchActive={Boolean(deferredSearch)}
@@ -1628,7 +1850,23 @@ function AppContent() {
         <p>{t('footer')}</p>
       </footer>
 
-      {selected ? (
+      {customOpen ? (
+        <DetailView
+          item={customItem}
+          favorite={false}
+          onFavorite={() => {}}
+          onClose={() => setCustomOpen(false)}
+          onPrev={() => {}}
+          onNext={() => {}}
+          onCopy={copyPrompt}
+          onCopyLink={() => {}}
+          config={apiConfig}
+          profiles={apiConfigStore.profiles}
+          onSelectConfig={(id) => selectApiProfile(id, true)}
+          onOpenSettings={openApiSettings}
+          onGenerationComplete={saveGeneration}
+        />
+      ) : selected ? (
         <DetailView
           item={selected}
           favorite={!selectedHistory && favorites.has(selected.id)}
@@ -1639,13 +1877,15 @@ function AppContent() {
           onCopy={copyPrompt}
           onCopyLink={copyPromptLink}
           config={apiConfig}
-          onOpenSettings={() => setSettingsOpen(true)}
+          profiles={apiConfigStore.profiles}
+          onSelectConfig={(id) => selectApiProfile(id, true)}
+          onOpenSettings={openApiSettings}
           onGenerationComplete={saveGeneration}
         />
       ) : null}
 
       {historyOpen ? <HistoryPanel records={generationHistory} loading={historyLoading} onOpen={openHistoryRecord} onDelete={removeGenerationHistory} onClear={clearGenerationHistory} onClose={() => setHistoryOpen(false)} /> : null}
-      {settingsOpen ? <SettingsPanel config={apiConfig} onChange={(patch) => setApiConfig((current) => ({ ...current, ...patch }))} onSave={saveApiConfig} onClear={clearApiConfig} onClose={() => setSettingsOpen(false)} /> : null}
+      {settingsDraft && settingsConfig ? <SettingsPanel config={settingsConfig} profiles={settingsDraft.profiles} activeId={settingsDraft.activeId} onChange={updateDraftApiProfile} onSelect={selectDraftApiProfile} onAdd={addDraftApiProfile} onRemove={removeActiveDraftApiProfile} onSave={saveApiConfig} onClear={resetApiConfigDraft} onClose={() => setSettingsDraft(null)} /> : null}
 
       <div className={`toast ${toast ? 'is-visible' : ''}`} role="status">
         <Check size={17} /> {toast}

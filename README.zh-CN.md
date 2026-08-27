@@ -56,8 +56,8 @@ npm run check
 | `API URL` | 完整生成地址或 GenerateContent API 基础地址 | `https://gateway.example/v1/images/generations` |
 | `API KEY` | 服务商签发的 Bearer Token | `sk-...` |
 | `MODEL` | 接口接受的精确模型名 | `gpt-image-2` |
-| `SIZE` | 输出尺寸，默认 `auto` | `auto` |
-| `QUALITY` | 输出质量，默认 `auto` | `auto` |
+| `SIZE` | 输出尺寸，默认 `auto (1024x1024)`，支持 `1:1`、`3:2`、`2:3`、`16:9`、`9:16` | `1024x1024` |
+| `QUALITY` | 输出质量，默认 `auto`，支持 `standard` / `hd` | `auto` |
 
 ### 代理和兼容要求
 

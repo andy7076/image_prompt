@@ -56,8 +56,8 @@ Open **Image model settings** in the top-right corner. The form is intentionally
 | `API URL` | Complete endpoint or GenerateContent API base URL | `https://gateway.example/v1/images/generations` |
 | `API KEY` | The bearer token issued by your service | `sk-...` |
 | `MODEL` | The exact model name accepted by the endpoint | `gpt-image-2` |
-| `SIZE` | Output size; `auto` is the default | `auto` |
-| `QUALITY` | Output quality; `auto` is the default | `auto` |
+| `SIZE` | Output size (`auto (1024x1024)`, `1:1`, `3:2`, `2:3`, `16:9`, `9:16`) | `1024x1024` |
+| `QUALITY` | Output quality (`auto`, `standard`, `hd`) | `auto` |
 
 ### Gateway and proxy rules
 

@@ -522,12 +522,45 @@ function normalizePrompt(rawPrompt) {
   return { text: text || raw, status }
 }
 
+const LOCAL_IMAGE_DIMENSIONS = {
+  '/images/anime-rainy-bus-stop-mirror.png': { width: 1024, height: 1536 },
+  '/images/aurora-oolong-poster.png': { width: 1024, height: 1536 },
+  '/images/case1.jpg': { width: 941, height: 1672 },
+  '/images/case17.jpg': { width: 800, height: 1200 },
+  '/images/case310.jpg': { width: 1080, height: 1080 },
+  '/images/case331.png': { width: 1536, height: 1024 },
+  '/images/case339.jpg': { width: 1280, height: 5676 },
+  '/images/case527.jpg': { width: 1122, height: 1402 },
+  '/images/case6.jpg': { width: 1080, height: 1920 },
+  '/images/chess-midgame.png': { width: 1536, height: 1024 },
+  '/images/coffee-infographic.png': { width: 1024, height: 1536 },
+  '/images/cyberpunk-mecha.png': { width: 1536, height: 1024 },
+  '/images/food-salad-explosion.png': { width: 1024, height: 1536 },
+  '/images/geological-strata-cross-section.png': { width: 2048, height: 1152 },
+  '/images/handwritten-notebook.png': { width: 1536, height: 1024 },
+  '/images/holographic-sticker-badge.png': { width: 1024, height: 1024 },
+  '/images/isometric-cafe.png': { width: 1024, height: 1024 },
+  '/images/mechanical-keyboard-exploded-assembly.png': { width: 2048, height: 1152 },
+  '/images/mechanical-watch-exploded-view.png': { width: 1024, height: 1024 },
+  '/images/panorama-jungle.png': { width: 2048, height: 1152 },
+  '/images/photoreal-subway.png': { width: 1536, height: 1024 },
+  '/images/product-chocolate-wafer.png': { width: 1024, height: 1536 },
+  '/images/prompt-signal-home.jpg': { width: 1912, height: 925 },
+  '/images/risograph-urban-landscape.png': { width: 1024, height: 1536 },
+  '/images/synth-moon-crew-grid.png': { width: 1024, height: 1024 },
+}
+
 function preparePrompts(items) {
   return items.map((item, index) => {
     const rawPrompt = item.prompt ?? ''
     const normalized = normalizePrompt(rawPrompt)
+    const localDim = LOCAL_IMAGE_DIMENSIONS[item.image]
+    const width = item.width || localDim?.width
+    const height = item.height || localDim?.height
     return {
       ...item,
+      width,
+      height,
       prompt: normalized.text,
       rawPrompt,
       promptVariables: extractPromptVariables(normalized.text, rawPrompt),

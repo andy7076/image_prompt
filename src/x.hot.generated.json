@@ -18,7 +18,9 @@
     "likes": 628,
     "retweets": 94,
     "views": 37942,
-    "featured": false
+    "featured": false,
+    "width": 960,
+    "height": 1200
   },
   {
     "id": "x-hot-bubblebrain-tang",
@@ -39,7 +41,9 @@
     "likes": 368,
     "retweets": 23,
     "views": 28166,
-    "featured": false
+    "featured": false,
+    "width": 1024,
+    "height": 1536
   },
   {
     "id": "x-hot-goodman-stamp-sheet",
@@ -60,7 +64,9 @@
     "likes": 219,
     "retweets": 25,
     "views": 9565,
-    "featured": false
+    "featured": false,
+    "width": 1024,
+    "height": 1536
   },
   {
     "id": "x-hot-ciri-stamp-macro",
@@ -81,7 +87,9 @@
     "likes": 170,
     "retweets": 18,
     "views": 8270,
-    "featured": false
+    "featured": false,
+    "width": 1744,
+    "height": 2336
   },
   {
     "id": "x-hot-hajra-stickers",
@@ -102,7 +110,9 @@
     "likes": 122,
     "retweets": 16,
     "views": 4936,
-    "featured": false
+    "featured": false,
+    "width": 1254,
+    "height": 1254
   },
   {
     "id": "x-hot-chatgptpaglu-japan",
@@ -123,7 +133,9 @@
     "likes": 113,
     "retweets": 13,
     "views": 3629,
-    "featured": false
+    "featured": false,
+    "width": 1152,
+    "height": 2048
   },
   {
     "id": "x-hot-harboriis-subway",
@@ -144,7 +156,9 @@
     "likes": 108,
     "retweets": 10,
     "views": 4529,
-    "featured": false
+    "featured": false,
+    "width": 1254,
+    "height": 1254
   },
   {
     "id": "x-hot-johnmy-anime",
@@ -165,6 +179,170 @@
     "likes": 98,
     "retweets": 4,
     "views": 5034,
-    "featured": false
+    "featured": false,
+    "width": 1536,
+    "height": 1024
+  },
+  {
+    "id": "x-hot-aiwithkhan-ceramic-bust",
+    "title": "电影影棚肖像 / 陶瓷分身",
+    "category": "photography",
+    "image": "https://raw.githubusercontent.com/songguoxs/gpt4o-image-prompts/master/images/1141.jpeg",
+    "ratio": "square",
+    "author": "@AIwithkhan",
+    "sourceLabel": "X / GitHub",
+    "source": "https://x.com/AIwithkhan/status/2009140907929649639",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/AIwithkhan/status/2009140907929649639"
+      },
+      {
+        "label": "GitHub",
+        "url": "https://github.com/songguoxs/gpt4o-image-prompts/blob/master/README.md#prompt-1141"
+      }
+    ],
+    "prompt": "Cinematic studio portrait of a woman seated at a dark stone table wearing a mocha satin shirt. In front of her is a ceramic bust sculpture of her own face, smooth matte finish. Soft cafe-inspired lighting, intimate and artistic mood, shallow depth of field, editorial realism, cozy cinematic tones, 1:1 aspect ratio.",
+    "likes": 101,
+    "retweets": 17,
+    "views": 3869,
+    "featured": false,
+    "width": 1200,
+    "height": 1200
+  },
+  {
+    "id": "x-hot-songguo-mu-guiying-figurine",
+    "title": "穆桂英挂帅 / 国粹戏曲手办",
+    "category": "product",
+    "image": "https://raw.githubusercontent.com/songguoxs/gpt4o-image-prompts/master/images/1144.jpeg",
+    "ratio": "landscape",
+    "author": "@songguoxiansen",
+    "sourceLabel": "X / GitHub",
+    "source": "https://x.com/songguoxiansen/status/2009075082996641935",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/songguoxiansen/status/2009075082996641935"
+      },
+      {
+        "label": "GitHub",
+        "url": "https://github.com/songguoxs/gpt4o-image-prompts/blob/master/README.md#prompt-1144"
+      }
+    ],
+    "prompt": "根据参考图人物特征，设计\"京剧花旦·穆桂英\"国粹戏曲系列定制手办。将人物Q版化保留其英气，穿着京剧花旦的戏服，头戴华丽的点翠凤冠，凤冠上插满各色翎子和珠花，脸上画着精致的京剧花旦妆容（柳叶眉、桃花腮红、点绛唇）。身穿改良的铠甲戏服，绣有龙凤图案，手持花枪，摆出经典的京剧亮相姿势。底座设计成戏台造型，台面有传统戏台的地毯纹样，侧面刻有\"梨园雅韵\"和\"穆桂英挂帅\"字样。配色采用京剧服饰的华丽色调：大红、明黄、翠绿、金线、宝石蓝。手办高度15cm，背景是虚化的古戏台和红色幕布，配有戏曲主题包装盒，盒面印有京剧脸谱纹样和\"国粹传承\"烫金字，产品摄影，戏曲韵味浓厚。",
+    "likes": 114,
+    "retweets": 24,
+    "views": 19000,
+    "featured": false,
+    "width": 1200,
+    "height": 670
+  },
+  {
+    "id": "x-hot-oggii-minimal-skincare",
+    "title": "极简护肤品 / 粉色泡沫广告",
+    "category": "product",
+    "image": "https://raw.githubusercontent.com/songguoxs/gpt4o-image-prompts/master/images/1142.jpeg",
+    "ratio": "square",
+    "author": "@oggii_0",
+    "sourceLabel": "X / GitHub",
+    "source": "https://x.com/oggii_0/status/2009163133810823368",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/oggii_0/status/2009163133810823368"
+      },
+      {
+        "label": "GitHub",
+        "url": "https://github.com/songguoxs/gpt4o-image-prompts/blob/master/README.md#prompt-1142"
+      }
+    ],
+    "prompt": "Premium minimalist skincare product photography. A translucent pink liquid cleanser bottle with a white pump dispenser placed vertically at the center of the frame. The bottle rests inside an organic pool of soft pink foamy bubbles, with airy soap lather spreading outward in smooth, rounded shapes. Small transparent bubbles float around the foam surface. Clean matte pastel pink background with subtle gradient. Soft diffused top lighting with gentle rim light creates a luminous glow through the liquid, highlighting the pump tube inside the bottle. Sharp focus, high clarity, realistic liquid refraction, smooth plastic and glass textures, luxury beauty advertising style, modern cosmetic branding, ultra-realistic, 8K detail, high dynamic range.\n\nNegative Prompt:\n\nhands, people, faces, clutter, harsh reflections, label distortion, unreadable text, warped pump, hard shadows, grain, noise, low resolution, CGI look, cartoon style, messy foam, uneven lighting, watermark",
+    "likes": 440,
+    "retweets": 53,
+    "views": 23000,
+    "featured": false,
+    "width": 680,
+    "height": 680
+  },
+  {
+    "id": "x-hot-kerroud-editorial-product",
+    "title": "高端产品模板 / 俯拍自然光",
+    "category": "product",
+    "image": "https://raw.githubusercontent.com/songguoxs/gpt4o-image-prompts/master/images/1137.jpeg",
+    "ratio": "square",
+    "author": "@Kerroudjm",
+    "sourceLabel": "X / GitHub",
+    "source": "https://x.com/Kerroudjm/status/2008559850968473671",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/Kerroudjm/status/2008559850968473671"
+      },
+      {
+        "label": "GitHub",
+        "url": "https://github.com/songguoxs/gpt4o-image-prompts/blob/master/README.md#prompt-1137"
+      }
+    ],
+    "prompt": "A high-end editorial photo of a [PRODUCT] placed flat on a [TEXTURED SURFACE], captured from a direct top-down view. The surface is gently disturbed to suggest recent motion or interaction. The front of the product is fully visible and properly oriented upright. The area around the product is intentionally left open to optionally place [COMPLEMENTARY OBJECTS] that visually enhance the scene. Natural sunlight from the upper left casts warm, realistic shadows. 3D realism, luxury product photography, shallow depth of field, 1:1 format.",
+    "likes": 952,
+    "retweets": 91,
+    "views": 67000,
+    "featured": false,
+    "width": 680,
+    "height": 680
+  },
+  {
+    "id": "x-hot-charaspower-cinematic-action",
+    "title": "电影动作模板 / 废墟战斗海报",
+    "category": "poster",
+    "image": "https://raw.githubusercontent.com/songguoxs/gpt4o-image-prompts/master/images/1135.jpeg",
+    "ratio": "landscape",
+    "author": "@CharaspowerAI",
+    "sourceLabel": "X / GitHub",
+    "source": "https://x.com/CharaspowerAI/status/2008954339461652743",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/CharaspowerAI/status/2008954339461652743"
+      },
+      {
+        "label": "GitHub",
+        "url": "https://github.com/songguoxs/gpt4o-image-prompts/blob/master/README.md#prompt-1135"
+      }
+    ],
+    "prompt": "full-body shot of a [detailed character description], wearing [clothing or armor description], holding [one or more iconic weapons or objects] with [hand position or action], ready to [action or combat intent], in the streets of [destroyed dystopian city environment description].\n[primary visual effects such as sparks, energy, smoke, reflections, debris] create a cinematic, action movie poster-style scene with motion blur, high-resolution photography, hyper-detailed textures, dynamic pose, dramatic perspective, and hyper-realistic details.",
+    "likes": 146,
+    "retweets": 20,
+    "views": 8516,
+    "featured": false,
+    "width": 680,
+    "height": 377
+  },
+  {
+    "id": "x-hot-taaruk-miniature-self",
+    "title": "写实与动画分身 / 指尖微缩角色",
+    "category": "characters",
+    "image": "https://raw.githubusercontent.com/songguoxs/gpt4o-image-prompts/master/images/1131.jpeg",
+    "ratio": "portrait",
+    "author": "@Taaruk_",
+    "sourceLabel": "X / GitHub",
+    "source": "https://x.com/Taaruk_/status/2008818683234361811",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/Taaruk_/status/2008818683234361811"
+      },
+      {
+        "label": "GitHub",
+        "url": "https://github.com/songguoxs/gpt4o-image-prompts/blob/master/README.md#prompt-1131"
+      }
+    ],
+    "prompt": "{\n  \"Objective\": \"Create a hyper-realistic studio portrait blending photorealism with a whimsical 3D cartoon miniature character\",\n  \"PersonaDetails\": {\n    \"PrimarySubject\": {\n      \"Type\": \"Young man\",\n      \"Appearance\": {\n        \"Hair\": \"Light brown hair, neatly styled\",\n        \"FacialHair\": \"Neatly trimmed beard\",\n        \"Skin\": \"Photorealistic, natural texture\"\n      },\n      \"Expression\": \"Soft, warm smile\",\n      \"Gaze\": \"Looking at the miniature character on his fingertips\",\n      \"Wardrobe\": \"Blue t-shirt\"\n    },\n    \"SecondarySubject\": {\n      \"Type\": \"Tiny 3D cartoon version of the man\",\n      \"Scale\": \"Miniature, resting on fingertips\",\n      \"Style\": \"Pixar-style 3D character design\",\n      \"Proportions\": \"Exaggerated cute proportions\",\n      \"Features\": {\n        \"Eyes\": \"Large, expressive\",\n        \"Expression\": \"Friendly, playful pose\"\n      },\n      \"Consistency\": \"Matching hairstyle and outfit of the main subject\"\n    }\n  },\n  \"Composition\": {\n    \"Framing\": \"Close-up studio portrait\",\n    \"Focus\": \"Ultra-sharp focus on both faces\",\n    \"DepthOfField\": \"Shallow depth of field with soft background blur\",\n    \"Balance\": \"Clean, centered composition emphasizing interaction\"\n  },\n  \"LightingAndMood\": {\n    \"LightingStyle\": \"Cinematic soft studio lighting\",\n    \"Highlights\": \"Gentle highlights on skin and miniature character\",\n    \"Background\": \"Dark neutral backdrop\",\n    \"Mood\": \"Modern, whimsical, warm\"\n  },\n  \"ArtDirection\": {\n    \"StyleFusion\": [\"Photorealistic human portrait\", \"Pixar-style 3D character rendering\"],\n    \"DetailLevel\": \"High detail with clean textures\",\n    \"RealismBalance\": \"Realistic human combined with stylized miniature\"\n  },\n  \"PhotographyStyle\": {\n    \"Genre\": \"Professional studio portrait photography\",\n    \"LensLook\": \"85mm lens perspective\",\n    \"ImageQuality\": \"High resolution, ultra-sharp clarity\"\n  },\n  \"ColorAndTone\": {\n    \"ColorPalette\": \"Natural skin tones with soft, modern colors\",\n    \"Contrast\": \"Balanced contrast, smooth tonal transitions\"\n  },\n  \"NegativePrompt\": [\"cartoon human\", \"uncanny valley\", \"harsh lighting\", \"oversaturated colors\", \"blurry faces\", \"low detail\", \"messy composition\"],\n  \"ResponseFormat\": {\n    \"Type\": \"Single image\",\n    \"Orientation\": \"Portrait\",\n    \"AspectRatio\": \"2:3\"\n  }\n}",
+    "likes": 450,
+    "retweets": 75,
+    "views": 26000,
+    "featured": false,
+    "width": 896,
+    "height": 1200
   }
 ]
