@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://andy7076.github.io/image_prompt/">Live demo</a>
   ·
-  <a href="https://github.com/andy7076/image_prompt">Repository</a>
+  <a href="https://linux.do">LINUX DO community</a>
   ·
   <a href="https://github.com/andy7076/image_prompt/blob/main/README.zh-CN.md">简体中文</a>
   ·
