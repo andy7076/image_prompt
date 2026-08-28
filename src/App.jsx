@@ -44,6 +44,7 @@ const LANGUAGE_KEY = 'prompt-signal:language:v1'
 const THEME_KEY = 'prompt-signal:theme:v1'
 const FAVORITES_KEY = 'prompt-signal:favorites:v1'
 const IMAGE_API_CONFIG_KEY = 'prompt-signal:image-api:v1'
+const IMAGE_API_KEY_SESSION_KEY = 'prompt-signal:image-api-key:v1'
 const IMAGE_API_CONFIG_VERSION = 2
 const GENERATION_HISTORY_KEY = 'prompt-signal:generation-history:v1'
 const MAX_GENERATION_HISTORY = 30
@@ -842,6 +843,7 @@ function normalizeApiConfigStore(stored) {
 function readApiConfigStore() {
   try {
     const stored = JSON.parse(localStorage.getItem(IMAGE_API_CONFIG_KEY) || '{}')
+    stored.apiKey = sessionStorage.getItem(IMAGE_API_KEY_SESSION_KEY) || ''
     const normalizedStore = normalizeApiConfigStore(stored)
     if (normalizedStore) return normalizedStore
     // Clear the old built-in OpenAI defaults so a first-time setup starts blank.
@@ -1882,7 +1884,11 @@ function AppContent() {
     if (!apiConfigStore.profiles.some((profile) => profile.id === id)) return
     const next = { ...apiConfigStore, activeId: id }
     setApiConfigStore(next)
-    if (persist) localStorage.setItem(IMAGE_API_CONFIG_KEY, JSON.stringify(next))
+    if (persist) {
+      const { apiKey, ...rest } = next
+      sessionStorage.setItem(IMAGE_API_KEY_SESSION_KEY, apiKey || '')
+      localStorage.setItem(IMAGE_API_CONFIG_KEY, JSON.stringify(rest))
+    }
   }
 
   const selectDraftApiProfile = (id) => {
@@ -1910,7 +1916,9 @@ function AppContent() {
   const saveApiConfig = () => {
     if (!settingsDraft) return
     const next = normalizeApiConfigStore(settingsDraft) || createApiConfigStore()
-    localStorage.setItem(IMAGE_API_CONFIG_KEY, JSON.stringify(next))
+    const { apiKey, ...rest } = next
+    sessionStorage.setItem(IMAGE_API_KEY_SESSION_KEY, apiKey || '')
+    localStorage.setItem(IMAGE_API_CONFIG_KEY, JSON.stringify(rest))
     setApiConfigStore(next)
     setSettingsDraft(null)
     showToast(t('toast.settingsSaved'))
