@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   Check,
   ChevronDown,
+  CircleAlert,
   Clock3,
   Copy,
   Download,
@@ -17,11 +18,14 @@ import {
   Languages,
   LoaderCircle,
   Plus,
+  RotateCcw,
   Upload,
   Search,
   Settings2,
   Share2,
   Sparkles,
+  Sun,
+  Moon,
   Trash2,
   X,
 } from 'lucide-react'
@@ -37,6 +41,7 @@ import {
 
 const CATEGORY_LABELS = new Map(categories.map((item) => [item.id, item.label]))
 const LANGUAGE_KEY = 'prompt-signal:language:v1'
+const THEME_KEY = 'prompt-signal:theme:v1'
 const FAVORITES_KEY = 'prompt-signal:favorites:v1'
 const IMAGE_API_CONFIG_KEY = 'prompt-signal:image-api:v1'
 const IMAGE_API_CONFIG_VERSION = 2
@@ -103,7 +108,10 @@ const TRANSLATIONS = {
     'actions.history': 'Generation history',
     'actions.create': 'Create image',
     'actions.settings': 'Image model settings',
+    'actions.settingsShort': 'Models',
     'actions.language': 'Switch to Chinese',
+    'actions.themeToLight': 'Switch to light mode',
+    'actions.themeToDark': 'Switch to dark mode',
     'actions.closeSettings': 'Close settings',
     'actions.closeHistory': 'Close generation history',
     'actions.showKey': 'Show API key',
@@ -114,7 +122,7 @@ const TRANSLATIONS = {
     'actions.unfavorite': 'Remove from favorites',
     'settings.eyebrow': 'IMAGE ENGINE',
     'settings.title': 'Image model settings',
-    'settings.note': 'Save multiple image model connections in this browser, then switch the active one whenever you generate. Changes apply only after saving.',
+    'settings.note': 'Save multiple image model connections in this browser, then switch the active one whenever you generate. Changes apply only after saving. Test connection only sends a validation request; it never generates an image.',
     'settings.profile': 'ACTIVE CONFIGURATION',
     'settings.profileName': 'CONFIGURATION NAME',
     'settings.defaultProfileName': 'Model {{index}}',
@@ -133,8 +141,22 @@ const TRANSLATIONS = {
     'settings.endpointPlaceholder': 'https://your-endpoint.example/v1/images/generations',
     'settings.generateContentPlaceholder': 'https://your-endpoint.example/v1beta',
     'settings.save': 'Save settings',
-    'settings.clear': 'Reset configurations',
     'settings.security': 'Stored locally in this browser · never uploaded to Prompt Signal',
+    'settings.testConnection': 'Test connection',
+    'settings.testingConnection': 'Testing connection…',
+    'settings.connectionReady': 'Endpoint responded · configuration looks reachable',
+    'settings.connectionReachable': 'Endpoint responded · verify the model before generating',
+    'settings.connectionRateLimited': 'Endpoint and credentials responded · request rate limited',
+    'settings.connectionUnverified': 'The endpoint could not complete a non-generating check · this does not mean the configuration is invalid',
+    'settings.connectionServerUnverified': 'The endpoint responded, but rejected the validation payload · try a real generation to confirm the model',
+    'settings.connectionUnauthorized': 'Authentication failed · check the API key',
+    'settings.connectionNotFound': 'Endpoint or model not found · check the URL',
+    'settings.connectionServer': 'The endpoint returned a server error',
+    'settings.connectionRejected': 'Request rejected (HTTP {{status}})',
+    'settings.connectionFailed': 'Could not reach the endpoint · check URL and CORS',
+    'settings.connectionMissing': 'Enter an API URL, API key, and model first',
+    'settings.connectionTimeout': 'Connection timed out · check the endpoint',
+    'settings.connectionInvalidUrl': 'Enter a valid absolute API URL',
     'history.eyebrow': 'LOCAL ARCHIVE',
     'history.title': 'Generation history',
     'history.records': '{{count}} / {{max}} RECORDS',
@@ -170,6 +192,7 @@ const TRANSLATIONS = {
     'detail.generated': 'GENERATED',
     'detail.curatedBy': 'CURATED BY {{author}}',
     'detail.prompt': 'PROMPT',
+    'detail.restoreOriginal': 'Restore original prompt',
     'detail.templateVariables': 'TEMPLATE VARIABLES',
     'detail.templateHint': 'Fill reusable placeholders, then apply them to the editable prompt.',
     'detail.applyVariables': 'Apply variables',
@@ -196,7 +219,7 @@ const TRANSLATIONS = {
     'detail.loading': 'Rendering image…',
     'detail.confirmEyebrow': 'READY TO RENDER',
     'detail.confirmTitle': 'Generate this image?',
-    'detail.confirmCopy': 'Your edited prompt will be sent to the configured image model. The request starts only after confirmation.',
+    'detail.confirmCopy': 'After confirmation, this edited prompt will be sent with the selected model and reference images.',
     'detail.confirmPrompt': 'PROMPT · EDIT AGAIN BEFORE GENERATING',
     'detail.confirmPreview': 'Click thumbnail to enlarge',
     'detail.confirmAttached': 'ATTACHED',
@@ -233,7 +256,10 @@ const TRANSLATIONS = {
     'actions.history': '生成记录',
     'actions.create': '自由创作',
     'actions.settings': '图片模型配置',
+    'actions.settingsShort': '模型',
     'actions.language': '切换为英文',
+    'actions.themeToLight': '切换到日间模式',
+    'actions.themeToDark': '切换到夜间模式',
     'actions.closeSettings': '关闭配置',
     'actions.closeHistory': '关闭生成记录',
     'actions.showKey': '显示 API Key',
@@ -244,7 +270,7 @@ const TRANSLATIONS = {
     'actions.unfavorite': '取消收藏',
     'settings.eyebrow': 'IMAGE ENGINE',
     'settings.title': '图片模型配置',
-    'settings.note': '可以在当前浏览器保存多个图片模型配置，并在每次生成前随时切换当前使用的配置。所有修改仅在保存后生效。',
+    'settings.note': '可以在当前浏览器保存多个图片模型配置，并在每次生成前随时切换当前使用的配置。所有修改仅在保存后生效。测试连接只发送参数校验请求，不会生成图片。',
     'settings.profile': '当前配置',
     'settings.profileName': '配置名称',
     'settings.defaultProfileName': '模型 {{index}}',
@@ -263,8 +289,22 @@ const TRANSLATIONS = {
     'settings.endpointPlaceholder': 'https://your-endpoint.example/v1/images/generations',
     'settings.generateContentPlaceholder': 'https://your-endpoint.example/v1beta',
     'settings.save': '保存配置',
-    'settings.clear': '重置配置',
     'settings.security': '浏览器本地保存 · 不会上传到 Prompt Signal',
+    'settings.testConnection': '测试连接',
+    'settings.testingConnection': '正在测试连接…',
+    'settings.connectionReady': '接口已响应 · 配置看起来可以访问',
+    'settings.connectionReachable': '接口已响应 · 生成前请确认模型名称',
+    'settings.connectionRateLimited': '接口和鉴权已响应 · 当前请求受到限流',
+    'settings.connectionUnverified': '无法完成无副作用的校验 · 这不代表配置不可用',
+    'settings.connectionServerUnverified': '接口已响应，但拒绝了校验参数 · 请通过一次实际生成确认模型',
+    'settings.connectionUnauthorized': '鉴权失败 · 请检查 API Key',
+    'settings.connectionNotFound': '接口或模型不存在 · 请检查 URL',
+    'settings.connectionServer': '接口返回了服务器错误',
+    'settings.connectionRejected': '请求被接口拒绝（HTTP {{status}}）',
+    'settings.connectionFailed': '无法连接接口 · 请检查 URL 和 CORS',
+    'settings.connectionMissing': '请先填写 API URL、API Key 和模型名',
+    'settings.connectionTimeout': '连接超时 · 请检查接口地址',
+    'settings.connectionInvalidUrl': '请输入有效的完整 API URL',
     'history.eyebrow': 'LOCAL ARCHIVE',
     'history.title': '生成记录',
     'history.records': '{{count}} / {{max}} RECORDS',
@@ -300,6 +340,7 @@ const TRANSLATIONS = {
     'detail.generated': '生成图',
     'detail.curatedBy': 'CURATED BY {{author}}',
     'detail.prompt': 'PROMPT',
+    'detail.restoreOriginal': '恢复原始 Prompt',
     'detail.templateVariables': '模板变量',
     'detail.templateHint': '填写可复用占位符，然后应用到下方可编辑 Prompt。',
     'detail.applyVariables': '应用变量',
@@ -326,7 +367,7 @@ const TRANSLATIONS = {
     'detail.loading': '正在生成图像…',
     'detail.confirmEyebrow': 'READY TO RENDER',
     'detail.confirmTitle': '确认生成这张图片？',
-    'detail.confirmCopy': '将使用当前编辑后的 Prompt 调用已配置的图片模型。确认后才会发起请求。',
+    'detail.confirmCopy': '确认后将使用所选模型和参考图发送当前编辑后的 Prompt。',
     'detail.confirmPrompt': 'PROMPT · 可在这里二次编辑',
     'detail.confirmPreview': '点击缩略图放大预览',
     'detail.confirmAttached': '已附加',
@@ -480,6 +521,35 @@ function LanguageProvider({ children }) {
 
 function useLanguage() {
   return useContext(LanguageContext)
+}
+
+const ThemeContext = createContext(null)
+
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'
+    } catch {
+      return 'light'
+    }
+  })
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    document.documentElement.style.colorScheme = theme
+    try {
+      localStorage.setItem(THEME_KEY, theme)
+    } catch {
+      // Private browsing may disable localStorage; the theme still works for this session.
+    }
+  }, [theme])
+
+  const toggleTheme = () => setTheme((value) => value === 'dark' ? 'light' : 'dark')
+  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
+}
+
+function useTheme() {
+  return useContext(ThemeContext)
 }
 
 function categoryLabel(id, language) {
@@ -655,6 +725,65 @@ async function generateImageRequest({ config, prompt, referenceFiles, t, languag
   return generatedImage
 }
 
+async function testImageModelConnection({ config, t }) {
+  const endpointValue = config.endpoint.trim()
+  const apiKey = config.apiKey.trim()
+  const model = config.model.trim()
+  if (!endpointValue || !apiKey || !model) throw new Error(t('settings.connectionMissing'))
+
+  const isGenerateContent = config.protocol === 'generate-content'
+  const endpoint = isGenerateContent ? resolveGenerateContentEndpoint(endpointValue, model) : endpointValue
+  try {
+    new URL(endpoint)
+  } catch {
+    throw new Error(t('settings.connectionInvalidUrl'))
+  }
+  const headers = isGenerateContent
+    ? { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey }
+    : { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' }
+  // Deliberately send an invalid, non-generating payload. A 4xx validation response
+  // proves that the route and credentials are reachable without spending a generation.
+  const body = isGenerateContent
+    ? JSON.stringify({ contents: [] })
+    : JSON.stringify({ model, prompt: null })
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), 10000)
+  const fail = (message) => {
+    const error = new Error(message)
+    error.connectionTest = true
+    throw error
+  }
+
+  try {
+    const response = await fetch(endpoint, { method: 'POST', headers, body, cache: 'no-store', signal: controller.signal })
+    if (response.status === 401 || response.status === 403) fail(t('settings.connectionUnauthorized'))
+    if (response.status === 404) fail(t('settings.connectionNotFound'))
+    if (response.status >= 500) return { state: 'warning', message: t('settings.connectionServerUnverified') }
+    if (response.status === 429) return { state: 'success', message: t('settings.connectionRateLimited') }
+    if (response.status === 405) return { state: 'warning', message: t('settings.connectionUnverified') }
+    if (response.status === 400 || response.status === 415 || response.status === 422) return { state: 'success', message: t('settings.connectionReachable') }
+    if (!response.ok) {
+      const raw = await response.text().catch(() => '')
+      let detail = ''
+      try {
+        const payload = raw ? JSON.parse(raw) : null
+        detail = payload?.error?.message || payload?.message || ''
+      } catch {
+        detail = raw.trim()
+      }
+      const suffix = typeof detail === 'string' && detail ? ` · ${detail}` : ''
+      fail(`${t('settings.connectionRejected', { status: response.status })}${suffix}`)
+    }
+    return { state: 'success', message: t('settings.connectionReady') }
+  } catch (error) {
+    if (error?.name === 'AbortError') throw new Error(t('settings.connectionTimeout'))
+    if (error?.connectionTest) throw error
+    return { state: 'warning', message: t('settings.connectionUnverified') }
+  } finally {
+    window.clearTimeout(timeout)
+  }
+}
+
 function GithubMark({ size = 18 }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.25c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.74.08-.74 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.48.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.38 1.23-3.22-.12-.3-.53-1.52.12-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.29-1.23 3.29-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.57A12 12 0 0 0 12 .5Z" /></svg>
 }
@@ -777,6 +906,7 @@ function IconButton({ label, children, className = '', ...props }) {
 function Header({ search, setSearch, favoriteCount, showFavorites, onToggleFavorites, historyCount, onCreate, onHistory, onSettings }) {
   const [mobileSearch, setMobileSearch] = useState(false)
   const { language, t, toggleLanguage } = useLanguage()
+  const { theme, toggleTheme } = useTheme()
 
   return (
     <header className="site-header">
@@ -808,23 +938,30 @@ function Header({ search, setSearch, favoriteCount, showFavorites, onToggleFavor
           <Sparkles size={18} />
           <span>{t('actions.create')}</span>
         </button>
-        <button
-          className={`favorites-button ${showFavorites ? 'is-active' : ''}`}
-          onClick={onToggleFavorites}
-          aria-pressed={showFavorites}
-          aria-label={t('actions.favorites')}
-        >
-          <Heart size={18} fill={showFavorites ? 'currentColor' : 'none'} />
-          <span>{t('actions.favorites')}</span>
-          <b>{favoriteCount}</b>
-        </button>
-        <button className="history-button" onClick={onHistory} aria-label={t('actions.history')} title={t('actions.history')}>
-          <History size={18} />
-          <span>{t('actions.history')}</span>
-          <b>{historyCount}</b>
-        </button>
-        <IconButton label={t('actions.settings')} onClick={onSettings}>
+        <div className="header-library-actions" aria-label={`${t('actions.favorites')} / ${t('actions.history')}`}>
+          <button
+            className={`favorites-button ${showFavorites ? 'is-active' : ''}`}
+            onClick={onToggleFavorites}
+            aria-pressed={showFavorites}
+            aria-label={t('actions.favorites')}
+            title={t('actions.favorites')}
+          >
+            <Heart size={18} fill={showFavorites ? 'currentColor' : 'none'} />
+            <span>{t('actions.favorites')}</span>
+            <b>{favoriteCount}</b>
+          </button>
+          <button className="history-button" onClick={onHistory} aria-label={t('actions.history')} title={t('actions.history')}>
+            <History size={18} />
+            <span>{t('actions.history')}</span>
+            <b>{historyCount}</b>
+          </button>
+        </div>
+        <button className="header-settings-button" onClick={onSettings} aria-label={t('actions.settings')} title={t('actions.settings')}>
           <Settings2 size={18} />
+          <span>{t('actions.settingsShort')}</span>
+        </button>
+        <IconButton label={theme === 'dark' ? t('actions.themeToLight') : t('actions.themeToDark')} onClick={toggleTheme}>
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </IconButton>
         <button className="language-button" onClick={toggleLanguage} aria-label={t('actions.language')} title={t('actions.language')}>
           <Languages size={17} />
@@ -841,10 +978,35 @@ function Header({ search, setSearch, favoriteCount, showFavorites, onToggleFavor
   )
 }
 
-function SettingsPanel({ config, profiles, activeId, onChange, onSelect, onAdd, onRemove, onSave, onClear, onClose }) {
+function SettingsPanel({ config, profiles, activeId, onChange, onSelect, onAdd, onRemove, onSave, onClose, onTestConnection }) {
   const [showKey, setShowKey] = useState(false)
+  const [testState, setTestState] = useState({ state: 'idle', message: '' })
+  const testStatusRef = useRef(null)
   const { t } = useLanguage()
   const dialogRef = useDialogFocus(true, onClose)
+
+  useEffect(() => {
+    setTestState({ state: 'idle', message: '' })
+  }, [config.endpoint, config.apiKey, config.model, config.protocol])
+
+  useEffect(() => {
+    if (!testState.message) return
+    const frame = window.requestAnimationFrame(() => {
+      testStatusRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [testState.message])
+
+  const handleTestConnection = async () => {
+    setTestState({ state: 'loading', message: '' })
+    try {
+      const result = await onTestConnection(config)
+      setTestState(result)
+    } catch (error) {
+      setTestState({ state: 'error', message: error?.message || t('settings.connectionFailed') })
+    }
+  }
+
   return (
     <div ref={dialogRef} className="settings-backdrop" role="dialog" aria-modal="true" aria-label={t('settings.title')} data-dialog-layer="true" tabIndex={-1}>
       <div className="settings-panel">
@@ -868,34 +1030,35 @@ function SettingsPanel({ config, profiles, activeId, onChange, onSelect, onAdd, 
         </div>
         <div className="settings-profile-meta">{t('settings.profileCount', { count: profiles.length })}</div>
         <label className="settings-field"><span>{t('settings.profileName')}</span><input value={config.name} onChange={(event) => onChange({ name: event.target.value })} placeholder={t('settings.defaultProfileName', { index: profiles.findIndex((profile) => profile.id === activeId) + 1 })} /></label>
-        <label className="settings-field"><span>{t('settings.protocol')}</span><select value={config.protocol} onChange={(e) => onChange({ protocol: e.target.value })}><option value="images">{t('settings.protocolImages')}</option><option value="generate-content">{t('settings.protocolGenerateContent')}</option></select></label>
+        <label className="settings-field"><span>{t('settings.protocol')}</span><span className="settings-select-wrap"><select value={config.protocol} onChange={(e) => onChange({ protocol: e.target.value })}><option value="images">{t('settings.protocolImages')}</option><option value="generate-content">{t('settings.protocolGenerateContent')}</option></select><ChevronDown size={15} aria-hidden="true" /></span></label>
         <label className="settings-field"><span>{t('settings.apiUrl')}</span><input value={config.endpoint} onChange={(e) => onChange({ endpoint: e.target.value })} placeholder={config.protocol === 'generate-content' ? t('settings.generateContentPlaceholder') : t('settings.endpointPlaceholder')} /></label>
         <label className="settings-field"><span>{t('settings.apiKey')}</span><div className="key-input"><input type={showKey ? 'text' : 'password'} value={config.apiKey} onChange={(e) => onChange({ apiKey: e.target.value })} placeholder="your-api-key" autoComplete="off" /><IconButton label={showKey ? t('actions.hideKey') : t('actions.showKey')} onClick={() => setShowKey((v) => !v)}>{showKey ? <EyeOff size={17} /> : <Eye size={17} />}</IconButton></div></label>
         <div className={`settings-grid ${config.protocol === 'generate-content' ? 'is-generate-content' : ''}`}>
           <label className="settings-field"><span>{t('settings.model')}</span><input value={config.model} onChange={(e) => onChange({ model: e.target.value })} placeholder={config.protocol === 'generate-content' ? 'e.g. gemini-3.1-flash-image' : t('settings.modelPlaceholder')} /></label>
           <label className="settings-field">
             <span>SIZE</span>
-            <select value={config.size} onChange={(e) => onChange({ size: e.target.value })}>
+            <span className="settings-select-wrap"><select value={config.size} onChange={(e) => onChange({ size: e.target.value })}>
               <option value="auto">auto (1024x1024)</option>
               <option value="1024x1024">1024x1024 (1:1)</option>
               <option value="1536x1024">1536x1024 (3:2)</option>
               <option value="1024x1536">1024x1536 (2:3)</option>
               <option value="1792x1024">1792x1024 (16:9)</option>
               <option value="1024x1792">1024x1792 (9:16)</option>
-            </select>
+            </select><ChevronDown size={15} aria-hidden="true" /></span>
           </label>
           {config.protocol === 'images' ? (
             <label className="settings-field">
               <span>QUALITY</span>
-              <select value={config.quality} onChange={(e) => onChange({ quality: e.target.value })}>
+              <span className="settings-select-wrap"><select value={config.quality} onChange={(e) => onChange({ quality: e.target.value })}>
                 <option value="auto">auto</option>
                 <option value="standard">standard</option>
                 <option value="hd">hd</option>
-              </select>
+              </select><ChevronDown size={15} aria-hidden="true" /></span>
             </label>
           ) : null}
         </div>
-        <div className="settings-actions"><button className="settings-save" onClick={onSave}><Check size={17} />{t('settings.save')}</button><button className="settings-clear" onClick={onClear}>{t('settings.clear')}</button></div>
+        <div className="settings-actions"><button className="settings-save" onClick={onSave}><Check size={17} />{t('settings.save')}</button><button className="settings-test" onClick={handleTestConnection} disabled={testState.state === 'loading'}>{testState.state === 'loading' ? <LoaderCircle size={16} className="spin" /> : <Check size={16} />}{testState.state === 'loading' ? t('settings.testingConnection') : t('settings.testConnection')}</button></div>
+        {testState.message ? <div ref={testStatusRef} className={`settings-test-status is-${testState.state}`} role={testState.state === 'error' ? 'alert' : 'status'}>{testState.state === 'success' ? <Check size={14} /> : testState.state === 'warning' ? <CircleAlert size={14} /> : <X size={14} />}{testState.message}</div> : null}
         <div className="settings-security"><KeyRound size={14} />{t('settings.security')}</div>
       </div>
     </div>
@@ -1147,14 +1310,14 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
   const [viewMode, setViewMode] = useState(item.generatedUrl ? 'generated' : 'source')
   const [generationState, setGenerationState] = useState('idle')
   const [generationError, setGenerationError] = useState('')
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [generationSetupOpen, setGenerationSetupOpen] = useState(false)
   const [referenceImages, setReferenceImages] = useState([])
   const [zoomedImage, setZoomedImage] = useState(null)
   const [templateValues, setTemplateValues] = useState(() => createTemplateValues(item.promptVariables))
   const referenceImagesRef = useRef([])
   const appliedTemplateValuesRef = useRef({})
   const detailDialogRef = useDialogFocus(true, onClose)
-  const confirmDialogRef = useDialogFocus(confirmOpen, () => setConfirmOpen(false))
+  const setupDialogRef = useDialogFocus(generationSetupOpen, () => setGenerationSetupOpen(false))
   const lightboxDialogRef = useDialogFocus(Boolean(zoomedImage), () => setZoomedImage(null))
 
   useEffect(() => {
@@ -1163,6 +1326,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     setViewMode(item.generatedUrl ? 'generated' : 'source')
     setGenerationState('idle')
     setGenerationError('')
+    setGenerationSetupOpen(false)
     setReferenceImages((current) => {
       current.forEach((reference) => URL.revokeObjectURL(reference.preview))
       return []
@@ -1181,6 +1345,8 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
   }, [])
 
   const templateVariables = item.promptVariables || []
+  const originalPrompt = item.rawPrompt?.trim() || item.prompt
+  const canRestorePrompt = Boolean(originalPrompt && promptText !== originalPrompt)
 
   const applyTemplateVariables = () => {
     const previousValues = appliedTemplateValuesRef.current
@@ -1261,7 +1427,21 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
       return
     }
     setGenerationError('')
-    setConfirmOpen(true)
+    setGenerationSetupOpen(true)
+  }
+
+  const confirmGeneration = () => {
+    if (!promptText.trim()) {
+      setGenerationError(t('errors.promptRequired'))
+      setGenerationState('error')
+      return
+    }
+    if (!config.apiKey.trim() || !config.endpoint.trim() || !config.model.trim()) {
+      onOpenSettings()
+      return
+    }
+    setGenerationSetupOpen(false)
+    runGeneration()
   }
 
   const handleReferenceChange = (event) => {
@@ -1339,7 +1519,10 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
           <div className="prompt-block">
             <div className="prompt-label">
               <span>{t('detail.prompt')}</span>
-              <span>{promptText.length} {t('detail.chars')}</span>
+              <div className="prompt-label-actions">
+                {canRestorePrompt ? <button className="prompt-restore" onClick={() => { setPromptText(originalPrompt); setTemplateValues(createTemplateValues(item.promptVariables)); appliedTemplateValuesRef.current = {} }}><RotateCcw size={12} />{t('detail.restoreOriginal')}</button> : null}
+                <span>{promptText.length} {t('detail.chars')}</span>
+              </div>
             </div>
             <textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} aria-label={t('detail.confirmPrompt')} placeholder={isCustomItem ? t('custom.promptPlaceholder') : ''} />
           </div>
@@ -1358,31 +1541,6 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             <button onClick={() => onCopy(item.rawPrompt)}><Copy size={14} />{t('detail.copyOriginal')}</button>
           </details> : null}
 
-          <div className="reference-upload">
-            <div className="reference-upload-heading"><span>{t('detail.reference')}</span><span>{referenceImages.length ? t('detail.referenceCount', { count: referenceImages.length }) : t('detail.optional')}</span></div>
-            {referenceImages.length ? <div className="reference-preview-grid">
-              {referenceImages.map((reference) => (
-                <div className="reference-preview" key={reference.id}>
-                  <button className="reference-preview-image" onClick={() => setZoomedImage({ src: reference.preview, alt: reference.file.name })} aria-label={`${t('detail.expand')} · ${reference.file.name}`}><img src={reference.preview} alt={reference.file.name} /></button>
-                  <span title={reference.file.name}>{reference.file.name}</span>
-                  <IconButton label={`${t('detail.referenceRemove')} · ${reference.file.name}`} onClick={() => removeReference(reference.id)}><X size={14} /></IconButton>
-                </div>
-              ))}
-            </div> : null}
-            {referenceImages.length < MAX_REFERENCE_IMAGES ? <label className="upload-reference"><Upload size={17} /><span>{referenceImages.length ? t('detail.referenceAdd') : t('detail.referenceUpload')}</span><small>{t('detail.referenceHint')}</small><input type="file" multiple accept="image/png,image/jpeg,image/webp" onChange={handleReferenceChange} /></label> : null}
-          </div>
-
-          <div className="detail-engine-selector">
-            <span>{t('detail.imageEngine')}</span>
-            <label>
-              <select value={config.id} onChange={(event) => onSelectConfig(event.target.value)}>
-                {profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name} · {profile.model || t('settings.notConfigured')}</option>)}
-              </select>
-              <ChevronDown size={15} aria-hidden="true" />
-            </label>
-            <IconButton label={t('detail.editModels')} onClick={onOpenSettings}><Settings2 size={17} /></IconButton>
-          </div>
-
           <div className={`detail-actions ${isCustomItem ? 'is-custom' : ''}`}>
             {!isCustomItem ? <button className="copy-button" onClick={() => onCopy(promptText)}>
               <Copy size={18} /> {t('detail.copy')}
@@ -1399,6 +1557,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             </IconButton> : null}
             {!isHistoryItem && !isCustomItem ? <IconButton label={t('detail.share')} className="detail-share" onClick={onCopyLink}><Share2 size={19} /></IconButton> : null}
           </div>
+
           {generationState === 'error' ? <div className="generation-error" role="alert">{generationError}<button onClick={onOpenSettings}><Settings2 size={14} />{t('detail.checkSettings')}</button></div> : null}
           {generatedUrl ? <a className="download-link" href={generatedUrl} download="prompt-signal-generated.png" target="_blank" rel="noreferrer"><Download size={16} />{t('detail.download')}</a> : null}
 
@@ -1410,16 +1569,23 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
           </div> : null}
         </div>
       </div>
-      {confirmOpen ? (
-        <div ref={confirmDialogRef} className="generation-confirm-backdrop" role="dialog" aria-modal="true" aria-label={t('detail.confirmTitle')} data-dialog-layer="true" tabIndex={-1}>
-          <div className="generation-confirm">
-            <div className="generation-confirm-heading"><span>{t('detail.confirmEyebrow')}</span><IconButton label={t('detail.cancelGeneration')} onClick={() => setConfirmOpen(false)}><X size={17} /></IconButton></div>
+      {generationSetupOpen ? (
+        <div ref={setupDialogRef} className="generation-confirm-backdrop" role="dialog" aria-modal="true" aria-label={t('detail.confirmTitle')} data-dialog-layer="true" tabIndex={-1}>
+          <div className="generation-confirm generation-setup">
+            <div className="generation-confirm-heading"><span>{t('detail.confirmEyebrow')}</span><IconButton label={t('detail.cancelGeneration')} onClick={() => setGenerationSetupOpen(false)}><X size={17} /></IconButton></div>
             <h3>{t('detail.confirmTitle')}</h3>
             <p>{t('detail.confirmCopy')}</p>
             <label className="confirm-prompt-field"><span>{t('detail.confirmPrompt')}</span><textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} /></label>
-            {referenceImages.length ? <div className="confirm-reference"><span>{t('detail.reference')} · {referenceImages.length}</span><div className="confirm-reference-grid">{referenceImages.map((reference) => <button key={reference.id} onClick={() => setZoomedImage({ src: reference.preview, alt: reference.file.name })}><img src={reference.preview} alt={reference.file.name} /><div><b>{reference.file.name}</b><small>{t('detail.confirmPreview')}</small></div></button>)}</div></div> : null}
-            <div className="generation-confirm-meta"><span>{t('settings.profile')} <b>{config.name}</b></span><span>MODEL <b>{config.model}</b></span><span>{t('detail.reference')} <b>{referenceImages.length ? `${t('detail.confirmAttached')} · ${referenceImages.length}` : t('detail.confirmNone')}</b></span></div>
-            <div className="generation-confirm-actions"><button className="confirm-cancel" onClick={() => setConfirmOpen(false)}>{t('detail.confirmCancel')}</button><button className="confirm-submit" onClick={() => { setConfirmOpen(false); runGeneration() }}><Sparkles size={17} />{t('detail.confirmSubmit')}</button></div>
+            <div className="generation-setup-reference">
+              <div className="reference-upload-heading"><span>{t('detail.reference')}</span><span>{referenceImages.length ? t('detail.referenceCount', { count: referenceImages.length }) : t('detail.optional')}</span></div>
+              {referenceImages.length ? <div className="reference-preview-grid">{referenceImages.map((reference) => <div className="reference-preview" key={reference.id}><button className="reference-preview-image" onClick={() => setZoomedImage({ src: reference.preview, alt: reference.file.name })} aria-label={`${t('detail.expand')} · ${reference.file.name}`}><img src={reference.preview} alt={reference.file.name} /></button><span title={reference.file.name}>{reference.file.name}</span><IconButton label={`${t('detail.referenceRemove')} · ${reference.file.name}`} onClick={() => removeReference(reference.id)}><X size={14} /></IconButton></div>)}</div> : null}
+              {referenceImages.length < MAX_REFERENCE_IMAGES ? <label className="upload-reference"><Upload size={17} /><span>{referenceImages.length ? t('detail.referenceAdd') : t('detail.referenceUpload')}</span><small>{t('detail.referenceHint')}</small><input type="file" multiple accept="image/png,image/jpeg,image/webp" onChange={handleReferenceChange} /></label> : null}
+            </div>
+            <div className="generation-setup-model">
+              <div className="generation-setup-label"><span>{t('detail.imageEngine')}</span><button onClick={() => { setGenerationSetupOpen(false); onOpenSettings() }}><Settings2 size={14} />{t('detail.editModels')}</button></div>
+              <label><select value={config.id} onChange={(event) => onSelectConfig(event.target.value)}>{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name} · {profile.model || t('settings.notConfigured')}</option>)}</select><ChevronDown size={15} aria-hidden="true" /></label>
+            </div>
+            <div className="generation-confirm-actions"><button className="confirm-cancel" onClick={() => setGenerationSetupOpen(false)}>{t('detail.confirmCancel')}</button><button className="confirm-submit" onClick={confirmGeneration}><Sparkles size={17} />{t('detail.confirmSubmit')}</button></div>
           </div>
         </div>
       ) : null}
@@ -1703,6 +1869,8 @@ function AppContent() {
     setSettingsDraft({ ...apiConfigStore, profiles: apiConfigStore.profiles.map((profile) => ({ ...profile })) })
   }
 
+  const testApiConnection = (config) => testImageModelConnection({ config, t })
+
   const updateDraftApiProfile = (patch) => {
     setSettingsDraft((current) => current ? ({
       ...current,
@@ -1746,10 +1914,6 @@ function AppContent() {
     setApiConfigStore(next)
     setSettingsDraft(null)
     showToast(t('toast.settingsSaved'))
-  }
-
-  const resetApiConfigDraft = () => {
-    setSettingsDraft(createApiConfigStore())
   }
 
   const saveGeneration = async (record) => {
@@ -1885,7 +2049,7 @@ function AppContent() {
       ) : null}
 
       {historyOpen ? <HistoryPanel records={generationHistory} loading={historyLoading} onOpen={openHistoryRecord} onDelete={removeGenerationHistory} onClear={clearGenerationHistory} onClose={() => setHistoryOpen(false)} /> : null}
-      {settingsDraft && settingsConfig ? <SettingsPanel config={settingsConfig} profiles={settingsDraft.profiles} activeId={settingsDraft.activeId} onChange={updateDraftApiProfile} onSelect={selectDraftApiProfile} onAdd={addDraftApiProfile} onRemove={removeActiveDraftApiProfile} onSave={saveApiConfig} onClear={resetApiConfigDraft} onClose={() => setSettingsDraft(null)} /> : null}
+      {settingsDraft && settingsConfig ? <SettingsPanel config={settingsConfig} profiles={settingsDraft.profiles} activeId={settingsDraft.activeId} onChange={updateDraftApiProfile} onSelect={selectDraftApiProfile} onAdd={addDraftApiProfile} onRemove={removeActiveDraftApiProfile} onSave={saveApiConfig} onClose={() => setSettingsDraft(null)} onTestConnection={testApiConnection} /> : null}
 
       <div className={`toast ${toast ? 'is-visible' : ''}`} role="status">
         <Check size={17} /> {toast}
@@ -1895,5 +2059,5 @@ function AppContent() {
 }
 
 export default function App() {
-  return <LanguageProvider><AppContent /></LanguageProvider>
+  return <ThemeProvider><LanguageProvider><AppContent /></LanguageProvider></ThemeProvider>
 }

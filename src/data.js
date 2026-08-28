@@ -346,6 +346,15 @@ function isEditableBracket(content, fullWidth) {
   return /^[A-Z][A-Z0-9 _-]*$/.test(name) || /自定义|请填写|请输入|可修改|替换为/.test(name)
 }
 
+function normalizeVariableKey(value) {
+  return value
+    .trim()
+    .replace(/([a-z])([A-Z])/g, '$1_$2')
+    .replace(/[^\p{L}\p{N}]+/gu, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase()
+}
+
 function collectStringValues(value, output) {
   if (typeof value === 'string') {
     output.push(value)
@@ -383,7 +392,26 @@ function extractPromptVariables(prompt, rawPrompt) {
     }
   }
 
-  const bracketPattern = /\[([^\]\n]{1,48})\]|【([^】\n]{1,48})】/g
+  // Some prompt templates use a descriptive field followed by a long bracket value,
+  // e.g. `Accent color: [red / orange / cobalt blue]`. Capture these first so the
+  // field name becomes the editable label instead of exposing the whole value as one.
+  const fieldBracketPattern = /(?:^|\n)\s*([A-Za-z][A-Za-z0-9 _-]{1,48})\s*:\s*(\[[^\]\n]{1,160}\]|【[^】\n]{1,160}】)(?!\()/g
+  for (const match of String(prompt || '').matchAll(fieldBracketPattern)) {
+    const fieldName = match[1].trim()
+    const token = match[2]
+    const value = token.slice(1, -1).trim()
+    const normalizedKey = normalizeVariableKey(fieldName)
+    if (!normalizedKey || !value || variables.has(`placeholder:${normalizedKey}`)) continue
+    variables.set(`placeholder:${normalizedKey}`, {
+      key: `placeholder:${normalizedKey}`,
+      label: fieldName,
+      defaultValue: value,
+      token,
+      kind: 'placeholder',
+    })
+  }
+
+  const bracketPattern = /\[([^\]\n]{1,160})\]|【([^】\n]{1,160})】/g
   for (const match of String(prompt || '').matchAll(bracketPattern)) {
     const fullWidth = match[2] != null
     const label = (match[1] ?? match[2] ?? '').trim()
@@ -481,7 +509,8 @@ function formatLooseStructuredPrompt(value) {
 function normalizePrompt(rawPrompt) {
   const raw = String(rawPrompt ?? '').trim()
   const hadArguments = /\{argument\s+name=/i.test(raw)
-  const hadPlaceholders = /\{[A-Z][A-Z0-9 _-]*\}|\[[A-Z][A-Z0-9 _-]+\]|\[(?:[^\]\n]*(?:自定义|请填写|请输入|可修改|替换为)[^\]\n]*)\]|【[^】\n]{1,48}】/.test(raw)
+  const hadFieldPlaceholders = /(?:^|\n)\s*[A-Za-z][A-Za-z0-9 _-]{1,48}\s*:\s*(?:\[[^\]\n]{1,160}\]|【[^】\n]{1,160}】)(?!\()/m.test(raw)
+  const hadPlaceholders = /\{[A-Z][A-Z0-9 _-]*\}|\[[A-Z][A-Z0-9 _-]+\]|\[(?:[^\]\n]*(?:自定义|请填写|请输入|可修改|替换为)[^\]\n]*)\]|【[^】\n]{1,160}】/.test(raw) || hadFieldPlaceholders
   const hadBilingualMarkers = /\[(?:中文|English)\]/i.test(raw)
   const cleaned = replaceArgumentDefaults(raw).replace(
     /\s*This prompt is reconstructed from the creator's public post description;\s*use the uploaded photo as the source image\.?/i,
