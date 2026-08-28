@@ -88,6 +88,7 @@
     "retweets": 18,
     "views": 8270,
     "featured": false,
+    "createdAt": "2026-08-28T10:18:00.000Z",
     "width": 1744,
     "height": 2336
   },
@@ -344,5 +345,124 @@
     "featured": false,
     "width": 896,
     "height": 1200
+  },
+  {
+    "id": "x-hot-emma-city-motion",
+    "title": "城市交通 / 摄影 × 几何海报",
+    "category": "poster",
+    "image": "https://pbs.twimg.com/media/HQdXI90bIAANAjk?format=jpg&name=orig",
+    "ratio": "portrait",
+    "author": "@Emmma__0",
+    "sourceLabel": "X",
+    "source": "https://x.com/Emmma__0/status/2091736383031509309",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/Emmma__0/status/2091736383031509309"
+      }
+    ],
+    "prompt": "Recreate the uploaded reference image as a premium editorial city poster, preserving the overall composition, framing, perspective, colors, and visual hierarchy. Create a tall portrait-format layout divided into two main sections. The upper section is a highly realistic golden-hour photograph of a busy multilane highway filled with dense traffic, viewed from an elevated position. Lush mature green trees line both sides of the road, while the traffic leads toward a modern city skyline in the distance. Include the distinctive large domed building at the center and a cluster of contemporary skyscrapers behind it, including tall narrow red towers, glass towers, and modern geometric buildings. Warm sunset light, soft atmospheric haze, realistic vehicles, detailed foliage, natural shadows, cinematic photography, subtle film grain.\n\nDirectly below, recreate the same scene as a simplified geometric/pixel-art interpretation. Convert the trees, cars, highway, domed building, skyline, and clouds into large clean rectangular and polygonal blocks while maintaining the same perspective and recognizable silhouettes. Use a sophisticated muted palette of forest green, olive, teal, dusty blue, cream, ochre, terracotta, warm orange, muted pink, and pale sky blue. The geometric illustration should feel intentionally designed rather than crude pixel art: crisp edges, layered blocks, subtle tonal variation, elegant contemporary art-book aesthetic.\n\nUse a warm ivory/off-white background and generous margins around the composition. At the bottom, add a refined editorial typography section with the large uppercase title “CITY IN MOTION” on the left, the subtitle “Traffic streams toward the skyline in the warm light of evening.” on the right, and “2026” below on the left. Use clean modern sans-serif typography in dark navy/charcoal, with careful spacing and alignment. Premium architecture-and-travel magazine aesthetic, sophisticated minimalist graphic design, cohesive relationship between the photograph and its geometric reinterpretation, realistic and polished, high resolution, sharp details, portrait poster composition. Do not add any extra text, logos, watermarks, or unrelated objects.",
+    "likes": 116,
+    "retweets": 5,
+    "views": 9777,
+    "featured": false,
+    "width": 675,
+    "height": 900
+  },
+  {
+    "id": "x-hot-maercih-denim-stiletto",
+    "title": "蓝色牛仔高跟鞋 / 奢侈品广告",
+    "category": "product",
+    "image": "https://pbs.twimg.com/media/HQZw_KfbkAADUCr?format=jpg&name=orig",
+    "ratio": "portrait",
+    "author": "@Maercihh",
+    "sourceLabel": "X",
+    "source": "https://x.com/Maercihh/status/2091483360740995287",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/Maercihh/status/2091483360740995287"
+      }
+    ],
+    "prompt": "{\n  \"input\": {\n    \"brand_logo\": \"{{LOGO_TEXT}}\",\n    \"brand_name\": \"{{BRAND_NAME}}\",\n    \"brand_descriptor\": \"{{create your own}}\",\n    \"main_headline\": \"{{MAIN_HEADLINE}}\",\n    \"tagline\": \"{{create your own}}\"\n  },\n\n  \"generation\": {\n    \"type\": \"luxury_fashion_editorial_advertisement\",\n    \"aspect_ratio\": \"2:3\",\n    \"reference_style\": \"recreate the supplied visual concept with the exact same overall art direction, composition and visual hierarchy\",\n    \n    \"primary_rule\": \"The user may change text only. Every non-text visual element must remain consistent with the reference concept. Do not redesign, reinterpret, replace or substantially alter the model, clothing, denim sculpture, handbag, environment, lighting, color palette, camera perspective or composition.\",\n\n    \"fixed_visual_identity\": {\n      \"setting\": \"minimalist high-end fashion studio\",\n      \"background\": \"pale cool blue-gray seamless studio background\",\n      \"floor\": \"smooth glossy reflective floor with subtle realistic reflections\",\n      \"color_palette\": [\n        \"icy blue\",\n        \"soft blue-gray\",\n        \"deep navy typography\",\n        \"natural denim blue\",\n        \"subtle warm orange stitching\"\n      ],\n      \"lighting\": \"soft diffused luxury studio lighting, clean highlights, gentle shadows, controlled contrast\",\n      \"mood\": \"quiet luxury, sophisticated, surreal fashion editorial, premium and restrained\",\n      \"finish\": \"photorealistic, polished commercial fashion photography, realistic denim texture, realistic skin texture, subtle cinematic depth\"\n    },\n\n    \"subject\": {\n      \"model\": \"young adult female fashion model\",\n      \"appearance\": \"elegant contemporary editorial appearance, natural facial features, long dark hair\",\n      \"pose\": \"relaxed fashion-editorial pose leaning against the oversized denim sculpture\",\n      \"wardrobe\": {\n        \"top\": \"structured blue denim crop top\",\n        \"bottom\": \"relaxed blue denim jeans\",\n        \"footwear\": \"blue denim pointed boots\",\n        \"accessory\": \"small structured blue denim handbag\"\n      },\n      \"rule\": \"Keep the model's overall appearance, pose, proportions, wardrobe concept and placement visually consistent with the reference.\"\n    },\n\n    \"hero_object\": {\n      \"object\": \"massive sculptural high-fashion stiletto shoe constructed entirely from blue denim\",\n      \"design\": \"dramatic oversized couture silhouette with an extremely tall heel, sweeping curved body, folded denim panels and visible seams\",\n      \"material\": \"realistic woven denim with detailed textile grain\",\n      \"stitching\": \"subtle contrasting warm orange stitching\",\n      \"sole\": \"dark slim sole and heel structure\",\n      \"placement\": \"large hero object occupying the lower-left and central composition behind and around the model\",\n      \"rule\": \"The oversized denim shoe is a fixed visual element and must not be replaced by another object.\"\n    },\n\n    \"composition\": {\n      \"format\": \"vertical 2:3 fashion poster\",\n      \"framing\": \"full editorial poster composition\",\n      \"negative_space\": \"substantial clean negative space in the upper portion for typography\",\n      \"hierarchy\": [\n        \"small logo at top\",\n        \"brand name beneath logo\",\n        \"small descriptor beneath brand name\",\n        \"large central headline\",\n        \"small tagline near headline\",\n        \"model and oversized denim sculpture occupying lower section\"\n      ],\n      \"camera\": \"straight-on professional fashion advertising perspective with slight cinematic depth\",\n      \"lens_feel\": \"approximately 50mm full-frame fashion photography\",\n      \"depth_of_field\": \"moderate, keeping typography and primary fashion subject crisp\",\n      \"alignment\": \"precise editorial alignment with balanced margins and strong vertical symmetry\"\n    },\n\n    \"typography\": {\n      \"overall_style\": \"luxury fashion magazine typography\",\n      \"color\": \"deep navy blue\",\n      \"logo\": {\n        \"content\": \"{{LOGO_TEXT}}\",\n        \"position\": \"top center\",\n        \"style\": \"minimal elegant luxury monogram or refined wordmark\"\n      },\n      \"brand_name\": {\n        \"content\": \"{{BRAND_NAME}}\",\n        \"position\": \"centered below logo\",\n        \"style\": \"widely tracked refined sans-serif or modern luxury fashion type\"\n      },\n      \"brand_descriptor\": {\n        \"content\": \"{{BRAND_DESCRIPTOR}}\",\n        \"position\": \"centered below brand name\",\n        \"style\": \"small uppercase letterspaced typography\"\n      },\n      \"main_headline\": {\n        \"content\": \"{{MAIN_HEADLINE}}\",\n        \"position\": \"large central area\",\n        \"style\": \"extremely large elegant high-fashion editorial lettering, thin-to-medium contrast, wide horizontal presence\"\n      },\n      \"tagline\": {\n        \"content\": \"{{TAGLINE}}\",\n        \"position\": \"directly below or beside the main headline\",\n        \"style\": \"small refined uppercase or sentence-case luxury typography\"\n      },\n      \"text_rule\": \"Replace only the supplied text while preserving the same hierarchy, scale relationships, spacing, alignment, typography character and visual prominence.\"\n    },\n\n    \"text_behavior\": {\n      \"user_editable_only\": [\n        \"LOGO_TEXT\",\n        \"BRAND_NAME\",\n        \"BRAND_DESCRIPTOR\",\n        \"MAIN_HEADLINE\",\n        \"TAGLINE\"\n      ],\n      \"do_not_generate_additional_copy\": true,\n      \"do_not_add_prices\": true,\n      \"do_not_add_buttons\": true,\n      \"do_not_add_badges\": true,\n      \"do_not_add_product_information\": true,\n      \"do_not_add_watermarks\": true,\n      \"do_not_change_text_positions_based_on_meaning\": true,\n      \"preserve_exact_user_text\": true,\n      \"text_must_be_legible\": true,\n      \"text_must_be_spelled_exactly\": true\n    },\n\n    \"quality_control\": {\n      \"photorealism\": true,\n      \"realistic_human_anatomy\": true,\n      \"realistic_denim_texture\": true,\n      \"realistic_stitching\": true,\n      \"clean_edges\": true,\n      \"accurate_typography\": true,\n      \"premium_fashion_campaign_quality\": true,\n      \"no_generic_ai_aesthetic\": true,\n      \"no_excessive_retouching\": true,\n      \"no_plastic_skin\": true\n    },\n\n    \"negative_constraints\": [\n      \"Do not change the composition\",\n      \"Do not change the camera angle\",\n      \"Do not change the aspect ratio\",\n      \"Do not change the model's pose\",\n      \"Do not change the wardrobe concept\",\n      \"Do not replace the oversized denim shoe\",\n      \"Do not change the background\",\n      \"Do not change the lighting\",\n      \"Do not introduce new objects\",\n      \"Do not remove the handbag\",\n      \"Do not add extra people\",\n      \"Do not alter the visual style based on the meaning of the new text\",\n      \"Do not create additional slogans\",\n      \"Do not add logos other than the user-supplied logo\",\n      \"Do not add watermark\",\n      \"Do not crop important visual elements\",\n      \"Do not distort typography\",\n      \"Do not misspell user-provided text\"\n    ]\n  }\n}",
+    "likes": 399,
+    "retweets": 46,
+    "views": 56897,
+    "featured": false,
+    "width": 675,
+    "height": 900
+  },
+  {
+    "id": "x-hot-hamburger-enamel-travel",
+    "title": "旅行珐琅冰箱贴 / 纪念海报",
+    "category": "product",
+    "image": "https://pbs.twimg.com/media/HQSv7nrbUAEGQiw?format=jpg&name=orig",
+    "ratio": "portrait",
+    "author": "@Hamburgerai",
+    "sourceLabel": "X",
+    "source": "https://x.com/Hamburgerai/status/2090989777759948976",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/Hamburgerai/status/2090989777759948976"
+      }
+    ],
+    "prompt": "SCENIC ENAMEL MAGNET POSTER｜旅行珐琅冰箱贴纪念海报\n\n请将我上传的每一张旅行照片，分别制作成一张独立的高级旅行纪念冰箱贴海报。每张照片单独输出，不要多图拼贴，不要输出制作过程、包装、手持展示或多个设计版本。\n\n整体采用3:4竖版构图。画面分为上下两个清晰区域：上部约52%，用于展示实体珐琅冰箱贴与文字；下部约48%，高保真保留原始旅行照片。两个区域水平分隔，干净、明确，不重叠。\n\n【下部：高保真旅行照片】\n\n下部忠实保留上传的原始照片。\n\n准确保持主体身份与数量、人物或动物的姿态、动作和朝向，以及建筑、地形、道路、水面、植物和核心物体的结构、观察角度、空间关系、真实材质、自然光影与原有色彩氛围。\n\n只进行轻微的高级旅行杂志调色和极薄胶片颗粒处理，使其具有精品旅行出版物与展览摄影质感。\n\n下部必须仍然是真实摄影，不得重绘成插画、3D、珐琅或浮雕效果。不得改变主体、移动物体、重塑建筑或地形、增删人物、替换天空、镜像、复制、拉伸或扭曲画面。\n\n为适配版式，可以自然延展天空、地面或周边环境，但不得使用模糊照片副本填充。\n\n【上部：冰箱门背景】\n\n上部是一块真实的哑光冰箱门表面。\n\n冰箱门颜色必须从当前原照片的主色、环境色或最能代表地点气质的颜色中提取，再进行适度压暗和降饱和处理。不同照片应使用不同的背景色，不得统一套用固定深蓝色。\n\n可以根据照片选择陶土红、杜罗蓝绿、森林墨绿、砂岩棕、炭灰、深海军蓝、灰紫或其他与原图协调的克制色调。\n\n背景具有细微粉末涂层金属纹理、压纹颗粒或皮革般的触感，高级、安静、低反光，不是纯色数字背景或平滑渐变。\n\n冰箱门底色需要衬托珐琅贴，并与下方照片产生色彩呼应，但不得与冰箱贴主体混在一起。\n\n【珐琅冰箱贴】\n\n在上部中央放置一枚真实存在、可以触摸、具有重量和厚度的旅行纪念冰箱贴。\n\n冰箱贴占上部宽度约28%–38%，位于标题上方。采用轻微俯视或细微三分之四度角度，让外圈厚度、倒角和侧边可以被看见。\n\n冰箱贴应通过短而柔和的接触阴影明确吸附在冰箱门上，不能像悬浮图标、平面贴纸或后期粘贴的图案。\n\n根据原照片最具识别度的主体、地形或建筑关系，自适应设计冰箱贴轮廓。可以采用圆角拱门、圆角矩形、徽章式不规则边缘，或沿主体形成纪念品剪影，但不能套用固定的雪山、地图或旅行标志模板。\n\n将照片压缩成一枚精致的硬珐琅金属浮雕冰箱贴：\n\n- polished antique brass or warm gold-plated metal outline\n- raised metal partitions\n- recessed hard-enamel color cells\n- beveled outer rim\n- visible 2–4 mm physical thickness\n- subtle edge highlights\n- shallow bas-relief depth\n- fine cast-metal texture\n- slight handcrafted irregularity\n- realistic enamel gloss, not plastic gloss\n- soft contact shadow on the refrigerator surface\n\n使用暖金色、古铜色或暗黄铜色金属线划分珐琅色块。金属分隔线必须凸起，彩色珐琅位于略低的凹槽内。外圈具有完整金属包边、倒角、边缘高光与真实厚度。\n\n不要使用黑色漫画线代替金属分隔线。不要做成纸质贴纸、胸针、奖章、硬币、钥匙扣、树脂滴胶、亚克力挂牌或扁平Logo。\n\n【场景提炼】\n\n冰箱贴必须从同一张原照片中提炼，并保持一眼可辨：\n\n- 保留主体最具识别度的轮廓、姿态和方向\n- 保留决定地点的建筑、地形、道路、水面或植物关系\n- 保留一至两个标志性色彩\n- 将复杂景观压缩成适合珐琅工艺的清晰色面\n- 删除微小纹理、复杂阴影、重复建筑、密集植被和无关杂物\n- 让主体与环境形成一个完整的小型旅行场景\n\n可以概括和简化，但不得发明原照片不存在的地标，也不得添加雪山、飞机、地图、指南针、太阳或其他通用旅行符号。\n\n【配色】\n\n从当前原照片中提取4–8种珐琅颜色。\n\n整体采用低至中等饱和度、克制而耐看的有限色盘。保留一处最有识别度的颜色作为视觉焦点，其余颜色适当归纳、柔化和统一。\n\n金属包边使用暖金色、古铜色或暗黄铜色。\n\n冰箱门底色同样必须来自原照片的色彩关系，但应比珐琅主体更深、更灰、更安静。批量处理多张照片时，为每张照片独立选色，使整套作品保持统一工艺，同时具有明显的色彩区别。\n\n【文字】\n\n在冰箱贴下方放置一个准确的英文地点或主题主标题：\n\n“[ENGLISH LOCATION OR THEME]”\n\n主标题采用大写、高对比度古典衬线字体，字距宽松，颜色为低调暖金色，水平居中，宽度不超过画面的70%。\n\n主标题下方放置一枚极小的四角星或菱形符号，两侧各有一条纤细金色水平线。\n\n其下放置一个简短英文副标题：\n\n“[SHORT ENGLISH SUBTITLE]”\n\n副标题使用较小的大写衬线体或小型大写字母，字距舒展。\n\n文字必须根据照片的真实地点、景观或情绪提炼，简短、准确、有旅行文学感。不要添加年份、编号、品牌、Logo、网址、二维码、水印或多余广告文字。\n\n【整体气质】\n\npremium travel souvenir design, luxury hard-enamel fridge magnet, antique brass metal, raised metal outlines, recessed enamel color cells, tactile collectible object, adaptive colored textured refrigerator door, museum gift shop souvenir, refined travel editorial poster, restrained serif typography, quiet luxury, authentic handcrafted product photography.\n\n整体应像高品质博物馆商店、精品旅行出版物或独立设计品牌推出的收藏级旅行纪念品。\n\n高级感来自真实金属工艺、准确的场景提炼、克制配色、实体厚度和留白，而不是夸张特效。\n\n【强制避免】\n\nAvoid flat vector icon, ordinary sticker, paper sticker, enamel pin hardware, badge, medal, coin, keychain, acrylic charm, resin dome, plastic toy, rubber magnet, cheap souvenir, cartoon, anime, chibi, kawaii, black comic outlines, flat printed image, fake 3D extrusion, melted metal, gemstones, glossy plastic, neon colors, generic mountain template, invented landmarks, unrelated travel icons, excessive typography, fake branding, watermark, packaging mockup, hand holding the magnet, multiple magnets, multiple photos, collage, distorted source subject.\n\n最重要的规则：\n\n下部必须是原始旅行照片的高保真摄影保留；上部必须是从同一照片中提炼出来的一枚真实、可触摸的硬珐琅金属冰箱贴。\n\n必须清楚看见金属包边、凸起分隔线、凹陷珐琅色块、倒角高光、实体厚度，以及冰箱贴吸附在不同颜色冰箱门上的真实接触阴影。整张海报在一次图像生成中完成，不使用代码拼接。",
+    "likes": 382,
+    "retweets": 52,
+    "views": 16200,
+    "featured": false,
+    "width": 675,
+    "height": 900
+  },
+  {
+    "id": "x-hot-xiaoxiaodong-vector-travel",
+    "title": "旅行照片 / 高级扁平矢量转绘",
+    "category": "poster",
+    "image": "https://pbs.twimg.com/media/HQZhYWCa8AAXjj2?format=jpg&name=orig",
+    "ratio": "portrait",
+    "author": "@xiaoxiaodong01",
+    "sourceLabel": "X",
+    "source": "https://x.com/xiaoxiaodong01/status/2091467596243796124",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/xiaoxiaodong01/status/2091467596243796124"
+      }
+    ],
+    "prompt": "Please turn each photo I upload into a separate, independently designed high-end poster. Do not make a collage or combine multiple images—each photo should be processed and output individually. Use an overall **3:4 vertical composition**, with the canvas divided into **two equal sections top and bottom**, in a strict **1:1 height ratio**, each occupying **50% of the image**.\n\nThe **upper half** should preserve the original photo, maintaining the subject’s identity, structure, pose, authentic texture, natural lighting, and original color atmosphere. Only apply subtle, refined photographic color grading to give it the feel of an **art magazine, independent publication, or exhibition photography**. To fit the format, the sky, ground, or environmental background may be naturally extended if needed, but the main subject must **not** be stretched, distorted, or altered.\n\nThe **lower half** should extract the most recognizable **subject, silhouette, pose, and narrative relationship** from the photo, and reconstruct them into a **premium minimalist flat-vector travel poster** style illustrated scene. Do not mechanically trace the photo. Instead, based on the original image’s visual personality, distill the most representative main visual focal point, and build around it with **2–4 supporting elements** that best express the atmosphere of the environment, the way of everyday life, the sense of place, or the state of living. Whether the original image contains a city, architecture, people, animals, plants, objects, vehicles, or natural scenery, the lower half should feel like a **custom-designed high-end travel visual poster** made specifically for that subject, rather than a fixed template applied to everything.\n\nThe composition should be reorganized according to the subject’s own character, rather than repeating the same layout. Build the image using **one clear focal point, distinct foreground-background layering, appropriate negative space, and a calm, orderly visual rhythm**. Depending on the original image, the scene may naturally transform into a street, plaza, waterfront, courtyard, passageway, platform, plant-based setting, interior corner, open landscape, or an environmental fragment with traces of daily life. The subject must always remain the primary visual center; all other elements should only reinforce the uniqueness of **“this place / this object / this situation.”** Avoid collage-like landmark stacking, postcard-style listing, or overly narrative arrangements. If people are needed in the scene, include only **3–6 small-scale figures**, naturally integrated into the environment, with **no single protagonist**.\n\nThe overall style should be **high-end minimalist flat vector illustration**: inspired by **Japanese stationery aesthetics, boutique sticker illustration, and modern editorial travel branding**. Use **clean geometric forms, soft contours, consistent line weight, flat color blocks, and restrained detailing**. The overall feeling should be **fresh, quiet, delicate, and contemporary**. Avoid realism, heavy shadows, watercolor textures, paper textures, complex brushwork, gradients, crowded backgrounds, and excessive detail.\n\nThe color palette should be based on a **soft, airy, slightly desaturated premium palette**, which may be adjusted by extracting and harmonizing the overall color temperature from the original image, while keeping the final result light and cohesive. Use **light pink-blue, misty blue, sky blue, and airy cool blues** to build the main atmosphere; balance them with **ivory white, creamy white, light beige, soft gray-green, and architectural neutrals**. Only allow a small amount of **dusty rose or muted blush** as subtle accents—for flowers, clothing, small signs, awnings, or local decorative details—so the image feels breathable yet still refined and layered.\n\nThe **text logic** should also become part of this style. Do not simply apply a city-name template. Instead, extract a **short title** from the original image’s **location, object name, theme, condition, or atmosphere**, and place it in the **upper left corner** or another area with generous negative space. Pair it with a **brief, restrained, tasteful tagline**. Typography should remain **understated, editorial, spacious, and premium**, never overpowering the visual. If necessary, add a small amount of secondary text, coordinate-style annotations, or tiny descriptive notes, so the text feels like a natural visual identity element from a **high-end travel brand or boutique postcard**, rather than a title bar added afterward.\n\nThe overall result should feel like a **high-end travel poster / boutique lifestyle postcard** designed specifically for the subject: **fresh, elegant, quiet, modern, and refined**, with generous negative space and a relaxed sense of presence. The **lower half of every poster must have its own independent visual identity**—you must not simply change the name while reusing the same composition, the same foreground, or the same arrangement of objects. Avoid anything that feels templated, repetitive, generic, or formulaic like a standard tourism poster.",
+    "likes": 344,
+    "retweets": 33,
+    "views": 20300,
+    "featured": false,
+    "width": 675,
+    "height": 900
+  },
+  {
+    "id": "x-hot-larus-monochrome-fashion",
+    "title": "黑白时装 / 单色排版海报",
+    "category": "poster",
+    "image": "https://pbs.twimg.com/media/HQZZv08WEAES7D8?format=jpg&name=orig",
+    "ratio": "portrait",
+    "author": "@MrLarus",
+    "sourceLabel": "X",
+    "source": "https://x.com/MrLarus/status/2091458051412750484",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/MrLarus/status/2091458051412750484"
+      },
+      {
+        "label": "X · Prompt",
+        "url": "https://x.com/MrLarus/status/2091458239275679908"
+      }
+    ],
+    "prompt": "Create a 9:16 fashion editorial poster built around a real dressing-room moment.\n\nScene: [fitting room / mirror check / quick change / backstage / walk test]\nFashion action: [describe the natural dressing or styling action]\nOutfit: [describe the full look]\nAccent color: [red / orange / cobalt blue / magenta / yellow / green / purple]\nHeadline: [short fashion-related title]\n\nUse realistic black-and-white documentary photography as the main visual. The model should be naturally interacting with the clothing — adjusting, changing, checking the fit, walking, or preparing to step out — not posing directly for the camera.\n\nCombine the monochrome photo with one single highly saturated accent color, warm off-white paper background, strong negative space, and oversized condensed sans-serif typography.\n\nLet the typography interact with the subject through cropping and layering, but keep all headline letters clean, solid, sharp, and fully rendered — no distressed, dirty, scratched, or broken text.\n\nAdd only a few meaningful editorial details such as time, fitting-room status, look name, or a short phrase. Keep the layout bold, asymmetric, minimal, and fashion-magazine driven.\n\nStyle: Swiss editorial design × brutalist typography × fashion documentary photography × modern print poster.\n\nAvoid multiple accent colors, random decorative text, excessive graphic symbols, messy typography, glossy commercial advertising, stiff model poses, CGI skin, and cluttered layouts.",
+    "likes": 63,
+    "retweets": 6,
+    "views": 8337,
+    "featured": false,
+    "width": 675,
+    "height": 1199
   }
 ]

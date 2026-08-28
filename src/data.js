@@ -557,6 +557,7 @@ function preparePrompts(items) {
     const localDim = LOCAL_IMAGE_DIMENSIONS[item.image]
     const width = item.width || localDim?.width
     const height = item.height || localDim?.height
+    const parsedCreatedAt = item.createdAt ? Date.parse(item.createdAt) : NaN
     return {
       ...item,
       width,
@@ -565,8 +566,8 @@ function preparePrompts(items) {
       rawPrompt,
       promptVariables: extractPromptVariables(normalized.text, rawPrompt),
       promptStatus: item.promptStatus || normalized.status,
-      // The array is assembled in ingestion order; later imports are newer.
-      addedOrder: index,
+      // Curated timestamps let cross-source highlights appear first in the default newest view.
+      addedOrder: Number.isFinite(parsedCreatedAt) ? parsedCreatedAt : index,
     }
   })
 }
