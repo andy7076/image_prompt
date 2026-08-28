@@ -190,6 +190,9 @@ const TRANSLATIONS = {
     'detail.expand': 'CLICK TO EXPAND',
     'detail.source': 'SOURCE',
     'detail.generated': 'GENERATED',
+    'detail.previousImage': 'Previous image',
+    'detail.nextImage': 'Next image',
+    'detail.imageCount': 'Image {{current}} of {{total}}',
     'detail.curatedBy': 'CURATED BY {{author}}',
     'detail.prompt': 'PROMPT',
     'detail.restoreOriginal': 'Restore original prompt',
@@ -338,6 +341,9 @@ const TRANSLATIONS = {
     'detail.expand': '点击放大',
     'detail.source': '原图',
     'detail.generated': '生成图',
+    'detail.previousImage': '上一张图片',
+    'detail.nextImage': '下一张图片',
+    'detail.imageCount': '第 {{current}} / {{total}} 张',
     'detail.curatedBy': 'CURATED BY {{author}}',
     'detail.prompt': 'PROMPT',
     'detail.restoreOriginal': '恢复原始 Prompt',
@@ -1308,6 +1314,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
   const [promptText, setPromptText] = useState(item.prompt)
   const [generatedUrl, setGeneratedUrl] = useState(item.generatedUrl || '')
   const [viewMode, setViewMode] = useState(item.generatedUrl ? 'generated' : 'source')
+  const [sourceImageIndex, setSourceImageIndex] = useState(0)
   const [generationState, setGenerationState] = useState('idle')
   const [generationError, setGenerationError] = useState('')
   const [generationSetupOpen, setGenerationSetupOpen] = useState(false)
@@ -1324,6 +1331,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     setPromptText(item.prompt)
     setGeneratedUrl(item.generatedUrl || '')
     setViewMode(item.generatedUrl ? 'generated' : 'source')
+    setSourceImageIndex(0)
     setGenerationState('idle')
     setGenerationError('')
     setGenerationSetupOpen(false)
@@ -1480,7 +1488,12 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     })
   }
 
-  const displayImage = viewMode === 'generated' && generatedUrl ? generatedUrl : item.image
+  const sourceImages = Array.isArray(item.images) && item.images.length
+    ? item.images
+    : item.image ? [{ url: item.image, width: item.width, height: item.height }] : []
+  const safeSourceImageIndex = Math.min(sourceImageIndex, Math.max(0, sourceImages.length - 1))
+  const sourceImage = sourceImages[safeSourceImageIndex]
+  const displayImage = viewMode === 'generated' && generatedUrl ? generatedUrl : sourceImage?.url || item.image
 
   return (
     <div ref={detailDialogRef} className="detail-backdrop" role="dialog" aria-modal="true" aria-label={t('gallery.viewDetails', { title: item.title })} data-dialog-layer="true" tabIndex={-1}>
@@ -1505,6 +1518,13 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             </div>
           ) : null}
           <div className="detail-media-index">{isCustomItem ? 'PROMPT—SIGNAL—STUDIO' : 'GPT—IMAGE—2'}</div>
+          {sourceImages.length > 1 && viewMode === 'source' ? (
+            <>
+              <IconButton className="source-image-nav source-image-nav-prev" label={t('detail.previousImage')} onClick={() => setSourceImageIndex((current) => (current - 1 + sourceImages.length) % sourceImages.length)}><ArrowLeft size={18} /></IconButton>
+              <IconButton className="source-image-nav source-image-nav-next" label={t('detail.nextImage')} onClick={() => setSourceImageIndex((current) => (current + 1) % sourceImages.length)}><ArrowRight size={18} /></IconButton>
+              <span className="source-image-count">{t('detail.imageCount', { current: safeSourceImageIndex + 1, total: sourceImages.length })}</span>
+            </>
+          ) : null}
           {generatedUrl && !isHistoryItem && !isCustomItem ? <div className="image-switcher"><button className={viewMode === 'source' ? 'is-active' : ''} onClick={() => setViewMode('source')}>{t('detail.source')}</button><button className={viewMode === 'generated' ? 'is-active' : ''} onClick={() => setViewMode('generated')}>{t('detail.generated')}</button></div> : null}
           {generationState === 'loading' ? <div className="generation-overlay"><LoaderCircle size={23} className="spin" /><span>{t('detail.loading')}</span></div> : null}
         </div>

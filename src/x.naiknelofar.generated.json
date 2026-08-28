@@ -1,0 +1,43 @@
+[
+  {
+    "id": "x-naiknelofar-travel-sketchbook",
+    "title": "城市旅行速写 / 单色点缀",
+    "category": "illustration",
+    "image": "https://pbs.twimg.com/media/HQuksBxbwAAoyMj.jpg?name=orig",
+    "images": [
+      {
+        "url": "https://pbs.twimg.com/media/HQuksBxbwAAoyMj.jpg?name=orig",
+        "width": 1122,
+        "height": 1402
+      },
+      {
+        "url": "https://pbs.twimg.com/media/HQuksBsbAAAoN2b.jpg?name=orig",
+        "width": 1024,
+        "height": 1536
+      },
+      {
+        "url": "https://pbs.twimg.com/media/HQuksB4agAE5Fkk.jpg?name=orig",
+        "width": 1122,
+        "height": 1402
+      }
+    ],
+    "ratio": "portrait",
+    "author": "@Naiknelofar788",
+    "sourceLabel": "X",
+    "source": "https://x.com/Naiknelofar788/status/2092947541184946234",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/Naiknelofar788/status/2092947541184946234"
+      }
+    ],
+    "prompt": "Spontaneous hand-drawn travel sketchbook page of [CITY], created with loose black ink lines, uneven handwritten labels, small doodles, crossed-out marks, arrows, tiny maps, local foods, transportation, architecture and one iconic landmark. Mostly white space with only [ACCENT COLOR] used selectively. Playful, artistic, imperfect, authentic, contemporary travel-journal aesthetic.",
+    "createdAt": "2026-08-27T12:09:13.000Z",
+    "likes": 111,
+    "retweets": 14,
+    "views": 2709,
+    "featured": false,
+    "width": 1122,
+    "height": 1402
+  }
+]

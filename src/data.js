@@ -579,16 +579,38 @@ const LOCAL_IMAGE_DIMENSIONS = {
   '/images/synth-moon-crew-grid.png': { width: 1024, height: 1024 },
 }
 
+function normalizeImageEntries(item) {
+  const candidates = Array.isArray(item.images) ? item.images : item.image ? [item.image] : []
+  return candidates
+    .map((entry) => {
+      if (typeof entry === 'string') return { url: entry }
+      if (!entry || typeof entry !== 'object') return null
+      const url = entry.url || entry.src || entry.image
+      if (!url) return null
+      return {
+        url,
+        width: Number(entry.width) || undefined,
+        height: Number(entry.height) || undefined,
+      }
+    })
+    .filter(Boolean)
+}
+
 function preparePrompts(items) {
   return items.map((item, index) => {
     const rawPrompt = item.prompt ?? ''
     const normalized = normalizePrompt(rawPrompt)
-    const localDim = LOCAL_IMAGE_DIMENSIONS[item.image]
-    const width = item.width || localDim?.width
-    const height = item.height || localDim?.height
+    const imageEntries = normalizeImageEntries(item)
+    const coverImage = item.image || imageEntries[0]?.url || ''
+    const coverEntry = imageEntries.find((entry) => entry.url === coverImage) || imageEntries[0]
+    const localDim = LOCAL_IMAGE_DIMENSIONS[coverImage]
+    const width = item.width || coverEntry?.width || localDim?.width
+    const height = item.height || coverEntry?.height || localDim?.height
     const parsedCreatedAt = item.createdAt ? Date.parse(item.createdAt) : NaN
     return {
       ...item,
+      image: coverImage,
+      images: imageEntries.length > 1 ? imageEntries : undefined,
       width,
       height,
       prompt: normalized.text,
@@ -609,8 +631,10 @@ export function loadPromptCatalog() {
       import('./cases.generated.json').then((module) => module.default),
       import('./zhidawang.generated.json').then((module) => module.default),
       import('./x.hot.generated.json').then((module) => module.default),
-    ]).then(([generatedCases, zhidawangCases, hotXCases]) => (
-      preparePrompts([...featuredPrompts, ...generatedCases, ...zhidawangCases, ...hotXCases])
+      import('./x.sairah.generated.json').then((module) => module.default),
+      import('./x.naiknelofar.generated.json').then((module) => module.default),
+    ]).then(([generatedCases, zhidawangCases, hotXCases, sairahCases, naiknelofarCases]) => (
+      preparePrompts([...featuredPrompts, ...generatedCases, ...zhidawangCases, ...hotXCases, ...sairahCases, ...naiknelofarCases])
     ))
   }
   return promptCatalogPromise

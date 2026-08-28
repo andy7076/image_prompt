@@ -264,6 +264,11 @@ footer a:hover { color: var(--signal); }
 .detail-image-trigger img { display: block; max-height: calc(100vh - 118px); max-width: 100%; object-fit: contain; box-shadow: 0 24px 80px rgba(0,0,0,.42); }
 .detail-image-trigger > span { position: absolute; right: 12px; bottom: 12px; padding: 8px 10px; color: #0a0a0a; background: var(--signal); font-family: "SFMono-Regular", Consolas, monospace; font-size: 8px; font-weight: 800; opacity: 0; transform: translateY(6px); transition: opacity 180ms ease, transform 180ms ease; }
 .detail-image-trigger:hover > span, .detail-image-trigger:focus-visible > span { opacity: 1; transform: translateY(0); }
+.source-image-nav { position: absolute; z-index: 3; top: 50%; width: 42px; height: 42px; border: 1px solid rgba(210, 210, 200, .45); background: rgba(10, 10, 10, .72); color: #f1f1e9; transform: translateY(-50%); }
+.source-image-nav:hover { border-color: var(--signal); background: rgba(10, 10, 10, .9); color: var(--signal); }
+.source-image-nav-prev { left: 18px; }
+.source-image-nav-next { right: 18px; }
+.source-image-count { position: absolute; z-index: 3; top: 18px; left: 20px; padding: 8px 10px; border: 1px solid rgba(210, 210, 200, .34); background: rgba(10, 10, 10, .72); color: #e4e4dc; font-family: "SFMono-Regular", Consolas, monospace; font-size: 9px; letter-spacing: .04em; }
 .custom-media-empty { position: relative; z-index: 1; display: grid; justify-items: center; gap: 15px; color: #777771; text-align: center; font-family: "SFMono-Regular", Consolas, monospace; font-size: 9px; }
 .custom-media-empty svg { color: var(--signal); }
 .detail-media-index { position: absolute; z-index: 2; left: 18px; bottom: 15px; color: #666660; font-family: "SFMono-Regular", Consolas, monospace; font-size: 8px; writing-mode: vertical-rl; }
