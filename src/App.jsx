@@ -1,4 +1,6 @@
 import { createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import geminiIconUrl from '@lobehub/icons-static-svg/icons/gemini-color.svg'
+import openAIIconUrl from '@lobehub/icons-static-svg/icons/openai.svg'
 import {
   ArrowLeft,
   ArrowRight,
@@ -50,6 +52,7 @@ const MAX_GENERATION_HISTORY = 30
 const GALLERY_PAGE_SIZE = 48
 const MAX_REFERENCE_IMAGES = 8
 const PROMPT_QUERY_KEY = 'prompt'
+const CHATGPT_DIRECT_PROMPT_LIMIT = 1500
 const DEFAULT_API_CONFIG = {
   protocol: 'images',
   endpoint: '',
@@ -213,7 +216,19 @@ const TRANSLATIONS = {
     'detail.referenceAlt': 'Reference image preview',
     'detail.copy': 'Copy prompt',
     'detail.share': 'Copy case link',
-    'detail.generate': 'Generate',
+    'detail.openChatGPT': 'Use in ChatGPT',
+    'detail.openGemini': 'Use in Gemini',
+    'detail.externalConfirmEyebrow': 'EXTERNAL APP',
+    'detail.externalDirectTitle': 'Open this prompt in ChatGPT?',
+    'detail.externalDirectCopy': 'This short prompt will be included in the ChatGPT link and opened in a new tab. Clipboard access is not required; the prompt is sent to ChatGPT when the tab opens.',
+    'detail.externalCopyTitle': 'Copy prompt & open {{platform}}?',
+    'detail.externalCopyCopy': 'The current prompt will be copied before {{platform}} opens in a new tab. Your browser may request clipboard permission. Paste it manually after opening; it is not sent to the platform until you do.',
+    'detail.externalCancel': 'Cancel',
+    'detail.externalDirectConfirm': 'Open ChatGPT',
+    'detail.externalCopyConfirm': 'Copy & open {{platform}}',
+    'detail.externalDirectMode': 'DIRECT LINK',
+    'detail.externalCopyMode': 'CLIPBOARD + NEW TAB',
+    'detail.generate': 'Generate with model',
     'detail.imageEngine': 'IMAGE MODEL',
     'detail.outputSettings': 'OUTPUT SETTINGS',
     'detail.size': 'SIZE',
@@ -228,12 +243,13 @@ const TRANSLATIONS = {
     'detail.confirmEyebrow': 'READY TO RENDER',
     'detail.confirmTitle': 'Generate this image?',
     'detail.confirmCopy': 'After confirmation, this edited prompt will be sent with the selected model and reference images.',
+    'detail.customConfirmCopy': 'The current prompt, reference images, model, and output settings are ready. Confirm to start generation.',
     'detail.confirmPrompt': 'PROMPT · EDIT AGAIN BEFORE GENERATING',
     'detail.confirmPreview': 'Click thumbnail to enlarge',
     'detail.confirmAttached': 'ATTACHED',
     'detail.confirmNone': 'NONE',
     'detail.confirmCancel': 'Cancel',
-    'detail.confirmSubmit': 'Confirm generation',
+    'detail.confirmSubmit': 'Generate',
     'detail.cancelGeneration': 'Cancel generation',
     'detail.preview': 'Image preview',
     'custom.eyebrow': 'CUSTOM STUDIO',
@@ -251,6 +267,9 @@ const TRANSLATIONS = {
     'errors.promptRequired': 'Enter a prompt before generating.',
     'toast.copied': 'Prompt copied to clipboard',
     'toast.linkCopied': 'Case link copied to clipboard',
+    'toast.promptCopiedForChatGPT': 'Prompt copied · paste it in ChatGPT',
+    'toast.promptCopiedForGemini': 'Prompt copied · paste it in Gemini',
+    'toast.promptCopyFailed': 'Could not copy the prompt · allow clipboard access and try again',
     'toast.settingsSaved': 'Image model settings saved',
     'footer': 'OPEN PROMPTS · REAL OUTPUTS · 2026',
   },
@@ -369,7 +388,19 @@ const TRANSLATIONS = {
     'detail.referenceAlt': '待上传的参考图',
     'detail.copy': '复制 Prompt',
     'detail.share': '复制案例链接',
-    'detail.generate': '生成',
+    'detail.openChatGPT': '在 ChatGPT 中使用',
+    'detail.openGemini': '在 Gemini 中使用',
+    'detail.externalConfirmEyebrow': '外部应用',
+    'detail.externalDirectTitle': '在 ChatGPT 中打开这个 Prompt？',
+    'detail.externalDirectCopy': '这个短 Prompt 会直接附加在 ChatGPT 跳转链接中，并在新标签页打开；不会访问剪贴板。打开链接时，Prompt 将发送给 ChatGPT。',
+    'detail.externalCopyTitle': '复制 Prompt 并打开 {{platform}}？',
+    'detail.externalCopyCopy': '确认后会先复制当前 Prompt，再在新标签页打开 {{platform}}。浏览器可能会请求剪贴板权限；打开后请手动粘贴，粘贴前不会发送给平台。',
+    'detail.externalCancel': '取消',
+    'detail.externalDirectConfirm': '打开 ChatGPT',
+    'detail.externalCopyConfirm': '复制并打开 {{platform}}',
+    'detail.externalDirectMode': '直接链接',
+    'detail.externalCopyMode': '剪贴板 + 新标签页',
+    'detail.generate': '使用模型生成',
     'detail.imageEngine': '图片模型',
     'detail.outputSettings': '本次生成参数',
     'detail.size': '尺寸',
@@ -384,12 +415,13 @@ const TRANSLATIONS = {
     'detail.confirmEyebrow': 'READY TO RENDER',
     'detail.confirmTitle': '确认生成这张图片？',
     'detail.confirmCopy': '确认后将使用所选模型和参考图发送当前编辑后的 Prompt。',
+    'detail.customConfirmCopy': '当前 Prompt、参考图片、模型和本次生成参数已准备完成，确认后将开始生成。',
     'detail.confirmPrompt': 'PROMPT · 可在这里二次编辑',
     'detail.confirmPreview': '点击缩略图放大预览',
     'detail.confirmAttached': '已附加',
     'detail.confirmNone': '无',
     'detail.confirmCancel': '取消',
-    'detail.confirmSubmit': '确认生成',
+    'detail.confirmSubmit': '生成',
     'detail.cancelGeneration': '取消生成',
     'detail.preview': '图片预览',
     'custom.eyebrow': '自由创作',
@@ -407,6 +439,9 @@ const TRANSLATIONS = {
     'errors.promptRequired': '请先填写 Prompt 再生成。',
     'toast.copied': 'Prompt 已复制到剪贴板',
     'toast.linkCopied': '案例链接已复制',
+    'toast.promptCopiedForChatGPT': 'Prompt 已复制，请粘贴到 ChatGPT',
+    'toast.promptCopiedForGemini': 'Prompt 已复制，请粘贴到 Gemini',
+    'toast.promptCopyFailed': 'Prompt 复制失败，请允许剪贴板权限后重试',
     'toast.settingsSaved': '图片模型配置已保存',
     'footer': 'OPEN PROMPTS · REAL OUTPUTS · 2026',
   },
@@ -1396,7 +1431,7 @@ function EmptyState({ showFavorites, clearFilters }) {
   )
 }
 
-function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCopy, onCopyLink, config, profiles, onSelectConfig, onOpenSettings, onGenerationComplete }) {
+function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCopy, onCopyLink, onOpenExternalPrompt, config, profiles, onSelectConfig, onOpenSettings, onGenerationComplete }) {
   const isHistoryItem = item.kind === 'generation-history'
   const isCustomItem = item.kind === 'custom-generation'
   const { language, t } = useLanguage()
@@ -1409,12 +1444,14 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
   const [generationSetupOpen, setGenerationSetupOpen] = useState(false)
   const [generationOptions, setGenerationOptions] = useState(() => ({ size: config.size, quality: config.quality }))
   const [referenceImages, setReferenceImages] = useState([])
+  const [externalPromptTarget, setExternalPromptTarget] = useState(null)
   const [zoomedImage, setZoomedImage] = useState(null)
   const [templateValues, setTemplateValues] = useState(() => createTemplateValues(item.promptVariables))
   const referenceImagesRef = useRef([])
   const appliedTemplateValuesRef = useRef({})
   const detailDialogRef = useDialogFocus(true, onClose)
   const setupDialogRef = useDialogFocus(generationSetupOpen, () => setGenerationSetupOpen(false))
+  const externalDialogRef = useDialogFocus(Boolean(externalPromptTarget), () => setExternalPromptTarget(null))
   const lightboxDialogRef = useDialogFocus(Boolean(zoomedImage), () => setZoomedImage(null))
 
   useEffect(() => {
@@ -1430,6 +1467,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
       current.forEach((reference) => URL.revokeObjectURL(reference.preview))
       return []
     })
+    setExternalPromptTarget(null)
     setZoomedImage(null)
     setTemplateValues(createTemplateValues(item.promptVariables))
     appliedTemplateValuesRef.current = {}
@@ -1531,8 +1569,30 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
       return
     }
     setGenerationError('')
-    setGenerationOptions({ size: config.size, quality: config.quality })
+    if (!isCustomItem) setGenerationOptions({ size: config.size, quality: config.quality })
     setGenerationSetupOpen(true)
+  }
+
+  const requestExternalPrompt = (platform) => {
+    // Resolve the latest variable inputs for external handoff without mutating
+    // the editable prompt shown in the detail panel.
+    const prompt = applyPromptVariables(promptText, templateVariables, templateValues, appliedTemplateValuesRef.current).trim()
+    if (!prompt) {
+      setGenerationError(t('errors.promptRequired'))
+      setGenerationState('error')
+      return
+    }
+    setExternalPromptTarget({
+      platform,
+      prompt,
+      mode: platform === 'chatgpt' && prompt.length <= CHATGPT_DIRECT_PROMPT_LIMIT ? 'direct' : 'copy',
+    })
+  }
+
+  const confirmExternalPrompt = () => {
+    if (!externalPromptTarget) return
+    onOpenExternalPrompt(externalPromptTarget.platform, externalPromptTarget.prompt)
+    setExternalPromptTarget(null)
   }
 
   const selectGenerationProfile = (id) => {
@@ -1603,7 +1663,16 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     <div ref={detailDialogRef} className="detail-backdrop" role="dialog" aria-modal="true" aria-label={t('gallery.viewDetails', { title: item.title })} data-dialog-layer="true" tabIndex={-1}>
       <div className="detail-topbar">
         <button onClick={onClose}><X size={19} /> {t('detail.close')}</button>
-        {isCustomItem ? <span className="detail-history-label"><Sparkles size={14} />{t('custom.topbar')}</span> : !isHistoryItem ? <div>
+        {isCustomItem ? <span className="detail-history-label"><Sparkles size={14} />{t('custom.topbar')}</span> : !isHistoryItem ? <div className="detail-topbar-actions">
+          <IconButton
+            label={favorite ? t('actions.unfavorite') : t('actions.favorite')}
+            className={favorite ? 'detail-topbar-favorite is-active' : 'detail-topbar-favorite'}
+            onClick={() => onFavorite(item.id)}
+          >
+            <Heart size={18} fill={favorite ? 'currentColor' : 'none'} />
+          </IconButton>
+          <IconButton label={t('detail.share')} className="detail-topbar-share" onClick={onCopyLink}><Share2 size={18} /></IconButton>
+          <span className="detail-topbar-divider" aria-hidden="true" />
           <IconButton label={t('actions.previous')} onClick={onPrev}><ArrowLeft size={19} /></IconButton>
           <IconButton label={t('actions.next')} onClick={onNext}><ArrowRight size={19} /></IconButton>
         </div> : <span className="detail-history-label"><History size={14} /> GENERATED HISTORY</span>}
@@ -1665,6 +1734,23 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             <button onClick={() => onCopy(item.rawPrompt)}><Copy size={14} />{t('detail.copyOriginal')}</button>
           </details> : null}
 
+          {isCustomItem ? <div className="custom-generation-controls">
+            <div className="generation-setup-reference">
+              <div className="reference-upload-heading"><span>{t('detail.reference')}</span><span>{referenceImages.length ? t('detail.referenceCount', { count: referenceImages.length }) : t('detail.optional')}</span></div>
+              {referenceImages.length ? <div className="reference-preview-grid">{referenceImages.map((reference) => <div className="reference-preview" key={reference.id}><button className="reference-preview-image" onClick={() => setZoomedImage({ src: reference.preview, alt: reference.file.name })} aria-label={`${t('detail.expand')} · ${reference.file.name}`}><img src={reference.preview} alt={reference.file.name} /></button><span title={reference.file.name}>{reference.file.name}</span><IconButton label={`${t('detail.referenceRemove')} · ${reference.file.name}`} onClick={() => removeReference(reference.id)}><X size={14} /></IconButton></div>)}</div> : null}
+              {referenceImages.length < MAX_REFERENCE_IMAGES ? <label className="upload-reference"><Upload size={17} /><span>{referenceImages.length ? t('detail.referenceAdd') : t('detail.referenceUpload')}</span><small>{t('detail.referenceHint')}</small><input type="file" multiple accept="image/png,image/jpeg,image/webp" onChange={handleReferenceChange} /></label> : null}
+            </div>
+            <div className="generation-setup-model">
+              <div className="generation-setup-label"><span>{t('detail.imageEngine')}</span><button onClick={onOpenSettings}><Settings2 size={14} />{t('detail.editModels')}</button></div>
+              <label><select value={config.id} onChange={(event) => selectGenerationProfile(event.target.value)}>{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name} · {profile.model || t('settings.notConfigured')}</option>)}</select><ChevronDown size={15} aria-hidden="true" /></label>
+              <div className={`generation-output-settings ${config.protocol === 'generate-content' ? 'is-single' : ''}`}>
+                <span>{t('detail.outputSettings')}</span>
+                <label className="generation-option"><span>{t('detail.size')}</span><span><select value={generationOptions.size} onChange={(event) => setGenerationOptions((current) => ({ ...current, size: event.target.value }))}><option value="auto">auto</option><option value="1024x1024">1024x1024 (1:1)</option><option value="1536x1024">1536x1024 (3:2)</option><option value="1024x1536">1024x1536 (2:3)</option><option value="1792x1024">1792x1024 (16:9)</option><option value="1024x1792">1024x1792 (9:16)</option></select><ChevronDown size={15} aria-hidden="true" /></span></label>
+                {config.protocol === 'images' ? <label className="generation-option"><span>{t('detail.quality')}</span><span><select value={generationOptions.quality} onChange={(event) => setGenerationOptions((current) => ({ ...current, quality: event.target.value }))}><option value="auto">auto</option><option value="low">low</option><option value="medium">medium</option><option value="high">high</option><option value="standard">standard</option><option value="hd">hd</option></select><ChevronDown size={15} aria-hidden="true" /></span></label> : null}
+              </div>
+            </div>
+          </div> : null}
+
           <div className={`detail-actions ${isCustomItem ? 'is-custom' : ''}`}>
             {!isCustomItem ? <button className="copy-button" onClick={() => onCopy(promptText)}>
               <Copy size={18} /> {t('detail.copy')}
@@ -1672,14 +1758,14 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             <button className="generate-button" onClick={requestGeneration} disabled={generationState === 'loading' || generationState === 'preparing'}>
               {generationState === 'loading' || generationState === 'preparing' ? <LoaderCircle size={18} className="spin" /> : <Sparkles size={18} />} {t('detail.generate')}
             </button>
-            {!isHistoryItem && !isCustomItem ? <IconButton
-              label={favorite ? t('actions.unfavorite') : t('actions.favorite')}
-              className={favorite ? 'detail-favorite is-active' : 'detail-favorite'}
-              onClick={() => onFavorite(item.id)}
-            >
-              <Heart size={20} fill={favorite ? 'currentColor' : 'none'} />
-            </IconButton> : null}
-            {!isHistoryItem && !isCustomItem ? <IconButton label={t('detail.share')} className="detail-share" onClick={onCopyLink}><Share2 size={19} /></IconButton> : null}
+            {!isHistoryItem && !isCustomItem ? <div className="detail-external-actions">
+              <button className="external-prompt-button" aria-label={t('detail.openChatGPT')} title={t('detail.openChatGPT')} onClick={() => requestExternalPrompt('chatgpt')}>
+                <img className="external-brand-icon is-openai" src={openAIIconUrl} alt="" />
+              </button>
+              <button className="external-prompt-button is-gemini" aria-label={t('detail.openGemini')} title={t('detail.openGemini')} onClick={() => requestExternalPrompt('gemini')}>
+                <img className="external-brand-icon is-gemini" src={geminiIconUrl} alt="" />
+              </button>
+            </div> : null}
           </div>
 
           {generationState === 'error' ? <div className="generation-error" role="alert">{generationError}<button onClick={onOpenSettings}><Settings2 size={14} />{t('detail.checkSettings')}</button></div> : null}
@@ -1695,9 +1781,12 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
       </div>
       {generationSetupOpen ? (
         <div ref={setupDialogRef} className="generation-confirm-backdrop" role="dialog" aria-modal="true" aria-label={t('detail.confirmTitle')} data-dialog-layer="true" tabIndex={-1}>
-          <div className="generation-confirm generation-setup">
-            <div className="generation-confirm-heading"><span>{t('detail.confirmEyebrow')}</span><IconButton label={t('detail.cancelGeneration')} onClick={() => setGenerationSetupOpen(false)}><X size={17} /></IconButton></div>
-            <h3>{t('detail.confirmTitle')}</h3>
+          {isCustomItem ? <div className="generation-confirm generation-confirm-compact">
+            <div className="generation-confirm-heading"><div className="generation-confirm-heading-copy"><span>{t('detail.confirmEyebrow')}</span><h3>{t('detail.confirmTitle')}</h3></div><IconButton label={t('detail.cancelGeneration')} onClick={() => setGenerationSetupOpen(false)}><X size={17} /></IconButton></div>
+            <p>{t('detail.customConfirmCopy')}</p>
+            <div className="generation-confirm-actions"><button className="confirm-cancel" onClick={() => setGenerationSetupOpen(false)}>{t('detail.confirmCancel')}</button><button className="confirm-submit" onClick={confirmGeneration}><Sparkles size={17} />{t('detail.confirmSubmit')}</button></div>
+          </div> : <div className="generation-confirm generation-setup">
+            <div className="generation-confirm-heading"><div className="generation-confirm-heading-copy"><span>{t('detail.confirmEyebrow')}</span><h3>{t('detail.confirmTitle')}</h3></div><IconButton label={t('detail.cancelGeneration')} onClick={() => setGenerationSetupOpen(false)}><X size={17} /></IconButton></div>
             <p>{t('detail.confirmCopy')}</p>
             <label className="confirm-prompt-field"><span>{t('detail.confirmPrompt')}</span><textarea value={promptText} onChange={(event) => setPromptText(event.target.value)} /></label>
             <div className="generation-setup-reference">
@@ -1715,6 +1804,33 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
               </div>
             </div>
             <div className="generation-confirm-actions"><button className="confirm-cancel" onClick={() => setGenerationSetupOpen(false)}>{t('detail.confirmCancel')}</button><button className="confirm-submit" onClick={confirmGeneration}><Sparkles size={17} />{t('detail.confirmSubmit')}</button></div>
+          </div>}
+        </div>
+      ) : null}
+      {externalPromptTarget ? (
+        <div ref={externalDialogRef} className="external-confirm-backdrop" role="dialog" aria-modal="true" aria-label={externalPromptTarget.mode === 'direct' ? t('detail.externalDirectTitle') : t('detail.externalCopyTitle', { platform: externalPromptTarget.platform === 'gemini' ? 'Gemini' : 'ChatGPT' })} data-dialog-layer="true" tabIndex={-1}>
+          <div className={`external-confirm ${externalPromptTarget.platform === 'gemini' ? 'is-gemini' : 'is-chatgpt'}`}>
+            <div className="external-confirm-brand" aria-hidden="true">
+              <img className={externalPromptTarget.platform === 'gemini' ? 'is-gemini' : 'is-openai'} src={externalPromptTarget.platform === 'gemini' ? geminiIconUrl : openAIIconUrl} alt="" />
+            </div>
+            <span>{t('detail.externalConfirmEyebrow')}</span>
+            <h3>{externalPromptTarget.mode === 'direct'
+              ? t('detail.externalDirectTitle')
+              : t('detail.externalCopyTitle', { platform: externalPromptTarget.platform === 'gemini' ? 'Gemini' : 'ChatGPT' })}</h3>
+            <p>{externalPromptTarget.mode === 'direct'
+              ? t('detail.externalDirectCopy')
+              : t('detail.externalCopyCopy', { platform: externalPromptTarget.platform === 'gemini' ? 'Gemini' : 'ChatGPT' })}</p>
+            <div className="external-confirm-meta"><span>{externalPromptTarget.prompt.length} {t('detail.chars')}</span><span>{t(externalPromptTarget.mode === 'direct' ? 'detail.externalDirectMode' : 'detail.externalCopyMode')}</span></div>
+            <div className="external-confirm-actions">
+              <button onClick={() => setExternalPromptTarget(null)}>{t('detail.externalCancel')}</button>
+              <button className="external-confirm-submit" onClick={confirmExternalPrompt}>
+                <img className={`external-brand-icon ${externalPromptTarget.platform === 'gemini' ? 'is-gemini' : 'is-openai'}`} src={externalPromptTarget.platform === 'gemini' ? geminiIconUrl : openAIIconUrl} alt="" />
+                {externalPromptTarget.mode === 'direct'
+                  ? t('detail.externalDirectConfirm')
+                  : t('detail.externalCopyConfirm', { platform: externalPromptTarget.platform === 'gemini' ? 'Gemini' : 'ChatGPT' })}
+                <ArrowUpRight size={15} />
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
@@ -1934,32 +2050,66 @@ function AppContent() {
     toastTimerRef.current = window.setTimeout(() => setToast(''), 1800)
   }
 
-  const copyPrompt = async (prompt) => {
+  const copyTextSynchronously = (text) => {
     try {
-      await navigator.clipboard.writeText(prompt)
-    } catch {
       const helper = document.createElement('textarea')
-      helper.value = prompt
+      helper.value = text
+      helper.setAttribute('readonly', '')
+      helper.style.position = 'fixed'
+      helper.style.top = '0'
+      helper.style.left = '-9999px'
+      helper.style.opacity = '0'
       document.body.appendChild(helper)
       helper.select()
-      document.execCommand('copy')
+      const copied = document.execCommand('copy')
       helper.remove()
+      return copied
+    } catch {
+      return false
     }
-    showToast(t('toast.copied'))
+  }
+
+  const writeClipboard = async (text) => {
+    // Keep the first copy attempt synchronous so opening another tab cannot
+    // consume the click's user activation before the prompt is written.
+    if (copyTextSynchronously(text)) return true
+    try {
+      await navigator.clipboard.writeText(text)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  const copyPrompt = async (prompt) => {
+    const copied = await writeClipboard(prompt)
+    showToast(copied ? t('toast.copied') : t('toast.promptCopyFailed'))
   }
 
   const copyPromptLink = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href)
-    } catch {
-      const helper = document.createElement('textarea')
-      helper.value = window.location.href
-      document.body.appendChild(helper)
-      helper.select()
-      document.execCommand('copy')
-      helper.remove()
+    const copied = await writeClipboard(window.location.href)
+    showToast(copied ? t('toast.linkCopied') : t('toast.promptCopyFailed'))
+  }
+
+  const openExternalPrompt = (platform, prompt) => {
+    const trimmedPrompt = prompt.trim()
+    if (!trimmedPrompt) return
+
+    if (platform === 'chatgpt' && trimmedPrompt.length <= CHATGPT_DIRECT_PROMPT_LIMIT) {
+      window.open(`https://chatgpt.com/?q=${encodeURIComponent(trimmedPrompt)}`, '_blank', 'noopener,noreferrer')
+      return
     }
-    showToast(t('toast.linkCopied'))
+
+    const destination = platform === 'gemini' ? 'https://gemini.google.com/app' : 'https://chatgpt.com/'
+    // Start the clipboard write while the click still has user activation,
+    // then open the destination without racing the copy operation.
+    const copyPromise = writeClipboard(trimmedPrompt)
+    window.open(destination, '_blank', 'noopener,noreferrer')
+    void copyPromise.then((copied) => {
+      showToast(copied
+        ? t(platform === 'gemini' ? 'toast.promptCopiedForGemini' : 'toast.promptCopiedForChatGPT')
+        : t('toast.promptCopyFailed'))
+    })
   }
 
   const clearFilters = () => {
@@ -2153,6 +2303,7 @@ function AppContent() {
           onNext={() => {}}
           onCopy={copyPrompt}
           onCopyLink={() => {}}
+          onOpenExternalPrompt={openExternalPrompt}
           config={apiConfig}
           profiles={apiConfigStore.profiles}
           onSelectConfig={(id) => selectApiProfile(id, true)}
@@ -2169,6 +2320,7 @@ function AppContent() {
           onNext={() => navigateDetail(1)}
           onCopy={copyPrompt}
           onCopyLink={copyPromptLink}
+          onOpenExternalPrompt={openExternalPrompt}
           config={apiConfig}
           profiles={apiConfigStore.profiles}
           onSelectConfig={(id) => selectApiProfile(id, true)}

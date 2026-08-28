@@ -13,6 +13,7 @@
     "check": "npm run validate:data && npm run build"
   },
   "dependencies": {
+    "@lobehub/icons-static-svg": "^1.94.0",
     "lucide-react": "1.34.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
