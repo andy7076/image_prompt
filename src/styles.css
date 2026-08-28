@@ -463,6 +463,13 @@ footer a:hover { color: var(--signal); }
 .generation-setup-model select { width: 100%; height: 42px; appearance: none; border: 1px solid #3b3b36; padding: 0 36px 0 11px; outline: 0; color: #d0d0c8; background: #0b0b0b; font-size: 11px; font-weight: 700; }
 .generation-setup-model select:focus { border-color: var(--signal); }
 .generation-setup-model label svg { position: absolute; top: 13px; right: 11px; color: #777770; pointer-events: none; }
+.generation-output-settings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.generation-output-settings.is-single { grid-template-columns: 1fr; }
+.generation-output-settings > span { grid-column: 1 / -1; color: #7f7f78; font-family: "SFMono-Regular", Consolas, monospace; font-size: 9px; }
+.generation-option { min-width: 0; }
+.generation-option > span:first-child { display: block; margin-bottom: 7px; color: #85857e; font-family: "SFMono-Regular", Consolas, monospace; font-size: 8px; }
+.generation-option > span:last-child { position: relative; display: block; }
+.generation-option > span:last-child svg { position: absolute; top: 13px; right: 11px; color: #777770; pointer-events: none; }
 .generation-setup-reference { margin-top: 18px; }
 .confirm-prompt-preview { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
 .confirm-prompt-preview > span { display: block; margin-bottom: 8px; color: #7f7f78; font-family: "SFMono-Regular", Consolas, monospace; font-size: 9px; }
@@ -607,6 +614,7 @@ footer a:hover { color: var(--signal); }
   .detail-actions .generate-button { order: 4; flex-basis: 100%; }
   .generation-confirm { padding: 22px 18px; }
   .generation-confirm h3 { font-size: 23px; }
+  .generation-output-settings { grid-template-columns: 1fr; }
   .generation-confirm-actions { display: grid; grid-template-columns: 1fr 1.5fr; }
   .confirm-cancel, .confirm-submit { width: 100%; }
   .image-lightbox { padding: 44px 14px; }
@@ -701,6 +709,8 @@ html[data-theme="light"] .generation-confirm-meta { color: #5c5c55; }
 html[data-theme="light"] .generation-confirm-meta b { color: #30302b; }
 html[data-theme="light"] .confirm-reference small { color: #55554f; }
 html[data-theme="light"] .generation-setup-label > span,
+html[data-theme="light"] .generation-output-settings > span,
+html[data-theme="light"] .generation-option > span:first-child,
 html[data-theme="light"] .confirm-prompt-preview > span { color: #5c5c55; }
 html[data-theme="light"] .generation-setup-label button { color: #4f4f48; }
 html[data-theme="light"] .generation-setup-label button:hover { color: #687600; }

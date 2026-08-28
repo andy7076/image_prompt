@@ -62,6 +62,7 @@ const DEFAULT_API_CONFIG = {
 const API_PROTOCOLS = new Set(['images', 'generate-content'])
 const API_SIZES = new Set(['auto', '1024x1024', '1536x1024', '1024x1536', '1792x1024', '1024x1792'])
 const API_QUALITIES = new Set(['auto', 'standard', 'hd', 'low', 'medium', 'high'])
+const REFERENCE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
 
 const PROMPT_STATUS_LABELS = {
   template: 'PROMPT FORMAT · EDITABLE TEMPLATE',
@@ -214,12 +215,16 @@ const TRANSLATIONS = {
     'detail.share': 'Copy case link',
     'detail.generate': 'Generate',
     'detail.imageEngine': 'IMAGE MODEL',
+    'detail.outputSettings': 'OUTPUT SETTINGS',
+    'detail.size': 'SIZE',
+    'detail.quality': 'QUALITY',
     'detail.editModels': 'Manage model configurations',
     'detail.checkSettings': 'Check settings',
     'detail.download': 'Download generated result',
     'detail.historyLabel': 'GENERATED HISTORY',
     'detail.historyMeta': '{{model}} · {{size}} · {{quality}}',
     'detail.loading': 'Rendering image…',
+    'detail.preparingImages': 'Optimizing reference images…',
     'detail.confirmEyebrow': 'READY TO RENDER',
     'detail.confirmTitle': 'Generate this image?',
     'detail.confirmCopy': 'After confirmation, this edited prompt will be sent with the selected model and reference images.',
@@ -242,6 +247,7 @@ const TRANSLATIONS = {
     'errors.invalidFile': 'Choose a PNG, JPEG, or WEBP image file.',
     'errors.tooManyFiles': 'You can attach up to {{max}} reference images.',
     'errors.fileRead': 'A reference image could not be read.',
+    'errors.imageOptimize': 'A reference image could not be losslessly optimized.',
     'errors.promptRequired': 'Enter a prompt before generating.',
     'toast.copied': 'Prompt copied to clipboard',
     'toast.linkCopied': 'Case link copied to clipboard',
@@ -365,12 +371,16 @@ const TRANSLATIONS = {
     'detail.share': '复制案例链接',
     'detail.generate': '生成',
     'detail.imageEngine': '图片模型',
+    'detail.outputSettings': '本次生成参数',
+    'detail.size': '尺寸',
+    'detail.quality': '质量',
     'detail.editModels': '管理模型配置',
     'detail.checkSettings': '检查配置',
     'detail.download': '下载生成结果',
     'detail.historyLabel': 'GENERATED HISTORY',
     'detail.historyMeta': '{{model}} · {{size}} · {{quality}}',
     'detail.loading': '正在生成图像…',
+    'detail.preparingImages': '正在无损压缩参考图片…',
     'detail.confirmEyebrow': 'READY TO RENDER',
     'detail.confirmTitle': '确认生成这张图片？',
     'detail.confirmCopy': '确认后将使用所选模型和参考图发送当前编辑后的 Prompt。',
@@ -393,6 +403,7 @@ const TRANSLATIONS = {
     'errors.invalidFile': '请选择 PNG、JPEG 或 WEBP 图片文件。',
     'errors.tooManyFiles': '最多可以附加 {{max}} 张参考图片。',
     'errors.fileRead': '无法读取其中一张参考图片。',
+    'errors.imageOptimize': '其中一张参考图片无法完成无损压缩。',
     'errors.promptRequired': '请先填写 Prompt 再生成。',
     'toast.copied': 'Prompt 已复制到剪贴板',
     'toast.linkCopied': '案例链接已复制',
@@ -635,6 +646,83 @@ function fileToBase64(file) {
   })
 }
 
+function canvasToPngBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob)
+      else reject(new Error('Could not losslessly optimize reference image'))
+    }, 'image/png')
+  })
+}
+
+async function decodeReferenceImage(file) {
+  if (typeof createImageBitmap === 'function') {
+    let bitmap
+    try {
+      bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
+    } catch {
+      bitmap = await createImageBitmap(file)
+    }
+    return {
+      width: bitmap.width,
+      height: bitmap.height,
+      draw: (context) => context.drawImage(bitmap, 0, 0),
+      close: () => bitmap.close(),
+    }
+  }
+
+  const objectUrl = URL.createObjectURL(file)
+  try {
+    const image = new Image()
+    image.decoding = 'async'
+    image.src = objectUrl
+    await image.decode()
+    return {
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+      draw: (context) => context.drawImage(image, 0, 0),
+      close: () => URL.revokeObjectURL(objectUrl),
+    }
+  } catch (error) {
+    URL.revokeObjectURL(objectUrl)
+    throw error
+  }
+}
+
+async function losslesslyOptimizeReferenceImage(file) {
+  let source
+  try {
+    source = await decodeReferenceImage(file)
+  } catch (error) {
+    throw new Error('Could not losslessly optimize reference image', { cause: error })
+  }
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = source.width
+    canvas.height = source.height
+    const context = canvas.getContext('2d', { alpha: true })
+    if (!context) throw new Error('Could not losslessly optimize reference image')
+    source.draw(context)
+
+    const optimizedBlob = await canvasToPngBlob(canvas)
+    if (optimizedBlob.size >= file.size) return file
+    const baseName = file.name.replace(/\.[^.]+$/, '') || 'reference-image'
+    return new File([optimizedBlob], `${baseName}.png`, {
+      type: 'image/png',
+      lastModified: file.lastModified,
+    })
+  } finally {
+    source.close()
+  }
+}
+
+async function losslesslyOptimizeReferenceImages(files) {
+  const optimized = []
+  // Process sequentially so several high-resolution references do not hold decoded bitmaps at once.
+  for (const file of files) optimized.push(await losslesslyOptimizeReferenceImage(file))
+  return optimized
+}
+
 function imageConfigForSize(size) {
   const aspectRatio = {
     '1024x1024': '1:1',
@@ -684,10 +772,8 @@ async function generateImageRequest({ config, prompt, referenceFiles, t, languag
     })
   } else {
     headers.Authorization = `Bearer ${config.apiKey.trim()}`
-    const resolvedSize = config.size === 'auto' ? '1024x1024' : config.size
-    const resolvedQuality = config.quality === 'auto'
-      ? undefined
-      : (config.quality === 'low' || config.quality === 'medium' ? 'standard' : (config.quality === 'high' ? 'hd' : config.quality))
+    const resolvedSize = config.size
+    const resolvedQuality = config.quality
 
     if (referenceFiles.length) {
       endpoint = endpoint.replace(/\/generations\/?$/, '/edits')
@@ -697,7 +783,7 @@ async function generateImageRequest({ config, prompt, referenceFiles, t, languag
       body.append('model', config.model.trim())
       body.append('prompt', prompt)
       body.append('size', resolvedSize)
-      if (resolvedQuality) body.append('quality', resolvedQuality)
+      body.append('quality', resolvedQuality)
       body.append('n', '1')
     } else {
       headers['Content-Type'] = 'application/json'
@@ -707,7 +793,7 @@ async function generateImageRequest({ config, prompt, referenceFiles, t, languag
         size: resolvedSize,
         n: 1,
       }
-      if (resolvedQuality) payloadData.quality = resolvedQuality
+      payloadData.quality = resolvedQuality
       body = JSON.stringify(payloadData)
     }
   }
@@ -1044,7 +1130,7 @@ function SettingsPanel({ config, profiles, activeId, onChange, onSelect, onAdd, 
           <label className="settings-field">
             <span>SIZE</span>
             <span className="settings-select-wrap"><select value={config.size} onChange={(e) => onChange({ size: e.target.value })}>
-              <option value="auto">auto (1024x1024)</option>
+              <option value="auto">auto</option>
               <option value="1024x1024">1024x1024 (1:1)</option>
               <option value="1536x1024">1536x1024 (3:2)</option>
               <option value="1024x1536">1024x1536 (2:3)</option>
@@ -1057,6 +1143,9 @@ function SettingsPanel({ config, profiles, activeId, onChange, onSelect, onAdd, 
               <span>QUALITY</span>
               <span className="settings-select-wrap"><select value={config.quality} onChange={(e) => onChange({ quality: e.target.value })}>
                 <option value="auto">auto</option>
+                <option value="low">low</option>
+                <option value="medium">medium</option>
+                <option value="high">high</option>
                 <option value="standard">standard</option>
                 <option value="hd">hd</option>
               </select><ChevronDown size={15} aria-hidden="true" /></span>
@@ -1318,6 +1407,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
   const [generationState, setGenerationState] = useState('idle')
   const [generationError, setGenerationError] = useState('')
   const [generationSetupOpen, setGenerationSetupOpen] = useState(false)
+  const [generationOptions, setGenerationOptions] = useState(() => ({ size: config.size, quality: config.quality }))
   const [referenceImages, setReferenceImages] = useState([])
   const [zoomedImage, setZoomedImage] = useState(null)
   const [templateValues, setTemplateValues] = useState(() => createTemplateValues(item.promptVariables))
@@ -1335,6 +1425,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     setGenerationState('idle')
     setGenerationError('')
     setGenerationSetupOpen(false)
+    setGenerationOptions({ size: config.size, quality: config.quality })
     setReferenceImages((current) => {
       current.forEach((reference) => URL.revokeObjectURL(reference.preview))
       return []
@@ -1389,13 +1480,17 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
       onOpenSettings()
       return
     }
-    setGenerationState('loading')
+    const requestConfig = { ...config, ...generationOptions }
+    const referenceFiles = referenceImages.map((reference) => reference.file)
+    setGenerationState(referenceFiles.length ? 'preparing' : 'loading')
     setGenerationError('')
     try {
+      const optimizedReferenceFiles = await losslesslyOptimizeReferenceImages(referenceFiles)
+      setGenerationState('loading')
       const url = await generateImageRequest({
-        config,
+        config: requestConfig,
         prompt: promptText,
-        referenceFiles: referenceImages.map((reference) => reference.file),
+        referenceFiles: optimizedReferenceFiles,
         t,
         language,
       })
@@ -1409,9 +1504,9 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
         category: item.category,
         prompt: promptText,
         image: url,
-        model: config.model.trim(),
-        size: config.size,
-        quality: config.quality,
+        model: requestConfig.model.trim(),
+        size: requestConfig.size,
+        quality: requestConfig.quality,
         createdAt: new Date().toISOString(),
         referenceName: referenceImages.map((reference) => reference.file.name).join(', '),
       })
@@ -1419,7 +1514,8 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
       const message = error?.message || (language === 'zh' ? '生成失败' : 'Generation failed')
       setGenerationError(message.includes('Failed to fetch')
         ? t('errors.fetch')
-        : message.includes('Could not read reference image') ? t('errors.fileRead') : message)
+        : message.includes('Could not read reference image') ? t('errors.fileRead')
+          : message.includes('losslessly optimize') ? t('errors.imageOptimize') : message)
       setGenerationState('error')
     }
   }
@@ -1435,7 +1531,15 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
       return
     }
     setGenerationError('')
+    setGenerationOptions({ size: config.size, quality: config.quality })
     setGenerationSetupOpen(true)
+  }
+
+  const selectGenerationProfile = (id) => {
+    const profile = profiles.find((candidate) => candidate.id === id)
+    if (!profile) return
+    onSelectConfig(id)
+    setGenerationOptions({ size: profile.size, quality: profile.quality })
   }
 
   const confirmGeneration = () => {
@@ -1456,7 +1560,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
     const files = [...(event.target.files || [])]
     event.target.value = ''
     if (!files.length) return
-    if (files.some((file) => !file.type.startsWith('image/'))) {
+    if (files.some((file) => !REFERENCE_IMAGE_TYPES.has(file.type))) {
       setGenerationError(t('errors.invalidFile'))
       setGenerationState('error')
       return
@@ -1511,7 +1615,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
               <img src={displayImage} alt={viewMode === 'generated' ? t('history.resultAlt', { title: item.title }) : item.title} />
               <span>{t('detail.expand')}</span>
             </button>
-          ) : generationState !== 'loading' ? (
+          ) : generationState !== 'loading' && generationState !== 'preparing' ? (
             <div className="custom-media-empty">
               <Sparkles size={31} />
               <span>{t('custom.mediaEmpty')}</span>
@@ -1526,7 +1630,7 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             </>
           ) : null}
           {generatedUrl && !isHistoryItem && !isCustomItem ? <div className="image-switcher"><button className={viewMode === 'source' ? 'is-active' : ''} onClick={() => setViewMode('source')}>{t('detail.source')}</button><button className={viewMode === 'generated' ? 'is-active' : ''} onClick={() => setViewMode('generated')}>{t('detail.generated')}</button></div> : null}
-          {generationState === 'loading' ? <div className="generation-overlay"><LoaderCircle size={23} className="spin" /><span>{t('detail.loading')}</span></div> : null}
+          {generationState === 'loading' || generationState === 'preparing' ? <div className="generation-overlay"><LoaderCircle size={23} className="spin" /><span>{t(generationState === 'preparing' ? 'detail.preparingImages' : 'detail.loading')}</span></div> : null}
         </div>
         <div className="detail-panel">
           <div className="detail-heading">
@@ -1565,8 +1669,8 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             {!isCustomItem ? <button className="copy-button" onClick={() => onCopy(promptText)}>
               <Copy size={18} /> {t('detail.copy')}
             </button> : null}
-            <button className="generate-button" onClick={requestGeneration} disabled={generationState === 'loading'}>
-              {generationState === 'loading' ? <LoaderCircle size={18} className="spin" /> : <Sparkles size={18} />} {t('detail.generate')}
+            <button className="generate-button" onClick={requestGeneration} disabled={generationState === 'loading' || generationState === 'preparing'}>
+              {generationState === 'loading' || generationState === 'preparing' ? <LoaderCircle size={18} className="spin" /> : <Sparkles size={18} />} {t('detail.generate')}
             </button>
             {!isHistoryItem && !isCustomItem ? <IconButton
               label={favorite ? t('actions.unfavorite') : t('actions.favorite')}
@@ -1603,7 +1707,12 @@ function DetailView({ item, favorite, onFavorite, onClose, onPrev, onNext, onCop
             </div>
             <div className="generation-setup-model">
               <div className="generation-setup-label"><span>{t('detail.imageEngine')}</span><button onClick={() => { setGenerationSetupOpen(false); onOpenSettings() }}><Settings2 size={14} />{t('detail.editModels')}</button></div>
-              <label><select value={config.id} onChange={(event) => onSelectConfig(event.target.value)}>{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name} · {profile.model || t('settings.notConfigured')}</option>)}</select><ChevronDown size={15} aria-hidden="true" /></label>
+              <label><select value={config.id} onChange={(event) => selectGenerationProfile(event.target.value)}>{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name} · {profile.model || t('settings.notConfigured')}</option>)}</select><ChevronDown size={15} aria-hidden="true" /></label>
+              <div className={`generation-output-settings ${config.protocol === 'generate-content' ? 'is-single' : ''}`}>
+                <span>{t('detail.outputSettings')}</span>
+                <label className="generation-option"><span>{t('detail.size')}</span><span><select value={generationOptions.size} onChange={(event) => setGenerationOptions((current) => ({ ...current, size: event.target.value }))}><option value="auto">auto</option><option value="1024x1024">1024x1024 (1:1)</option><option value="1536x1024">1536x1024 (3:2)</option><option value="1024x1536">1024x1536 (2:3)</option><option value="1792x1024">1792x1024 (16:9)</option><option value="1024x1792">1024x1792 (9:16)</option></select><ChevronDown size={15} aria-hidden="true" /></span></label>
+                {config.protocol === 'images' ? <label className="generation-option"><span>{t('detail.quality')}</span><span><select value={generationOptions.quality} onChange={(event) => setGenerationOptions((current) => ({ ...current, quality: event.target.value }))}><option value="auto">auto</option><option value="low">low</option><option value="medium">medium</option><option value="high">high</option><option value="standard">standard</option><option value="hd">hd</option></select><ChevronDown size={15} aria-hidden="true" /></span></label> : null}
+              </div>
             </div>
             <div className="generation-confirm-actions"><button className="confirm-cancel" onClick={() => setGenerationSetupOpen(false)}>{t('detail.confirmCancel')}</button><button className="confirm-submit" onClick={confirmGeneration}><Sparkles size={17} />{t('detail.confirmSubmit')}</button></div>
           </div>
