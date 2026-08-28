@@ -5,6 +5,8 @@
 <p align="center">
   <a href="https://andy7076.github.io/image_prompt/">在线体验</a>
   ·
+  <a href="https://linux.do">LINUX DO 社区</a>
+  ·
   <a href="https://github.com/andy7076/image_prompt/blob/main/README.md">English</a>
   ·
   <a href="https://github.com/andy7076/image_prompt/issues">反馈问题</a>
