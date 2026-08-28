@@ -19,7 +19,7 @@
   <img src="https://img.shields.io/badge/React-Vite-171713?style=flat-square&logo=react&logoColor=61dafb" alt="React and Vite" />
 </p>
 
-![PROMPT/SIGNAL gallery](./public/images/readme-home.png)
+![PROMPT/SIGNAL gallery](./public/images/readme-home-wide.png)
 
 PROMPT/SIGNAL turns high-signal image prompt references from public communities into a practical workspace. Search the archive, inspect the original wording, edit a template, attach reference images, choose a model, and render without leaving the case.
 
@@ -51,6 +51,27 @@ PROMPT/SIGNAL turns high-signal image prompt references from public communities 
   <tr>
     <td align="center"><sub>Review the final prompt and references</sub></td>
     <td align="center"><sub>Browse the full prompt archive</sub></td>
+  </tr>
+</table>
+
+## Featured cases
+
+Start with the references that best show the range of the archive. Each card opens the editable case in the live gallery.
+
+<table>
+  <tr>
+    <td width="20%"><a href="https://andy7076.github.io/image_prompt/?prompt=x-zhidawang-travel-memory"><img src="https://mosaic.fxtwitter.com/jpeg/2092165086165246217/HQjc9OQbcAAWg_e/HQjc9OMb0AAo_3O" alt="Travel memory enamel magnet" /></a></td>
+    <td width="20%"><a href="https://andy7076.github.io/image_prompt/?prompt=x-zhidawang-lego-storybook"><img src="https://mosaic.fxtwitter.com/jpeg/2092062124730384570/HQh-bHBaAAAbKiZ/HQh_Xe4bIAAcQa9" alt="Fairytale LEGO storybook" /></a></td>
+    <td width="20%"><a href="https://andy7076.github.io/image_prompt/?prompt=x-hot-ciri-stamp-macro"><img src="https://pbs.twimg.com/media/HKQ_LMwbQAArrZh.jpg?name=orig" alt="Vintage stamp macro" /></a></td>
+    <td width="20%"><a href="https://andy7076.github.io/image_prompt/?prompt=case-30"><img src="https://raw.githubusercontent.com/freestylefly/awesome-gpt-image-2/main/data/images/case30.jpg" alt="Realistic photography study" /></a></td>
+    <td width="20%"><a href="https://andy7076.github.io/image_prompt/?prompt=case-32"><img src="https://raw.githubusercontent.com/freestylefly/awesome-gpt-image-2/main/data/images/case32.jpg" alt="Illustration art study" /></a></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Travel memory</sub></td>
+    <td align="center"><sub>LEGO storybook</sub></td>
+    <td align="center"><sub>Stamp macro</sub></td>
+    <td align="center"><sub>Photography</sub></td>
+    <td align="center"><sub>Illustration</sub></td>
   </tr>
 </table>
 

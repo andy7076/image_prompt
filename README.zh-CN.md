@@ -19,7 +19,7 @@
   <img src="https://img.shields.io/badge/React-Vite-171713?style=flat-square&logo=react&logoColor=61dafb" alt="React and Vite" />
 </p>
 
-![PROMPT/SIGNAL 画廊](./public/images/readme-home.png)
+![PROMPT/SIGNAL 画廊](./public/images/readme-home-wide.png)
 
 PROMPT/SIGNAL 将公开社区中的高质量图片 Prompt 整理成可搜索、可编辑、可直接生成的工作台。浏览案例、查看原始文本、调整模板变量、上传参考图、选择模型，并在当前案例中完成生成。
 
@@ -52,6 +52,27 @@ PROMPT/SIGNAL 将公开社区中的高质量图片 Prompt 整理成可搜索、�
   <tr>
     <td align="center"><sub>确认最终 Prompt 和参考图</sub></td>
     <td align="center"><sub>浏览完整 Prompt 案例库</sub></td>
+  </tr>
+</table>
+
+## 精选案例
+
+从这几条最能体现案例库表现力的 Prompt 开始探索。点击图片即可打开在线详情页，继续编辑变量、上传参考图并生成。
+
+<table>
+  <tr>
+    <td width="20%"><a href="https://andy7076.github.io/image_prompt/?prompt=x-zhidawang-travel-memory"><img src="https://mosaic.fxtwitter.com/jpeg/2092165086165246217/HQjc9OQbcAAWg_e/HQjc9OMb0AAo_3O" alt="旅行记忆珐琅冰箱贴" /></a></td>
+    <td width="20%"><a href="https://andy7076.github.io/image_prompt/?prompt=x-zhidawang-lego-storybook"><img src="https://mosaic.fxtwitter.com/jpeg/2092062124730384570/HQh-bHBaAAAbKiZ/HQh_Xe4bIAAcQa9" alt="童话积木绘本" /></a></td>
+    <td width="20%"><a href="https://andy7076.github.io/image_prompt/?prompt=x-hot-ciri-stamp-macro"><img src="https://pbs.twimg.com/media/HKQ_LMwbQAArrZh.jpg?name=orig" alt="复古邮票微距摄影" /></a></td>
+    <td width="20%"><a href="https://andy7076.github.io/image_prompt/?prompt=case-30"><img src="https://raw.githubusercontent.com/freestylefly/awesome-gpt-image-2/main/data/images/case30.jpg" alt="写实摄影风格" /></a></td>
+    <td width="20%"><a href="https://andy7076.github.io/image_prompt/?prompt=case-32"><img src="https://raw.githubusercontent.com/freestylefly/awesome-gpt-image-2/main/data/images/case32.jpg" alt="插画艺术创作" /></a></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>旅行记忆</sub></td>
+    <td align="center"><sub>积木绘本</sub></td>
+    <td align="center"><sub>邮票微距</sub></td>
+    <td align="center"><sub>写实摄影</sub></td>
+    <td align="center"><sub>插画创作</sub></td>
   </tr>
 </table>
 
