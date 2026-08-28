@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://andy7076.github.io/image_prompt/">在线体验</a>
   ·
-  <a href="https://linux.do">LINUX DO 社区</a>
+  <a href="https://github.com/andy7076/image_prompt">代码仓库</a>
   ·
   <a href="https://github.com/andy7076/image_prompt/blob/main/README.md">English</a>
   ·
@@ -13,26 +13,47 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/andy7076/image_prompt?style=flat-square&color=eaff32&labelColor=111111" alt="GitHub stars" />
-  <img src="https://img.shields.io/github/deployments/andy7076/image_prompt/github-pages?style=flat-square&label=pages&color=4ade80&labelColor=111111" alt="GitHub Pages deployment" />
-  <img src="https://img.shields.io/badge/license-MIT-eaff32?style=flat-square&labelColor=111111" alt="MIT License" />
-  <img src="https://img.shields.io/badge/React-Vite-111111?style=flat-square&logo=react&logoColor=61dafb" alt="React and Vite" />
+  <img src="https://img.shields.io/github/stars/andy7076/image_prompt?style=flat-square&color=b7c900&labelColor=171713" alt="GitHub stars" />
+  <img src="https://img.shields.io/github/deployments/andy7076/image_prompt/github-pages?style=flat-square&label=pages&color=4ade80&labelColor=171713" alt="GitHub Pages deployment" />
+  <img src="https://img.shields.io/badge/license-MIT-b7c900?style=flat-square&labelColor=171713" alt="MIT License" />
+  <img src="https://img.shields.io/badge/React-Vite-171713?style=flat-square&logo=react&logoColor=61dafb" alt="React and Vite" />
 </p>
 
-![PROMPT/SIGNAL 画廊](./public/images/prompt-signal-home.jpg)
+![PROMPT/SIGNAL 画廊](./public/images/readme-home.png)
 
-PROMPT/SIGNAL 将公开的图片 Prompt 案例整理成可搜索的瀑布流工作台。你可以浏览案例、查看完整 Prompt、二次编辑、上传本地参考图，并将请求发送到自己控制的图片接口。页面默认使用英文，也可以在右上角切换为中文。
+PROMPT/SIGNAL 将公开社区中的高质量图片 Prompt 整理成可搜索、可编辑、可直接生成的工作台。浏览案例、查看原始文本、调整模板变量、上传参考图、选择模型，并在当前案例中完成生成。
 
 ## 核心能力
 
-- **精准物理瀑布流**：内置全量图片的物理宽高元数据（`width` / `height`），通过 `aspect-ratio` 提前精确占位（CLS = 0），零抖动、零跳变；结合贪心最短列插入算法，四列总高度数学级平衡，100% 保留原始比例，绝不裁切。
-- **自定义生图工作台**：顶部导航栏一键直达自定义生图界面，支持纯文本生成与多张参考图垫图渲染。
-- **多配置 Profile 管理**：支持保存、命名、切换多套 API 配置（如 Google AI Studio、SiliconFlow、OpenAI 网关等），详情页可直接一键切换不同引擎对比效果。
-- **Prompt 工作台**：详情页可编辑 Prompt、提取模板变量、复制内容、查看多出处来源、切换上下案例与全屏放大图片。
-- **生成流程**：生成前确认并再次编辑 Prompt，可上传 PNG/JPEG/WEBP 参考图，支持原图/生成图切换和新标签页下载。
-- **本地记录**：收藏、多配置 Profile、语言偏好以及最多 30 条生成记录只保存在当前浏览器。
-- **多出处归档**：一个案例可以同时保留 GitHub、X 等多个来源地址。
-- **静态部署**：浏览不需要后端，GitHub Actions 负责构建并发布到 GitHub Pages。
+| 能力 | 说明 |
+| --- | --- |
+| 精准瀑布流 | 使用真实图片宽高和贪心最短列算法，保留原始比例，加载时稳定占位，避免跳动。 |
+| Prompt 工作台 | 编辑完整 Prompt，提取并修改模板变量，复制、恢复原文、查看多出处来源，并支持图片放大。 |
+| 生成工作台 | 支持自定义 Prompt、最多 8 张本地参考图、模型切换、生成前确认和新标签页下载。 |
+| 多模型 Profile | 保存多套 Images API 或 GenerateContent API 配置，在生成前自由切换。 |
+| 本地记录 | 收藏、语言与主题偏好，以及最多 30 条生成结果保存在当前浏览器。 |
+| 多出处归档 | 同一案例可关联 GitHub、X 等多个公开来源。 |
+
+## 界面预览
+
+<table>
+  <tr>
+    <td><img src="./public/images/readme-detail.png" alt="Prompt 详情与编辑" /></td>
+    <td><img src="./public/images/readme-settings.png" alt="图片模型配置" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>编辑案例与可复用变量</sub></td>
+    <td align="center"><sub>保存并切换本地模型配置</sub></td>
+  </tr>
+  <tr>
+    <td><img src="./public/images/readme-generate-confirm.png" alt="生成确认" /></td>
+    <td><img src="./public/images/readme-home.png" alt="案例画廊首页" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>确认最终 Prompt 和参考图</sub></td>
+    <td align="center"><sub>浏览完整 Prompt 案例库</sub></td>
+  </tr>
+</table>
 
 ## 快速开始
 
@@ -43,38 +64,35 @@ npm install
 npm run dev
 ```
 
-打开 Vite 输出的本地地址即可。常用命令：
+打开 Vite 输出的本地地址即可。提交修改前建议运行：
 
 ```bash
-npm run build              # 生产构建
+npm run check              # 校验案例数据并执行构建检查
+npm run build              # 构建生产版本
 npm run preview            # 预览生产构建
-npm run check              # 数据校验与构建检查
-npm run extract:dimensions # 并发探测并更新图片宽高尺寸
+npm run extract:dimensions # 刷新本地图片尺寸元数据
 ```
 
-## 配置图片模型 / 代理网关
+## 配置图片模型
 
-点击右上角 **Image model settings / 图片模型配置**。支持保存多套 Profile 预设，表单不绑定某一家服务商，填写你的网关或图片服务实际提供的 URL、Key 和模型名即可：
+点击右上角的 **Models**，添加或选择一个 Profile 后保存。配置表单不绑定任何特定服务商，只需填写接口文档中对应的协议、地址、密钥和模型标识。首次访问时 URL、Key、Model 均为空，`SIZE` 和 `QUALITY` 默认 `auto`。
 
-| 字段 | 填写内容 | 示例 |
-| --- | --- | --- |
-| `API 协议` | 接口实际实现的请求与响应格式 | `Images API` / `GenerateContent API` |
-| `API URL` | 完整生成地址或 GenerateContent API 基础地址 | `https://gateway.example/v1/images/generations` |
-| `API KEY` | 服务商签发的 Bearer Token 或 Google API Key | `sk-...` / `AIzaSy...` |
-| `MODEL` | 接口接受的精确模型名 | `gpt-image-2` / `gemini-3.1-flash-image` |
-| `SIZE` | 输出尺寸，默认 `auto (1024x1024)`，支持 `1:1`、`3:2`、`2:3`、`16:9`、`9:16` | `1024x1024` |
-| `QUALITY` | 输出质量，默认 `auto`，支持 `standard` / `hd` | `auto` |
+| 字段 | 填写内容 |
+| --- | --- |
+| `API PROTOCOL` | OpenAI 兼容图片路由选择 `Images API`；Gemini 风格路由选择 `GenerateContent API`。 |
+| `API URL` | Images API 的完整图片路由，或 GenerateContent API 的基础地址。 |
+| `API KEY` | 该接口要求的访问令牌，只保存在当前浏览器。 |
+| `MODEL` | 接口文档中要求的精确模型名。 |
+| `SIZE` | `auto`、`1024x1024`、`1536x1024`、`1024x1536`、`1792x1024` 或 `1024x1792`。 |
+| `QUALITY` | Images API 可选 `auto`、`standard` 或 `hd`。 |
 
-### 代理和兼容要求
+**Test connection** 只发送校验请求，不会真正生成图片。400/415/422 表示接口可达但校验载荷被拒绝，会显示为提示；明确的 401/403 鉴权失败或 404 路由/模型不存在才会标记为错误。网络、CORS、限流和服务端参数校验问题会保留为可读的警告，避免把可用网关误判为不可用。
 
-PROMPT/SIGNAL 会从浏览器直接发起请求，因此接口必须允许当前网站域名的 CORS。**Images API** 使用 `Authorization: Bearer <key>`，**GenerateContent API** 使用 `x-goog-api-key`。
+### 浏览器与网关要求
 
-- 如果平台只提供基础地址，请在后面补上图片路由，通常是 `/v1/images/generations`。
-- 上传参考图时，应用会把末尾的 `/generations` 自动替换为 `/edits`。单图使用 `image` 字段，多图使用 `image[]`。
-- `auto` 尺寸会自动智能适配为三方平台标准 `1024x1024`，且包含智能错误诊断提示。
-- 不要把生产 Key 提交到 Git。配置只写入当前浏览器的 `localStorage`，不会打包进仓库，但浏览器在使用页面时仍然可以读取它。
+请求直接从浏览器发出，因此接口必须允许当前网站来源的 CORS。Images API 使用 `Authorization: Bearer <key>`；GenerateContent API 使用 `x-goog-api-key`。
 
-纯文本生成请求等价于：
+Images API 的纯文本请求示例：
 
 ```http
 POST /v1/images/generations
@@ -84,7 +102,7 @@ Content-Type: application/json
 
 ```json
 {
-  "model": "gpt-image-2",
+  "model": "your-model",
   "prompt": "你编辑后的 Prompt",
   "size": "1024x1024",
   "quality": "standard",
@@ -92,74 +110,56 @@ Content-Type: application/json
 }
 ```
 
-上传参考图时，应用会以 `multipart/form-data` 发送图片文件以及 `model`、`prompt`、`size`、`quality` 和 `n`。接口响应需要返回 `data[0].url` 或 `data[0].b64_json`。
+上传参考图后，应用会将末尾的 `/generations` 自动替换为 `/edits`，并以 `multipart/form-data` 发送。单张图片字段为 `image`，多张图片字段为 `image[]`。接口需要在响应中返回 `data[0].url` 或 `data[0].b64_json`。
 
-### Gemini 图片模型 / Nano Banana
+GenerateContent API 需要填写基础 URL 和模型名。应用会自动拼接 `/models/{model}:generateContent`，将 Prompt 与参考图作为 content parts 发送，并从响应的 inline image data 中读取生成结果。
 
-Gemini 应用内的 Pro 订阅不等于 Gemini API 配额。需要先在 Google AI Studio 创建 API Key；所选模型需要付费额度时，还要在 AI Studio 对应项目中启用结算。配置如下：
-
-| 字段 | 填写内容 |
-| --- | --- |
-| `API 协议` | `GenerateContent API` |
-| `API URL` | `https://generativelanguage.googleapis.com/v1beta` |
-| `API KEY` | Google AI Studio 创建的 API Key |
-| `MODEL` | Nano Banana 2 填 `gemini-3.1-flash-image`；Nano Banana Pro 填 `gemini-3-pro-image` |
-| `SIZE` / `QUALITY` | `auto` / `auto` |
-
-应用会自动补全 `/models/{model}:generateContent`，把所有参考图作为内嵌图片 part 发送，并从响应中读取生成图片。Key 只保存在当前浏览器；公开部署并给多人使用时，建议增加服务端代理隐藏 Key。
-
-`gemini-2.5-flash-image` 仍可作为初代 Nano Banana 使用，但 Google 当前建议新接入优先选择 Gemini 3 图片模型。
+> 不要将生产环境 API Key 提交到 Git。浏览器本地存储适合个人使用；面向多人部署时，建议增加服务端代理隐藏密钥并统一处理 CORS。
 
 ## 使用流程
 
-1. 搜索或筛选画廊，找到想参考的案例（或点击顶部「Create image」直接创建）。
-2. 打开详情页，直接编辑 Prompt，或直接修改提取出的模板参数。
-3. 可选上传最多 8 张本地参考图，在确认弹窗中检查 Prompt 和全部参考图。
-4. 点击确认生成，结果会自动进入 **Generation history / 生成记录**。
-5. 从记录面板重新打开结果，可复制 Prompt、下载图片或再次生成。
+1. 搜索或筛选画廊，打开一个案例。
+2. 直接编辑 Prompt，或修改提取出的模板变量并应用。
+3. 按需上传最多 8 张 PNG、JPEG 或 WEBP 参考图。
+4. 点击 **Generate**，在确认窗口中检查 Prompt、参考图和模型后提交。
+5. 在 **Generation history** 中查看结果，可复制 Prompt、下载图片或再次生成。
 
-右上角语言按钮可以切换英文和中文。首次访问默认英文，选择会保存在当前浏览器。
+顶部可以切换英文/中文和亮色/暗色主题。偏好设置只保存在当前浏览器。
 
 ## 数据与署名
 
-案例数据主要整理自：
+案例主要整理自：
 
 - [`freestylefly/awesome-gpt-image-2`](https://github.com/freestylefly/awesome-gpt-image-2)
 - [`wuyoscar/GPT-Image2-Skill`](https://github.com/wuyoscar/GPT-Image2-Skill)
-- X 上公开的案例和创作者内容
+- X 上公开的案例与创作者内容
 
-新增的 X 数据会保留公开原帖地址和采集时的互动快照；互动数据只用于提供背景，不代表推荐或永久排名。
-
-Prompt、图片、作者名和商标的权利归原始作者及其许可条款所有。商业使用前请核验来源授权。欢迎通过 Issue 或 Pull Request 提交新案例、来源修正和数据纠错。
+每条案例保留公开来源地址、署名信息和规范化后的 Prompt 文本。Prompt、图片、商标和作者名称仍受原始权利人及其许可条款约束，商业使用前请自行核验授权。欢迎通过 Issue 或 Pull Request 提交新案例、来源修正和数据纠错。
 
 ## 项目结构
 
 ```text
-src/App.jsx                 React UI、国际化、交互与生成流程
+src/App.jsx                 React UI、国际化、主题、Profile 与生成流程
 src/styles.css              视觉系统、响应式布局与动效
-src/data.js                 案例、分类和来源元数据
-src/cases.generated.json    GitHub 案例数据（含真实宽高）
-src/zhidawang.generated.json X 案例数据（含真实宽高）
-src/x.hot.generated.json    额外的高互动 X Prompt 案例（含真实宽高）
-scripts/                    校验与尺寸提取脚本
-public/images/              画廊图片与 README 截图
+src/data.js                 分类、精选案例和数据归一化
+src/*.generated.json        案例 Prompt、图片和来源元数据
+public/images/              画廊素材与 README 截图
+scripts/                    案例校验和图片尺寸工具
 .github/workflows/          GitHub Pages 自动部署
 ```
 
 ## GitHub Pages
 
-推送到 `main` 会触发 [`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml) 构建并发布：
+推送到 `main` 会触发 [`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml) 构建并发布到：
 
 **[andy7076.github.io/image_prompt](https://andy7076.github.io/image_prompt/)**
 
 ## 贡献规范
 
-提交案例时请附公开原始链接、署名信息，以及 Prompt 或元数据的修改说明。修改后请先运行 `npm run check`。
+提交案例时请附公开原始链接、署名信息以及 Prompt 或元数据的修改说明。修改后请先运行 `npm run check`。
 
-## 开源协议 (License)
+## 开源协议
 
-本项目应用代码基于 [MIT License](./LICENSE) 协议开源。
+应用代码基于 [MIT License](./LICENSE) 协议开源。第三方图片、Prompt 文本、商标及作者署名信息遵循各自原始作者和平台的权利条款。
 
-第三方素材、画廊图片、Prompt 文本、商标及作者署名信息等遵循各自原始作者与平台的权利条款。
-
-<p align="center"><sub>Built for people who collect references, not just likes.</sub></p>
+<p align="center"><sub>Open prompts. Real references. A faster path from idea to image.</sub></p>
