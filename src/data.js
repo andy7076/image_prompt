@@ -633,8 +633,9 @@ export function loadPromptCatalog() {
       import('./x.hot.generated.json').then((module) => module.default),
       import('./x.sairah.generated.json').then((module) => module.default),
       import('./x.naiknelofar.generated.json').then((module) => module.default),
-    ]).then(([generatedCases, zhidawangCases, hotXCases, sairahCases, naiknelofarCases]) => (
-      preparePrompts([...featuredPrompts, ...generatedCases, ...zhidawangCases, ...hotXCases, ...sairahCases, ...naiknelofarCases])
+      import('./x.hann7712.generated.json').then((module) => module.default),
+    ]).then(([generatedCases, zhidawangCases, hotXCases, sairahCases, naiknelofarCases, hann7712Cases]) => (
+      preparePrompts([...featuredPrompts, ...generatedCases, ...zhidawangCases, ...hotXCases, ...sairahCases, ...naiknelofarCases, ...hann7712Cases])
     ))
   }
   return promptCatalogPromise
