@@ -13,6 +13,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/andy7076/image_prompt?style=flat-square&color=eaff32&labelColor=111111" alt="GitHub stars" />
   <img src="https://img.shields.io/github/deployments/andy7076/image_prompt/github-pages?style=flat-square&label=pages&color=4ade80&labelColor=111111" alt="GitHub Pages deployment" />
+  <img src="https://img.shields.io/badge/license-MIT-eaff32?style=flat-square&labelColor=111111" alt="MIT License" />
   <img src="https://img.shields.io/badge/React-Vite-111111?style=flat-square&logo=react&logoColor=61dafb" alt="React and Vite" />
 </p>
 
@@ -155,6 +156,8 @@ Please include the original public URL, attribution details, and a short explana
 
 ## License
 
-The application code has no separate license file yet. Images, prompts, brands, and third-party materials follow the rights and terms of their respective sources.
+This project is open-sourced under the [MIT License](./LICENSE).
+
+Third-party materials, curated images, prompt texts, trademarks, and creator handles remain the intellectual property and copyright of their respective authors and platforms.
 
 <p align="center"><sub>Built for people who collect references, not just likes.</sub></p>

@@ -13,6 +13,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/andy7076/image_prompt?style=flat-square&color=eaff32&labelColor=111111" alt="GitHub stars" />
   <img src="https://img.shields.io/github/deployments/andy7076/image_prompt/github-pages?style=flat-square&label=pages&color=4ade80&labelColor=111111" alt="GitHub Pages deployment" />
+  <img src="https://img.shields.io/badge/license-MIT-eaff32?style=flat-square&labelColor=111111" alt="MIT License" />
   <img src="https://img.shields.io/badge/React-Vite-111111?style=flat-square&logo=react&logoColor=61dafb" alt="React and Vite" />
 </p>
 
@@ -153,8 +154,10 @@ public/images/              画廊图片与 README 截图
 
 提交案例时请附公开原始链接、署名信息，以及 Prompt 或元数据的修改说明。修改后请先运行 `npm run check`。
 
-## License
+## 开源协议 (License)
 
-当前仓库暂未单独附加代码许可证。图片、Prompt、品牌和第三方内容遵循各自来源的权利声明。
+本项目应用代码基于 [MIT License](./LICENSE) 协议开源。
+
+第三方素材、画廊图片、Prompt 文本、商标及作者署名信息等遵循各自原始作者与平台的权利条款。
 
 <p align="center"><sub>Built for people who collect references, not just likes.</sub></p>
