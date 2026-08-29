@@ -1,6 +1,6 @@
 # PROMPT/SIGNAL
 
-> A curated, editable archive of image prompts with a working generation studio.
+> A curated, editable archive of 570+ image prompts with a browser-native generation studio.
 
 <p align="center">
   <a href="https://andy7076.github.io/image_prompt/">Live demo</a>
@@ -21,17 +21,18 @@
 
 ![PROMPT/SIGNAL gallery](./public/images/readme-home-wide.png)
 
-PROMPT/SIGNAL turns high-signal image prompt references from public communities into a practical workspace. Search the archive, inspect the original wording, edit a template, attach reference images, choose a model, and render without leaving the case.
+PROMPT/SIGNAL turns high-signal image prompt references from public communities into a practical workspace. Discover a case, edit its prompt and variables, hand it off to ChatGPT or Gemini, or generate through an image model configured in your own browser.
 
 ## Product surface
 
 | Surface | What it does |
 | --- | --- |
-| Curated gallery | Greedy shortest-column masonry layout with natural image ratios and smooth loading states. |
-| Prompt workspace | Full-text editing, extracted template variables, copy, restore-original, source links, and image zoom. |
-| Generation studio | Custom prompts, up to eight local reference images, model switching, confirmation review, and new-tab downloads. |
-| Model profiles | Save multiple Images API or GenerateContent API configurations locally and switch them before rendering. |
-| Local archive | Favorites, language/theme preferences, and up to 30 generated results stay in the current browser. |
+| Curated gallery | 570+ cases in a balanced masonry layout with search, categories, sorting, favorites, and stable loading states. |
+| Prompt workspace | Full-text editing, extracted variables, restore-original, multiple source links, image zoom, and multi-image case navigation. |
+| External handoff | Open short prompts directly in ChatGPT, or copy the current edited prompt before opening ChatGPT or Gemini in a new tab. |
+| Generation studio | Start from a case or a blank prompt, attach up to eight references, select a model, override output settings, and confirm before sending. |
+| Model profiles | Save multiple Images API or GenerateContent API connections locally and switch the active profile per generation. |
+| Local archive | Favorites, theme/language preferences, model profiles, and up to 30 generated results stay in the current browser. |
 
 ## Screenshots
 
@@ -104,7 +105,9 @@ Open **Models** in the header, add or select a profile, then save it. The form i
 | `API KEY` | The token required by that endpoint. It is stored only in this browser. |
 | `MODEL` | The exact model name accepted by the endpoint. |
 | `SIZE` | `auto`, `1024x1024`, `1536x1024`, `1024x1536`, `1792x1024`, or `1024x1792`. |
-| `QUALITY` | `auto`, `standard`, or `hd` for Images API profiles. |
+| `QUALITY` | `auto`, `low`, `medium`, `high`, `standard`, or `hd` for Images API profiles. |
+
+Profile `SIZE` and `QUALITY` values are defaults. The generation screen lets you override them for the current request without changing the saved profile.
 
 The **Test connection** action sends a validation-only request. It never asks the model to create an image. A 400/415/422 response is treated as a reachable endpoint with a rejected validation payload; only clear 401/403 authentication failures or 404 route/model failures are reported as errors. Network, CORS, rate-limit, and server-validation cases remain warnings so a usable gateway is not incorrectly blocked.
 
@@ -130,21 +133,41 @@ Content-Type: application/json
 }
 ```
 
-When reference images are attached, the app changes a trailing `/generations` route to `/edits` and sends `multipart/form-data`. One file uses `image`; multiple files use `image[]`. The response must expose `data[0].url` or `data[0].b64_json`.
+When reference images are attached, the app losslessly optimizes each file in the browser, changes a trailing `/generations` route to `/edits`, and sends `multipart/form-data`. One file uses `image`; multiple files use `image[]`. The response must expose `data[0].url` or `data[0].b64_json`.
 
 For a GenerateContent endpoint, use the base URL and model name separately. The app builds `/models/{model}:generateContent`, sends the prompt and reference images as content parts, and reads inline image data from the response.
 
 > Never commit a production API key. Local browser storage is convenient for personal use; use a server-side proxy when deploying for multiple users.
 
-## Workflow
+## Use a prompt
 
-1. Search or filter the gallery, then open a case.
-2. Edit the prompt directly or change extracted template variables and apply them.
-3. Upload up to eight PNG, JPEG, or WEBP reference images if needed.
-4. Click **Generate**, review the prompt, references, and selected model, then confirm.
-5. Find the result in **Generation history**. Reopen it to copy, download, or render another variation.
+### Continue in ChatGPT or Gemini
 
-The header switches between English and Chinese, and between light and dark themes. Preferences are local to the current browser.
+1. Open a case and edit its prompt or template variables.
+2. Select the ChatGPT or Gemini icon beside **Generate with model**.
+3. Review the handoff notice, then confirm.
+4. Short ChatGPT prompts are included in the destination URL. Long prompts and Gemini handoffs are copied first, then the platform opens in a new tab for manual paste.
+
+Clipboard-based handoff may trigger a browser permission request. The app reports a failed copy instead of silently reusing stale clipboard content.
+
+### Generate with a configured model
+
+1. Open a case, or choose **Create image** to start with a completely custom prompt.
+2. Edit the prompt and attach up to eight PNG, JPEG, or WEBP reference images.
+3. Select a saved model profile and choose `SIZE` and `QUALITY` for this request.
+4. Click **Generate with model**, review the confirmation, then generate.
+5. Reopen the result from **Generation history** to copy its prompt, download the image, or create another variation.
+
+Reference images are processed locally and losslessly optimized before upload. Generated downloads open in a new tab when the browser cannot download the remote URL directly.
+
+## Local data and privacy
+
+- Model profiles, API keys, favorites, preferences, and generation history are stored in the current browser only.
+- Prompt and reference-image requests go directly from the browser to the selected endpoint; this repository does not provide a relay server.
+- ChatGPT/Gemini handoff always shows a confirmation step before opening an external platform.
+- Clearing browser storage removes local configuration and history. Do not use a production key on a shared device.
+
+The header switches between English and Chinese, and between light and dark themes. The default theme is light.
 
 ## Data and attribution
 
