@@ -1,5 +1,101 @@
 [
   {
+    "id": "x-azed-loose-watercolor-drift",
+    "title": "松散水彩漂流 / 湿画法抽象转绘",
+    "category": "illustration",
+    "image": "https://pbs.twimg.com/media/HQ4oCxCaIAAqXUK?format=jpg&name=orig",
+    "images": [
+      {
+        "url": "https://pbs.twimg.com/media/HQ4oCxCaIAAqXUK?format=jpg&name=orig",
+        "width": 1344,
+        "height": 896
+      },
+      {
+        "url": "https://pbs.twimg.com/media/HQ4oC-zawAA-V7N?format=jpg&name=orig",
+        "width": 1344,
+        "height": 896
+      },
+      {
+        "url": "https://pbs.twimg.com/media/HQ4oDMXa4AAGmJ7?format=jpg&name=orig",
+        "width": 1344,
+        "height": 896
+      },
+      {
+        "url": "https://pbs.twimg.com/media/HQ4oDa1bcAAW7IB?format=jpg&name=orig",
+        "width": 1344,
+        "height": 896
+      }
+    ],
+    "ratio": "landscape",
+    "author": "@azed_ai",
+    "sourceLabel": "X",
+    "source": "https://x.com/azed_ai/status/2093654918897041586",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/azed_ai/status/2093654918897041586"
+      }
+    ],
+    "prompt": "Abstract watercolor wash of a [subject], loose oversized brushstrokes, broad flowing color shapes, minimal detail, soft pigment bleeding, expressive wet-on-wet texture, simplified forms, airy composition, no linework, no outlines, white background.",
+    "createdAt": "2026-08-29T11:00:00.000Z",
+    "likes": 74,
+    "retweets": 11,
+    "views": 2694,
+    "featured": false,
+    "width": 1344,
+    "height": 896
+  },
+  {
+    "id": "x-hot-larus-pastel-city-poster",
+    "title": "粉彩城市海报 / 地标矢量滤镜",
+    "category": "poster",
+    "image": "https://pbs.twimg.com/media/HQ40QVXXEAAgWrH?format=jpg&name=orig",
+    "images": [
+      {
+        "url": "https://pbs.twimg.com/media/HQ40QVXXEAAgWrH?format=jpg&name=orig",
+        "width": 1080,
+        "height": 1920
+      },
+      {
+        "url": "https://pbs.twimg.com/media/HQ40QfzXAAErUBE?format=jpg&name=orig",
+        "width": 1080,
+        "height": 1920
+      },
+      {
+        "url": "https://pbs.twimg.com/media/HQ40RcVWoAAq2bR?format=jpg&name=orig",
+        "width": 1080,
+        "height": 1920
+      },
+      {
+        "url": "https://pbs.twimg.com/media/HQ40R8oWcAA6Svi?format=jpg&name=orig",
+        "width": 1080,
+        "height": 1920
+      }
+    ],
+    "ratio": "portrait",
+    "author": "@MrLarus",
+    "sourceLabel": "X",
+    "source": "https://x.com/MrLarus/status/2093675952232374516",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/MrLarus/status/2093675952232374516"
+      },
+      {
+        "label": "X · Prompt",
+        "url": "https://x.com/MrLarus/status/2093675977570222489"
+      }
+    ],
+    "prompt": "Use the uploaded real city photo as the source.\n\nPreserve the landmark’s identity, silhouette, architectural proportions, defining details, camera angle, perspective, and subject placement. The result must remain clearly recognizable as the same location.\n\nTransform the scene into a refined pastel city-landmark vector poster. Rebuild the architecture with clean geometric shapes, crisp ivory outlines, simplified details, soft gradients, and subtle luminous highlights.\n\nUse a powder-blue, pink, lilac, violet, and ice-blue palette with small warm-gold accents. Place a large soft pink-lilac circular sun behind the landmark and add a small cluster of elegant cherry blossoms in one lower corner.\n\nRemove distracting people, cars, signs, wires, and unrelated background clutter. Keep the composition spacious and let the landmark remain the main focus.\n\nThe transformation should look fully redesigned as an editorial vector travel poster, not like a light color filter applied to the photograph.\n\nOutput one 1080 × 1920 vertical comparison image:\ntop 50% = original photo\nbottom 50% = AI-filtered poster version\n\nDo not add titles, letters, labels, logos, signatures, watermarks, frames, or borders. Avoid photorealism, watercolor, oil painting, heavy texture, cyberpunk neon, and generic replacement architecture.",
+    "createdAt": "2026-08-29T12:23:00.000Z",
+    "likes": 5,
+    "retweets": 1,
+    "views": 557,
+    "featured": false,
+    "width": 1080,
+    "height": 1920
+  },
+  {
     "id": "x-hot-taaruk-panning",
     "title": "城市人群 / 平移凝固人像",
     "category": "photography",
