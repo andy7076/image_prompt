@@ -579,6 +579,20 @@ const LOCAL_IMAGE_DIMENSIONS = {
   '/images/synth-moon-crew-grid.png': { width: 1024, height: 1024 },
 }
 
+const APP_BASE_URL = import.meta.env.BASE_URL || '/'
+
+function resolveCatalogImageUrl(value) {
+  if (!value || /^(?:[a-z][a-z\d+.-]*:|\/\/|#)/i.test(value)) return value
+
+  const base = APP_BASE_URL.endsWith('/') ? APP_BASE_URL : `${APP_BASE_URL}/`
+  const relativePath = value.replace(/^\/+/, '')
+  const basePath = base.replace(/^\/+|\/+$/g, '')
+  if (basePath && (relativePath === basePath || relativePath.startsWith(`${basePath}/`))) {
+    return `/${relativePath}`
+  }
+  return `${base}${relativePath}`
+}
+
 function normalizeImageEntries(item) {
   const candidates = Array.isArray(item.images) ? item.images : item.image ? [item.image] : []
   return candidates
@@ -600,10 +614,15 @@ function preparePrompts(items) {
   return items.map((item, index) => {
     const rawPrompt = item.prompt ?? ''
     const normalized = normalizePrompt(rawPrompt)
-    const imageEntries = normalizeImageEntries(item)
-    const coverImage = item.image || imageEntries[0]?.url || ''
-    const coverEntry = imageEntries.find((entry) => entry.url === coverImage) || imageEntries[0]
-    const localDim = LOCAL_IMAGE_DIMENSIONS[coverImage]
+    const rawImageEntries = normalizeImageEntries(item)
+    const rawCoverImage = item.image || rawImageEntries[0]?.url || ''
+    const coverEntry = rawImageEntries.find((entry) => entry.url === rawCoverImage) || rawImageEntries[0]
+    const localDim = LOCAL_IMAGE_DIMENSIONS[rawCoverImage]
+    const coverImage = resolveCatalogImageUrl(rawCoverImage)
+    const imageEntries = rawImageEntries.map((entry) => ({
+      ...entry,
+      url: resolveCatalogImageUrl(entry.url),
+    }))
     const width = item.width || coverEntry?.width || localDim?.width
     const height = item.height || coverEntry?.height || localDim?.height
     const parsedCreatedAt = item.createdAt ? Date.parse(item.createdAt) : NaN

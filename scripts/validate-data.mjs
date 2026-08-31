@@ -1,7 +1,12 @@
 import { build } from 'vite'
+import { access } from 'node:fs/promises'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const REQUIRED_FIELDS = ['id', 'title', 'category', 'image', 'prompt']
 const VALID_RATIOS = new Set(['portrait', 'landscape', 'square', 'wide'])
+const VALIDATION_BASE = '/image_prompt/'
+const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const UNCLEAN_PROMPT_PATTERNS = [
   [/\{argument\s+name=/i, 'argument wrapper'],
   [/(?:^|\n)\s*"(?:prompt|negative_prompt)"\s*:/i, 'JSON prompt wrapper'],
@@ -27,6 +32,49 @@ function itemSources(item) {
   return sources ? [{ url: sources }] : []
 }
 
+function itemImages(item) {
+  const entries = [item.image, ...(Array.isArray(item.images) ? item.images : [])]
+  return [...new Set(entries
+    .map((entry) => typeof entry === 'string' ? entry : entry?.url || entry?.src || entry?.image)
+    .filter(Boolean))]
+}
+
+function isRemoteImage(value) {
+  return /^(?:[a-z][a-z\d+.-]*:|\/\/|#)/i.test(value)
+}
+
+async function auditRemoteImages(urls, concurrency = 12) {
+  const failures = []
+  let nextIndex = 0
+
+  async function worker() {
+    while (nextIndex < urls.length) {
+      const url = urls[nextIndex]
+      nextIndex += 1
+      try {
+        const response = await fetch(url, {
+          redirect: 'follow',
+          signal: AbortSignal.timeout(20_000),
+          headers: {
+            Range: 'bytes=0-0',
+            'User-Agent': 'PROMPT-SIGNAL image auditor',
+          },
+        })
+        await response.body?.cancel()
+        const contentType = response.headers.get('content-type') || ''
+        if (!response.ok || (contentType && !contentType.startsWith('image/'))) {
+          failures.push(`${response.status} ${contentType || 'unknown content type'} ${url}`)
+        }
+      } catch (error) {
+        failures.push(`${error.name || 'Error'} ${url}`)
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(concurrency, urls.length) }, () => worker()))
+  return failures
+}
+
 function duplicateGroups(items, field) {
   const groups = new Map()
   for (const item of items) {
@@ -50,6 +98,7 @@ function printDuplicateWarning(label, groups) {
 
 const buildResult = await build({
   logLevel: 'silent',
+  base: VALIDATION_BASE,
   build: {
     write: false,
     ssr: 'src/data.js',
@@ -66,6 +115,8 @@ const { categories, loadPromptCatalog } = await import(catalogModuleUrl)
   const categoryIds = new Set(categories.map((category) => category.id))
   const errors = []
   const ids = new Map()
+  const localImages = new Set()
+  const remoteImages = new Set()
 
   for (const [index, item] of items.entries()) {
     const label = item.id || `catalog item ${index + 1}`
@@ -89,6 +140,29 @@ const { categories, loadPromptCatalog } = await import(catalogModuleUrl)
     for (const [pattern, wrapper] of UNCLEAN_PROMPT_PATTERNS) {
       if (pattern.test(item.prompt)) errors.push(`${label}: unclean ${wrapper} remains in normalized prompt`)
     }
+
+    for (const imageUrl of itemImages(item)) {
+      if (isRemoteImage(imageUrl)) {
+        remoteImages.add(imageUrl)
+        continue
+      }
+      if (!imageUrl.startsWith(VALIDATION_BASE)) {
+        errors.push(`${label}: local image does not include deployment base (${imageUrl})`)
+        continue
+      }
+      const publicPath = imageUrl.slice(VALIDATION_BASE.length).replace(/^\/+/, '')
+      localImages.add(publicPath)
+      try {
+        await access(path.join(PROJECT_ROOT, 'public', publicPath))
+      } catch {
+        errors.push(`${label}: local image file not found (public/${publicPath})`)
+      }
+    }
+  }
+
+  if (process.env.CHECK_REMOTE_IMAGES === '1') {
+    const remoteFailures = await auditRemoteImages([...remoteImages])
+    remoteFailures.forEach((failure) => errors.push(`remote image unavailable (${failure})`))
   }
 
   printDuplicateWarning('title', duplicateGroups(items, 'title'))
@@ -100,6 +174,7 @@ const { categories, loadPromptCatalog } = await import(catalogModuleUrl)
     if (errors.length > 50) console.error(`      ...and ${errors.length - 50} more error(s)`)
     process.exitCode = 1
   } else {
-    console.log(`PASS  ${items.length} cases · unique IDs · required fields · sources · normalized prompts`)
+    const remoteStatus = process.env.CHECK_REMOTE_IMAGES === '1' ? 'remote images reachable' : 'remote checks skipped'
+    console.log(`PASS  ${items.length} cases · ${localImages.size} local images · ${remoteImages.size} remote images · ${remoteStatus}`)
   }
 }
