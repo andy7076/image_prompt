@@ -343,7 +343,7 @@ function isEditableBracket(content, fullWidth) {
   const name = content.trim()
   if (!name || /^(?:中文|English)$/i.test(name)) return false
   if (fullWidth) return true
-  return /^[A-Z][A-Z0-9 _-]*$/.test(name) || /自定义|请填写|请输入|可修改|替换为/.test(name)
+  return /^[A-Z][A-Z0-9 _/-]*$/.test(name) || /自定义|请填写|请输入|可修改|替换为/.test(name)
 }
 
 function normalizeVariableKey(value) {
@@ -510,7 +510,7 @@ function normalizePrompt(rawPrompt) {
   const raw = String(rawPrompt ?? '').trim()
   const hadArguments = /\{argument\s+name=/i.test(raw)
   const hadFieldPlaceholders = /(?:^|\n)\s*[A-Za-z][A-Za-z0-9 _-]{1,48}\s*:\s*(?:\[[^\]\n]{1,160}\]|【[^】\n]{1,160}】)(?!\()/m.test(raw)
-  const hadPlaceholders = /\{[A-Z][A-Z0-9 _-]*\}|\[[A-Z][A-Z0-9 _-]+\]|\[(?:[^\]\n]*(?:自定义|请填写|请输入|可修改|替换为)[^\]\n]*)\]|【[^】\n]{1,160}】/.test(raw) || hadFieldPlaceholders
+  const hadPlaceholders = /\{[A-Z][A-Z0-9 _/-]*\}|\[[A-Z][A-Z0-9 _/-]+\]|\[(?:[^\]\n]*(?:自定义|请填写|请输入|可修改|替换为)[^\]\n]*)\]|【[^】\n]{1,160}】/.test(raw) || hadFieldPlaceholders
   const hadBilingualMarkers = /\[(?:中文|English)\]/i.test(raw)
   const cleaned = replaceArgumentDefaults(raw).replace(
     /\s*This prompt is reconstructed from the creator's public post description;\s*use the uploaded photo as the source image\.?/i,

@@ -1,5 +1,46 @@
 [
   {
+    "id": "x-naiknelofar-vintage-screenprint-poster",
+    "title": "复古手绘海报 / 世纪中叶丝网印刷",
+    "category": "poster",
+    "image": "https://pbs.twimg.com/media/HRLojyDb0AA2Yjd?format=jpg&name=orig",
+    "images": [
+      {
+        "url": "https://pbs.twimg.com/media/HRLojyDb0AA2Yjd?format=jpg&name=orig",
+        "width": 941,
+        "height": 1672
+      },
+      {
+        "url": "https://pbs.twimg.com/media/HRLojwWasAEMYHR?format=jpg&name=orig",
+        "width": 941,
+        "height": 1672
+      },
+      {
+        "url": "https://pbs.twimg.com/media/HRLojwUaYAEQ08e?format=jpg&name=orig",
+        "width": 941,
+        "height": 1672
+      }
+    ],
+    "ratio": "portrait",
+    "author": "@Naiknelofar788",
+    "sourceLabel": "X",
+    "source": "https://x.com/Naiknelofar788/status/2094992489476194376",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/Naiknelofar788/status/2094992489476194376"
+      }
+    ],
+    "prompt": "Create a vintage hand-illustrated poster featuring [SUBJECT / SCENE]. Use detailed black ink linework, simplified graphic shapes, subtle crosshatching, muted earthy colors, and a soft aged-paper background. Give it an authentic mid-century travel-poster / screen-print aesthetic, with slightly imperfect ink texture, gentle grain, faded colors, and a handmade printed feel. Keep the composition clean and elegant with the main subject prominently centered, balanced negative space, small atmospheric details, and minimal decorative elements. Add simple vintage typography reading “[TITLE]” at the top. Nostalgic, artistic, timeless, editorial, sophisticated, visually striking, vertical 9:16 poster composition.",
+    "createdAt": "2026-09-02T03:35:00.000Z",
+    "likes": 40,
+    "retweets": 1,
+    "views": 1159,
+    "featured": false,
+    "width": 941,
+    "height": 1672
+  },
+  {
     "id": "x-naiknelofar-travel-sketchbook",
     "title": "城市旅行速写 / 单色点缀",
     "category": "illustration",
