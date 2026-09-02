@@ -1,5 +1,41 @@
 [
   {
+    "id": "x-missdelulu-handmade-paper-editorial",
+    "title": "手工纸艺插画 / 50-50 编辑海报",
+    "category": "illustration",
+    "image": "https://pbs.twimg.com/media/HRMZiA1bkAAy-Rd?format=jpg&name=orig",
+    "images": [
+      {
+        "url": "https://pbs.twimg.com/media/HRMZiA1bkAAy-Rd?format=jpg&name=orig",
+        "width": 1086,
+        "height": 1448
+      },
+      {
+        "url": "https://pbs.twimg.com/media/HRMZjOJbUAABh_I?format=jpg&name=orig",
+        "width": 1086,
+        "height": 1448
+      }
+    ],
+    "ratio": "portrait",
+    "author": "@MissDelulu9",
+    "sourceLabel": "X",
+    "source": "https://x.com/MissDelulu9/status/2095046356364906741",
+    "sources": [
+      {
+        "label": "X",
+        "url": "https://x.com/MissDelulu9/status/2095046356364906741"
+      }
+    ],
+    "prompt": "Create a separate high-end editorial poster for each uploaded photo, never combine them.\n\nFormat: Strict 3:4 vertical, split into two equal 50/50 horizontal sections.\n\nTop: Preserve the original photo faithfully, identity, pose, proportions, clothing, objects, composition, lighting, and colors. Only subtle premium editorial grading; seamless background extension if needed.\n\nBottom: Reinterpret the photo as a minimal handmade paper illustration. Keep the recognizable subject, silhouette, pose, and key objects, but simplify heavily. Small centered illustration (10–20%) with lots of negative space, rough warm/off-white paper, delicate imperfect lines, bold flat acrylic-like shapes, handmade brush marks and subtle paper grain.\n\nUse max 4 colors, extracted from the original photo. Minimal understated typography only if it naturally fits.\n\nOverall feel: quiet, poetic, refined, minimal, artistic, premium independent art-book cover.\n\nAvoid cartoons, watercolor, crayons, colored pencils, 3D, glossy digital art, realism in the illustration, busy layouts, and excessive text.",
+    "createdAt": "2026-09-02T07:09:00.000Z",
+    "likes": 51,
+    "retweets": 7,
+    "views": 1359,
+    "featured": false,
+    "width": 1086,
+    "height": 1448
+  },
+  {
     "id": "x-azed-loose-watercolor-drift",
     "title": "松散水彩漂流 / 湿画法抽象转绘",
     "category": "illustration",
